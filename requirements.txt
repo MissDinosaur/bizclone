@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+chromadb
+sentence-transformers
+python-dotenv
+pytest
+google-api-python-client
+google-auth
+google-auth-oauthlib
+python-multipart
