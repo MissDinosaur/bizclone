@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Knowledge Base Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 25px;
+            margin-bottom: 8px;
+        }
+
+        textarea,
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .button {
+            margin-top: 30px;
+            padding: 12px 24px;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .button:hover {
+            background-color: #1b5e20;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 5px solid #1976d2;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 6px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Knowledge Base Management</h2>
+
+    <div class="info-box">
+        Insert new knowledge entries or update existing ones.
+        These updates will directly affect the RAG retrieval system.
+    </div>
+
+    <form method="post" action="/kb/submit">
+        <label>Operation *</label>
+        <select name="operation"> 
+            <option value="update">Update Existing Entry</option>
+            <option value="insert">Insert New Entry</option>
+        </select>
+
+        <div class="form-group">
+            <label for="kb_field">Knowledge Category *</label>
+            <select name="kb_field" id="kb_field" required>
+                <option value="">-- Select Category --</option>
+                {% for field in kb_fields %}
+                    <option value="{{ field }}">{{ field|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <label>Customer Question Pattern (What question would customer ask?)</label>
+        <textarea name="customer_question" placeholder="Example: How much is emergency plumbing?" required></textarea>
+
+        <label>Standard Answer</label>
+        <textarea name="owner_correction" placeholder="Example: It costs €100/hour." required></textarea>
+
+        <button type="submit" class="button">Apply Update</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>
