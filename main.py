@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 # Email agent core
 from channels.email.email_agent import process_email
-from channels.email.email_watcher import EmailWatcher
+from channels.channel_polling_manager import ChannelPollingManager
 
 from api.kb_learning_api import router as learning_router
 from ui.kb_feedback_ui import router as feedback_ui_router
@@ -12,27 +12,53 @@ from ui.review_email_ui import router as review_router
 app = FastAPI(title="BizClone Email Agent MVP")
 
 # -----------------------------
-# Background Gmail Polling Agent
+# Channel Polling Configuration
+# (Enable/disable channels and set poll intervals here)
 # -----------------------------
-watcher = EmailWatcher(poll_interval=300)
+CHANNEL_CONFIG = {
+    "email": {
+        "enabled": True,
+        "poll_interval": 60  # 1 minute for testing (change to 300 for production)
+    },
+    "call": {
+        "enabled": False,  # Set to True when Call integration is ready
+        "poll_interval": 300  # 5 minutes
+    },
+    "teams": {
+        "enabled": False,  # Set to True when Teams integration is ready
+        "poll_interval": 300  # 5 minutes
+    },
+    "whatsapp": {
+        "enabled": False,  # Set to True when WhatsApp integration is ready
+        "poll_interval": 300  # 5 minutes
+    },
+    "facebook": {
+        "enabled": False,  # Set to True when Facebook integration is ready
+        "poll_interval": 300  # 5 minutes
+    },
+}
+
+polling_manager = ChannelPollingManager(config=CHANNEL_CONFIG)
+
 
 @app.on_event("startup")
 def startup_event():
     """
     When FastAPI launches:
-    start Gmail polling in background thread.
+    start all configured channel polling services in background threads.
     """
-    watcher.start()
+    polling_manager.start_all()
+    active_channels = polling_manager.list_active_channels()
+    print(f"Active channels: {', '.join(active_channels)}")
 
-# -----------------------------
-# Manual Email Processing Endpoint
-# -----------------------------
-@app.post("/email/process")
-def process_google_email(payload: dict):
+
+@app.on_event("shutdown")
+def shutdown_event():
     """
-    Manual endpoint for testing one email payload.
+    When FastAPI shuts down:
+    gracefully stop all channel watchers.
     """
-    return process_email(payload)
+    polling_manager.stop_all()
 
 # -----------------------------
 # Include routers

@@ -93,7 +93,10 @@ bizclone/
 │   │   └── email_agent.py          # End-to-end orchestrator of emial agent
 │   ├── teams/
 │   ├── call/
-│   └── whatsup/
+│   ├── facebook/
+│   ├── whatsup/
+│   ├── base_watcher.py
+│   └── channel_polling_manager.py
 |
 ├── knowledge_base/
 │   ├── learning/                # KB update + re-index
