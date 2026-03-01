@@ -46,14 +46,6 @@ def submit_kb_update(
         kb_field=kb_field,
         operation=operation
     )
-    
-    # {
-    #     "question_pattern": question_pattern,
-    #     "answer_text": answer_text,
-    #     "intent": intent,
-    #     "category": category,
-    #     "operation": operation  # insert or update
-    # }
 
     api_url = "http://localhost:8000/learning/feedback"
 

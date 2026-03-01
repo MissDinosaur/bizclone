@@ -1,13 +1,15 @@
 import os
 import base64
 from email.message import EmailMessage
+from dotenv import load_dotenv
 
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 import config.config as cfg
 
-ALLOWED_SENDER = "@stud.srh-university.de"
+load_dotenv()
+ALLOWED_SENDERS = os.getenv("ALLOWED_SENDERS", "").split(",")
 
 class GmailClient:
     """
@@ -83,7 +85,7 @@ class GmailClient:
             email_data = self._get_message(msg["id"])
             
             # Filter the Sender
-            if email_data.get("from") and ALLOWED_SENDER.lower() in email_data["from"].lower():
+            if email_data.get("from") and any(sender.lower() in email_data["from"].lower() for sender in ALLOWED_SENDERS):
                 emails.append(email_data)
 
                 # Mark as read after fetching
