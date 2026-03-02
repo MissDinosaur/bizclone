@@ -74,7 +74,12 @@ A simple Feedback UI instantly makes Learning Mode look like a real product:
 - KB updates + vector DB rebuild
 - Future answers improve
 
-
+## Common Modules (Need to Integrate)
+- Database
+- Knowledge Base
+- Rag
+- LLM
+- Scheduling
 
 ## Project Architecture
 ```text
