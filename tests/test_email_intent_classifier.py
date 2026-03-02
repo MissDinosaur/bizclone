@@ -1,3 +1,4 @@
+import pytest
 from channels.email.intent_classifier import IntentClassifier
 
 classifier = IntentClassifier()
@@ -14,3 +15,4 @@ result = classifier.predict_intent(email)
 
 print("Predicted Intent:", result["intent"])
 print("Confidence:", result["confidence"])
+assert result["intent"] in classifier.intent_labels
