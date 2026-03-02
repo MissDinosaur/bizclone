@@ -1,13 +1,13 @@
 import chromadb
 #from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
-import config.config as config
+import config.config as cfg
 from sentence_transformers import SentenceTransformer
 
 class VectorIndex:
     def __init__(self):
-        self.client = chromadb.PersistentClient(path=config.PERSIST_DIR)
+        self.client = chromadb.PersistentClient(path=cfg.PERSIST_DIR)
 
-        self.collection_name = config.COLLECTION_NAME
+        self.collection_name = cfg.COLLECTION_NAME
         # Create or load collection
         self.collection = self.client.get_or_create_collection(name=self.collection_name)
 
@@ -50,7 +50,7 @@ class VectorIndex:
 
         # Add documents
         if docs:
-            model = SentenceTransformer(config.TRANSFORMER)
+            model = SentenceTransformer(cfg.TRANSFORMER)
             embeddings = model.encode(docs).tolist()
             self.collection.add(
                 ids=ids,

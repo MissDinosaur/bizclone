@@ -16,7 +16,11 @@ templates = Jinja2Templates(directory="ui/templates")
 def kb_management_page(request: Request):
     """
     Business Owner Knowledge Base Management UI.
-    Used to manually insert or update KB entries.
+    Used to manually insert new KB entries or update existing ones.
+    
+    Operations:
+    - INSERT: Add completely new knowledge (service, policy, FAQ)
+    - UPDATE: Correct or modify existing knowledge based on customer feedback
     """
     KB_FIELDS = FeedbackEntry.get_kb_fields()
     return templates.TemplateResponse(
@@ -26,23 +30,32 @@ def kb_management_page(request: Request):
 
 
 # ----------------------------------
-# Submit KB Update
+# Submit KB Update or Insert
 # ----------------------------------
 @router.post("/kb/submit", response_class=HTMLResponse)
 def submit_kb_update(
     request: Request,
-    customer_question: str = Form(...),
-    owner_correction: str = Form(...),
     kb_field: str = Form(...),
-    operation: str = Form(...)
+    operation: str = Form(...),
+    customer_question: str = Form(None),
+    owner_correction: str = Form(None),
+    service_name: str = Form(None),
+    service_description: str = Form(None),
+    service_price: str = Form(None),
 ):
     """
-    Owner manually updates or inserts knowledge
+    Owner manually updates existing knowledge or inserts new knowledge
     into the system KB.
+    
+    For UPDATE/INSERT Service: service_name, service_description, service_price are used
+    For UPDATE/INSERT Policy/FAQ: customer_question, owner_correction are used
     """
     kb_entry = FeedbackEntry(
         customer_question=customer_question,
         owner_correction=owner_correction,
+        service_name=service_name,
+        service_description=service_description,
+        service_price=service_price,
         kb_field=kb_field,
         operation=operation
     )

@@ -1,13 +1,13 @@
 import chromadb
 from sentence_transformers import SentenceTransformer
-import config.config as config
+import config.config as cfg
 
 
 class EmailVectorStore:
-    def __init__(self, persist_dir=config.PERSIST_DIR):
+    def __init__(self, persist_dir=cfg.PERSIST_DIR):
         self.client = chromadb.PersistentClient(path=persist_dir)
-        self.collection = self.client.get_or_create_collection(config.COLLECTION_NAME)
-        self.model = SentenceTransformer(config.TRANSFORMER)
+        self.collection = self.client.get_or_create_collection(cfg.COLLECTION_NAME)
+        self.model = SentenceTransformer(cfg.TRANSFORMER)
 
     def add_documents(self, items):
         for item in items:

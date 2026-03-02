@@ -3,8 +3,6 @@ from channels.email.gmail_client import GmailClient
 from channels.email.email_agent import process_email
 from channels.email.review_store import save_review_context
 
-POLL_INTERVAL = 60  # 1 minute (change to 300 for 5 minutes in production)
-
 
 class EmailWatcher(BaseChannelWatcher):
     """
@@ -16,7 +14,7 @@ class EmailWatcher(BaseChannelWatcher):
     - send automated reply or hold for review
     """
 
-    def __init__(self, poll_interval=POLL_INTERVAL):
+    def __init__(self, poll_interval=300):
         super().__init__(channel_name="email", poll_interval=poll_interval)
         self.gmail = GmailClient()
 

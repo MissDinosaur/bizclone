@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from rag.vector_store import EmailVectorStore
 from knowledge_base.ingestion import load_email_kb
-import config.config as config
+import config.config as cfg
 
 
 class KnowledgeRetriever:
@@ -27,7 +27,7 @@ class KnowledgeRetriever:
         latest_kb_file = files[-1]
         latest_kb_path = os.path.join(kb_versions_dir, latest_kb_file)
         """
-        latest_kb_path = config.LATEST_KB_JSON_FILE_PATH
+        latest_kb_path = cfg.LATEST_KB_JSON_FILE_PATH
         print(f"Loading latest KB version: {latest_kb_path}")
 
         items = load_email_kb(latest_kb_path)

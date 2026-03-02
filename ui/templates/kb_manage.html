@@ -67,9 +67,91 @@
             padding: 15px;
             margin-bottom: 25px;
             border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .field-hint {
+            background: #f5f5f5;
+            border-left: 3px solid #ff9800;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
         }
 
     </style>
+    <script>
+        function updateFormFields() {
+            const operation = document.getElementById('operation').value;
+            const kb_field = document.getElementById('kb_field').value;
+            
+            // Show/hide service-specific fields
+            const serviceFieldsContainer = document.getElementById('service_fields_container');
+            const genericFieldsContainer = document.getElementById('generic_fields_container');
+            
+            if (kb_field === 'service') {
+                serviceFieldsContainer.style.display = 'block';
+                genericFieldsContainer.style.display = 'none';
+                updateServiceLabels(operation);
+            } else {
+                serviceFieldsContainer.style.display = 'none';
+                genericFieldsContainer.style.display = 'block';
+                updateGenericLabels(operation, kb_field);
+            }
+        }
+
+        function updateServiceLabels(operation) {
+            const nameLabel = document.getElementById('service_name_label');
+            const descLabel = document.getElementById('service_desc_label');
+            const priceLabel = document.getElementById('service_price_label');
+            const nameHint = document.getElementById('service_name_hint');
+            const descHint = document.getElementById('service_desc_hint');
+            const priceHint = document.getElementById('service_price_hint');
+
+            if (operation === 'update') {
+                nameLabel.textContent = 'Service Name *';
+                descLabel.textContent = 'Updated Description';
+                priceLabel.textContent = 'Updated Price';
+                nameHint.textContent = 'Example: "emergency_plumbing"';
+                descHint.textContent = 'Example: "24/7 urgent plumbing support with priority response"';
+                priceHint.textContent = 'Example: "€120 per hour"';
+            } else if (operation === 'insert') {
+                nameLabel.textContent = 'New Service Name *';
+                descLabel.textContent = 'Service Description *';
+                priceLabel.textContent = 'Service Price *';
+                nameHint.textContent = 'Example: "roof_leak_repair" (use underscores for multi-word names)';
+                descHint.textContent = 'Example: "Professional roof leak detection and repair services"';
+                priceHint.textContent = 'Example: "€140 per hour"';
+            }
+        }
+
+        function updateGenericLabels(operation, kb_field) {
+            const field1Label = document.getElementById('generic_field1_label');
+            const field2Label = document.getElementById('generic_field2_label');
+            const field1Hint = document.getElementById('generic_field1_hint');
+            const field2Hint = document.getElementById('generic_field2_hint');
+
+            if (operation === 'update') {
+                field1Label.textContent = 'Customer Question Pattern *';
+                field2Label.textContent = 'Corrected Answer *';
+                field1Hint.textContent = 'Example: "How much is emergency plumbing?"';
+                field2Hint.textContent = 'Example: "It costs €120/hour"';
+            } else if (operation === 'insert') {
+                if (kb_field === 'policy') {
+                    field1Label.textContent = 'Policy Name *';
+                    field2Label.textContent = 'Policy Text *';
+                    field1Hint.textContent = 'Example: "Warranty policy"';
+                    field2Hint.textContent = 'Example: "We provide 30-day warranty on all parts..."';
+                } else if (kb_field === 'faq') {
+                    field1Label.textContent = 'Customer Question *';
+                    field2Label.textContent = 'Standard Answer *';
+                    field1Hint.textContent = 'Example: "Do you offer weekend appointments?"';
+                    field2Hint.textContent = 'Example: "Yes, emergency services available 24/7..."';
+                }
+            }
+        }
+    </script>
 </head>
 <body>
 
@@ -78,20 +160,21 @@
     <h2>Knowledge Base Management</h2>
 
     <div class="info-box">
-        Insert new knowledge entries or update existing ones.
-        These updates will directly affect the RAG retrieval system.
+        <strong>Insert</strong> new knowledge entries or <strong>update</strong> existing ones.
+        These changes will directly affect the RAG retrieval system and agent responses.
     </div>
 
     <form method="post" action="/kb/submit">
-        <label>Operation *</label>
-        <select name="operation"> 
+        
+        <label for="operation">Operation *</label>
+        <select name="operation" id="operation" onchange="updateFormFields()" required> 
             <option value="update">Update Existing Entry</option>
             <option value="insert">Insert New Entry</option>
         </select>
 
         <div class="form-group">
             <label for="kb_field">Knowledge Category *</label>
-            <select name="kb_field" id="kb_field" required>
+            <select name="kb_field" id="kb_field" onchange="updateFormFields()" required>
                 <option value="">-- Select Category --</option>
                 {% for field in kb_fields %}
                     <option value="{{ field }}">{{ field|capitalize }}</option>
@@ -99,17 +182,42 @@
             </select>
         </div>
 
-        <label>Customer Question Pattern (What question would customer ask?)</label>
-        <textarea name="customer_question" placeholder="Example: How much is emergency plumbing?" required></textarea>
+        <!-- SERVICE-SPECIFIC FIELDS -->
+        <div id="service_fields_container" style="display: none;">
+            <label id="service_name_label">New Service Name *</label>
+            <input type="text" name="service_name" placeholder="Example: roof_leak_repair">
+            <div class="field-hint" id="service_name_hint">Example: "roof_leak_repair" (use underscores for multi-word names)</div>
 
-        <label>Standard Answer</label>
-        <textarea name="owner_correction" placeholder="Example: It costs €100/hour." required></textarea>
+            <label id="service_desc_label">Service Description *</label>
+            <textarea name="service_description" placeholder="Detailed description of the service..." style="min-height: 120px;"></textarea>
+            <div class="field-hint" id="service_desc_hint">Example: "Professional roof leak detection and repair services"</div>
 
-        <button type="submit" class="button">Apply Update</button>
+            <label id="service_price_label">Service Price *</label>
+            <input type="text" name="service_price" placeholder="Example: €140 per hour">
+            <div class="field-hint" id="service_price_hint">Example: "€140 per hour"</div>
+        </div>
+
+        <!-- GENERIC FIELDS (Policy & FAQ) -->
+        <div id="generic_fields_container">
+            <label id="generic_field1_label">Customer Question Pattern *</label>
+            <textarea name="customer_question" placeholder="Example: How much is emergency plumbing?" style="min-height: 100px;"></textarea>
+            <div class="field-hint" id="generic_field1_hint">Example: "How much is emergency plumbing?"</div>
+
+            <label id="generic_field2_label">Corrected Answer *</label>
+            <textarea name="owner_correction" placeholder="Example: It costs €120/hour." style="min-height: 100px;"></textarea>
+            <div class="field-hint" id="generic_field2_hint">Example: "It costs €120/hour"</div>
+        </div>
+
+        <button type="submit" class="button">Apply Changes</button>
 
     </form>
 
 </div>
+
+<script>
+    // Initialize form on page load
+    updateFormFields();
+</script>
 
 </body>
 </html>

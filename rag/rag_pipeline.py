@@ -1,6 +1,6 @@
 from rag.retriever import KnowledgeRetriever
 from llm_engine.llm_client import LLMClient
-import config.config as config
+import config.config as cfg
 
 class EmailRAGPipeline:
     """
@@ -41,7 +41,7 @@ class EmailRAGPipeline:
         # Step 3: Build LLM prompt
         # -----------------------------
         prompt = f"""
-You are BizClone, an AI email assistant for a {config.BUSINESS_DOMAIN} business.
+You are BizClone, an AI email assistant for a {cfg.BUSINESS_DOMAIN} business.
 
 Customer email:
 \"\"\"{customer_email}\"\"\"
@@ -66,6 +66,6 @@ Only write the email body.
         # -----------------------------
         # Step 4: Generate reply via LLM
         # -----------------------------
-        reply = self.llm.generate(prompt) + "\n\n" + config.COMPANY_SIGNATURE
+        reply = self.llm.generate(prompt) + "\n\n" + cfg.COMPANY_SIGNATURE
         
         return reply, retrieved_docs

@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime
-import config.config as config
+import config.config as cfg
 
 
 class FeedbackStore:
@@ -9,9 +9,9 @@ class FeedbackStore:
     Stores all owner corrections for supervised learning traceability.
     """
 
-    def __init__(self, path=config.UPDATES_LOG_PATH):
+    def __init__(self, path=cfg.UPDATES_LOG_PATH):
         self.path = path
-        os.makedirs(config.KB_UPDATES, exist_ok=True)
+        os.makedirs(cfg.KB_UPDATES, exist_ok=True)
 
     def save(self, feedback_entry: dict):
         record = {

@@ -26,8 +26,13 @@ class LearningMode:
         self.store.save(feedback_entry)
 
         # Step 2: Update KB JSON
-        updated_kb = self.updater.apply_update(feedback_entry=feedback_entry)
-
+        if feedback_entry.get("operation") == "update":
+            print("Updating knowledge base.")
+            updated_kb = self.updater.apply_update(feedback_entry=feedback_entry)
+        elif feedback_entry.get("operation") == "insert":
+            print("Inserting new entry into knowledge base.")
+            updated_kb = self.updater.apply_insert(feedback_entry=feedback_entry)
+            
         # Step 3: Rebuild vector DB so RAG uses new knowledge
         self.vector_index.rebuild_index(updated_kb)
 

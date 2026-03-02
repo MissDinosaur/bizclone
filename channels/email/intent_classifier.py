@@ -1,5 +1,5 @@
 from transformers import pipeline
-import config.config as config
+import config.config as cfg
 
 
 class IntentClassifier:
@@ -13,12 +13,12 @@ class IntentClassifier:
 
         # Define BizClone email intents
         self.intent_labels = [
-            config.PRICE_INQUERY,
-            config.APPOINTMENT,
-            config.CANCELLATION,
-            config.WORKING_HOUR,
-            config.EMERGENCY,
-            config.FAQ
+            cfg.PRICE_INQUERY,
+            cfg.APPOINTMENT,
+            cfg.CANCELLATION,
+            cfg.WORKING_HOUR,
+            cfg.EMERGENCY,
+            cfg.FAQ
         ]
 
     def predict_intent(self, email_text: str):

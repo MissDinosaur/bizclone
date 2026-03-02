@@ -1,25 +1,27 @@
 from pydantic import BaseModel
-from typing import Literal
+from typing import Literal, Optional
 
 
 class FeedbackEntry(BaseModel):
     """
-    Owner correction feedback.
-    We store full feedback context (question, agent reply, correction, intent) 
-    to support auditability and future model fine-tuning.
-
-    Example:
-    - Question: "How much is emergency plumbing?"
-    - Agent Answer: "Emergency plumbing costs €100/hour"
-    - Owner Correction: "No, it's €120/hour"
+    Owner feedback entry for updating or inserting KB knowledge.
+    
+    For SERVICE: service_name, service_description, service_price are used
+    For POLICY/FAQ: customer_question, owner_correction are used
     """
 
-    customer_question: str
-    owner_correction: str
-    kb_field: Literal["pricing", "policy", "faq"]
+    # Generic fields (used for policy and faq)
+    customer_question: Optional[str] = None
+    owner_correction: Optional[str] = None
+    
+    # Service-specific fields (used when kb_field="service")
+    service_name: Optional[str] = None
+    service_description: Optional[str] = None
+    service_price: Optional[str] = None
+    
+    kb_field: Literal["service", "policy", "faq"]
     operation: Literal["update", "insert"]
-    # agent_reply: str
-    #     
+  
     @classmethod
     def get_kb_fields(cls):
         return cls.model_fields["kb_field"].annotation.__args__

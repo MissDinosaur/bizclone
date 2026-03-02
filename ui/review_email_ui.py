@@ -54,18 +54,6 @@ def submit_review(
         thread_id=thread_id,
         message_id=message_id
     )
-    # If modified → update KB
-    # if owner_correction.strip():
-    #     requests.post(
-    #         "http://localhost:8000/learning/feedback",
-    #         json={
-    #             "customer_question": customer_question,
-    #             "agent_reply": agent_reply,
-    #             "owner_correction": owner_correction,
-    #             "intent": intent,
-    #             "kb_field": kb_field
-    #         }
-    #     )
 
     clear_review_context()
 

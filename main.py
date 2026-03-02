@@ -64,5 +64,5 @@ def shutdown_event():
 # Include routers
 # -----------------------------
 app.include_router(learning_router)       # Core Learning API, updating KB
-app.include_router(feedback_ui_router)    # Owner Feedback UI
+app.include_router(feedback_ui_router)    # Owner Correct the KB via UI
 app.include_router(review_router)

@@ -119,8 +119,8 @@ bizclone/
 ├── llm_engine/
 │   └── llm_client.py
 │
-│── calendar/
-│   └── scheduler.py              # Shared integration layer
+│── scheduling/                  # Shared appointment integration layer
+│   └── scheduler.py
 │
 └── tests/
 │   └── test_email_agent.py

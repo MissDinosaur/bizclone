@@ -3,7 +3,7 @@ from channels.email.intent_classifier import IntentClassifier
 
 from rag.rag_pipeline import EmailRAGPipeline
 from scheduling.scheduler import check_availability, book_slot
-import config.config as config
+import config.config as cfg
 
 """ Email Agent Orchestrator (End-to-End Brain) """
 
@@ -38,7 +38,7 @@ def process_email(email_payload: dict):
     # Step 3: Scheduling Logic (Optional)
     # -----------------------------
     booking = None
-    if intent == config.APPOINTMENT:
+    if intent == cfg.APPOINTMENT:
         slots = check_availability()
         booking = book_slot(email_payload["from"], slots[0])
 
@@ -48,7 +48,7 @@ def process_email(email_payload: dict):
     reply_text, retrieved_docs = rag.generate_email_reply(customer_email=text, intent=intent, booking=booking)
 
     # Emergency emails require owner review
-    if intent == config.EMERGENCY:
+    if intent == cfg.EMERGENCY:
         return {
             "channel": "email",
             "status": "needs_review",

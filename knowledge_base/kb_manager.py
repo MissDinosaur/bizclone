@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime
-import config.config as config
+import config.config as cfg
 
 
 class KnowledgeBaseManager:
@@ -9,10 +9,10 @@ class KnowledgeBaseManager:
     Manages structured KB storage + versioning.
     """
 
-    def __init__(self, kb_path=config.LATEST_KB_JSON_FILE_PATH):
+    def __init__(self, kb_path=cfg.LATEST_KB_JSON_FILE_PATH):
         self.kb_path = kb_path
 
-        os.makedirs(config.KB_VERSIONS_DIR, exist_ok=True)
+        os.makedirs(cfg.KB_VERSIONS_DIR, exist_ok=True)
 
     def load_kb(self):
         with open(self.kb_path, "r", encoding="utf-8") as f:
@@ -42,7 +42,7 @@ class KnowledgeBaseManager:
             return
 
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        backup_path = f"{config.KB_VERSIONS_DIR}/email_kb_{timestamp}.json"
+        backup_path = f"{cfg.KB_VERSIONS_DIR}/email_kb_{timestamp}.json"
 
         with open(self.kb_path, "r", encoding="utf-8") as f:
             old_data = f.read()
