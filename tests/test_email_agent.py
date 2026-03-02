@@ -11,8 +11,7 @@ def test_email_pipeline():
 
     result = process_email(payload)
 
-    assert "intent" in result
-    assert result["intent"] in [
+    assert result.intent in [
             cfg.PRICE_INQUERY,
             cfg.APPOINTMENT,
             cfg.CANCELLATION,
@@ -20,4 +19,4 @@ def test_email_pipeline():
             cfg.EMERGENCY,
             cfg.FAQ
         ]
-    assert "reply" in result
+    assert result.status in ["auto_send", "needs_review", "failed"]
