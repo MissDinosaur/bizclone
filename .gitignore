@@ -1,6 +1,8 @@
 config/gmail/
 data/
 venv310/
+logs/
+.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

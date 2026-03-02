@@ -1,40 +1,48 @@
 from fastapi import FastAPI
+import logging
+
+# Initialize logging first
+import logger_config
+logger = logger_config.get_logger(__name__)
 
 # Email agent core
-from channels.email.email_agent import process_email
 from channels.channel_polling_manager import ChannelPollingManager
-
 from api.kb_learning_api import router as learning_router
 from ui.kb_feedback_ui import router as feedback_ui_router
 from ui.review_email_ui import router as review_router
+from config.config import APP_TITLE, HOST, PORT
+import os
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
 
-app = FastAPI(title="BizClone Email Agent MVP")
+app = FastAPI(title=APP_TITLE)
 
-# -----------------------------
+# =============================
 # Channel Polling Configuration
-# (Enable/disable channels and set poll intervals here)
-# -----------------------------
+# (Enable/disable channels via .env file)
+# =============================
 CHANNEL_CONFIG = {
     "email": {
-        "enabled": True,
-        "poll_interval": 60  # 1 minute for testing (change to 300 for production)
+        "enabled": os.getenv("CHANNEL_EMAIL_ENABLED", "True").lower() == "true",
+        "poll_interval": int(os.getenv("CHANNEL_EMAIL_POLL_INTERVAL", 60))
     },
     "call": {
-        "enabled": False,  # Set to True when Call integration is ready
-        "poll_interval": 300  # 5 minutes
+        "enabled": os.getenv("CHANNEL_CALL_ENABLED", "False").lower() == "true",
+        "poll_interval": int(os.getenv("CHANNEL_CALL_POLL_INTERVAL", 300))
     },
     "teams": {
-        "enabled": False,  # Set to True when Teams integration is ready
-        "poll_interval": 300  # 5 minutes
+        "enabled": os.getenv("CHANNEL_TEAMS_ENABLED", "False").lower() == "true",
+        "poll_interval": int(os.getenv("CHANNEL_TEAMS_POLL_INTERVAL", 300))
     },
     "whatsapp": {
-        "enabled": False,  # Set to True when WhatsApp integration is ready
-        "poll_interval": 300  # 5 minutes
+        "enabled": os.getenv("CHANNEL_WHATSAPP_ENABLED", "False").lower() == "true",
+        "poll_interval": int(os.getenv("CHANNEL_WHATSAPP_POLL_INTERVAL", 300))
     },
     "facebook": {
-        "enabled": False,  # Set to True when Facebook integration is ready
-        "poll_interval": 300  # 5 minutes
+        "enabled": os.getenv("CHANNEL_FACEBOOK_ENABLED", "False").lower() == "true",
+        "poll_interval": int(os.getenv("CHANNEL_FACEBOOK_POLL_INTERVAL", 300))
     },
 }
 
@@ -49,7 +57,7 @@ def startup_event():
     """
     polling_manager.start_all()
     active_channels = polling_manager.list_active_channels()
-    print(f"Active channels: {', '.join(active_channels)}")
+    logger.info(f"Application started | Active channels: {', '.join(active_channels) if active_channels else 'None'}")
 
 
 @app.on_event("shutdown")
@@ -59,10 +67,12 @@ def shutdown_event():
     gracefully stop all channel watchers.
     """
     polling_manager.stop_all()
+    logger.info("Application shutdown complete")
 
-# -----------------------------
+# =============================
 # Include routers
-# -----------------------------
+# =============================
 app.include_router(learning_router)       # Core Learning API, updating KB
 app.include_router(feedback_ui_router)    # Owner Correct the KB via UI
 app.include_router(review_router)
+

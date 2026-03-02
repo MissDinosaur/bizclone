@@ -4,7 +4,10 @@ Provides common polling logic for all input channels (Email, Teams, WhatsApp, et
 """
 import time
 import threading
+import logging
 from abc import ABC, abstractmethod
+
+logger = logging.getLogger(__name__)
 
 
 class BaseChannelWatcher(ABC):
@@ -28,13 +31,13 @@ class BaseChannelWatcher(ABC):
         Start watcher in a separate daemon thread.
         """
         if self.running:
-            print(f"{self.channel_name.title()}Watcher already running.")
+            logger.warning(f"{self.channel_name.title()} watcher already running")
             return
 
         self.running = True
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
-        print(f"{self.channel_name.title()}Watcher started (poll interval: {self.poll_interval}s)...")
+        logger.info(f"{self.channel_name.title()} watcher started (poll interval: {self.poll_interval}s)")
 
     def stop(self):
         """
@@ -43,7 +46,7 @@ class BaseChannelWatcher(ABC):
         self.running = False
         if self._thread:
             self._thread.join(timeout=5)
-        print(f"{self.channel_name.title()}Watcher stopped.")
+        logger.info(f"{self.channel_name.title()} watcher stopped")
 
     def _run_loop(self):
         """
@@ -55,14 +58,14 @@ class BaseChannelWatcher(ABC):
                 messages = self.fetch_unread_messages()
 
                 if messages:
-                    print(f"[{self.channel_name.upper()}] Found {len(messages)} new message(s).")
+                    logger.debug(f"{self.channel_name.upper()} found {len(messages)} new message(s)")
                     for message in messages:
                         self.process_message(message)
                 else:
-                    print(f"[{self.channel_name.upper()}] No new messages.")
+                    logger.debug(f"{self.channel_name.upper()} no new messages")
 
             except Exception as e:
-                print(f"[{self.channel_name.upper()}] Watcher Error: {str(e)}")
+                logger.error(f"{self.channel_name.upper()} watcher error: {str(e)}", exc_info=True)
 
             # Wait before next poll
             time.sleep(self.poll_interval)

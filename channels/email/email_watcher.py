@@ -1,7 +1,10 @@
+import logging
 from channels.base_watcher import BaseChannelWatcher
 from channels.email.gmail_client import GmailClient
 from channels.email.email_agent import process_email
 from channels.email.review_store import save_review_context
+
+logger = logging.getLogger(__name__)
 
 
 class EmailWatcher(BaseChannelWatcher):
@@ -32,34 +35,33 @@ class EmailWatcher(BaseChannelWatcher):
         Args:
             email: Email dictionary with keys: from, subject, body, thread_id, message_id
         """
-        print("Processing email from:", email["from"])
+        logger.info(f"email - processing message from {email['from']}")
 
         # Run BizClone Email Agent pipeline
         result = process_email(email)
-        print("Customer email has been parsed.")
 
         # Case 1: Emergency → Block and require review
-        if result["status"] == "needs_review":
-            print("Emergency email detected. Awaiting owner review...")
+        if result.status == "needs_review":
+            logger.warning(f"email - emergency detected from {email['from']}", extra={"channel": "email"})
             save_review_context({
                 "customer_email": email["from"],
-                "customer_question": result["customer_question"],
-                "agent_reply": result["reply"],
+                "customer_question": email["body"],
+                "agent_reply": result.reply,
                 "subject": email["subject"],
                 "thread_id": email["thread_id"],
                 "message_id": email["message_id"]
             })
-            print("Review available at: http://localhost:8000/review")
+            logger.info(f"email - review required for {email['from']}")
+            logger.info(f"Please review the response for {email['from']} at: http://localhost:8000/review")
             return
 
         # Case 2: Auto-send normal email
-        if result["status"] == "auto_send":
-            print("Not Emergency email. Will send email reply directly")
+        if result.status == "auto_send":
             self.gmail.send_email_reply(
                 to_email=email["from"],
                 subject=email["subject"],
-                body=result["reply"],
+                body=result.reply,
                 thread_id=email["thread_id"],
                 message_id=email["message_id"]
             )
-            print("Reply sent successfully.")
+            logger.info(f"email - reply sent to {email['from']}")

@@ -1,19 +1,21 @@
 """
 Channel Polling Manager
 
-Orchestrates polling for multiple input channels (Email, Teams, WhatsApp, Call, Facebook, etc.)
+Orchestrates polling for multiple input channels (Email, Teams, WhatsApp, Call, Facebook.)
 """
+import logging
 from channels.email.email_watcher import EmailWatcher
 from channels.call.call_watcher import CallWatcher
 from channels.teams.teams_watcher import TeamsWatcher
 from channels.whatsapp.whatsapp_watcher import WhatsAppWatcher
 from channels.facebook.facebook_watcher import FacebookWatcher
 
+logger = logging.getLogger(__name__)
+
 
 class ChannelPollingManager:
     """
     Manages all channel watchers and their lifecycle.
-    
     Usage:
         manager = ChannelPollingManager()
         manager.start_all()  # At app startup
@@ -23,9 +25,8 @@ class ChannelPollingManager:
     def __init__(self, config: dict = None):
         """
         Initialize the polling manager.
-        
         Args:
-            config: Optional configuration dict with channel settings
+            config: Optional configuration dict with channel settings. Sample format:
                 {
                     "email": {"enabled": True, "poll_interval": 300},
                     "call": {"enabled": False, "poll_interval": 300},
@@ -81,30 +82,29 @@ class ChannelPollingManager:
         Called during FastAPI startup event.
         """
         if not self.watchers:
-            print("No channel watchers configured.")
+            logger.warning("No channel watchers configured")
             return
 
-        print(f"Starting {len(self.watchers)} channel watcher(s)...")
+        logger.info(f"Starting {len(self.watchers)} channel watcher(s)...")
         for channel_name, watcher in self.watchers.items():
             watcher.start()
-        print("All channel watchers started.")
+        logger.info("All channel watchers started")
 
     def stop_all(self):
         """
         Stop all channel watchers gracefully.
         Called during FastAPI shutdown event.
         """
-        print("Stopping all channel watchers...")
+        logger.info("Stopping all channel watchers...")
         for channel_name, watcher in self.watchers.items():
             watcher.stop()
-        print("All channel watchers stopped.")
+        logger.info("All channel watchers stopped")
 
     def get_watcher(self, channel_name: str):
         """
         Get a specific watcher by channel name.
         Args:
-            channel_name: Name of the channel (e.g., "email", "teams")
-            
+            channel_name: Name of the channel (e.g., "email", "teams") 
         Returns:
             BaseChannelWatcher or None if not found
         """
