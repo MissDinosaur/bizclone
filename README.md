@@ -1,6 +1,6 @@
 # bizclone
 
-## bizclone-email-agent
+### bizclone-email-agent
 A complete Email Agent microservice with its own knowledge base and retrieval system.
 
 The assistant learns the business owner’s style and policies, then autonomously handles customer interactions across channels.
@@ -13,7 +13,7 @@ Gmail Inbox → Email Agent → Router → KB/RAG → Response → Send back via
 
 
 
-### Workflow:
+#### Workflow:
 ```text
 Incoming Email
      ↓
@@ -43,7 +43,7 @@ Feedback → KB Version Update
 - Test skeleton
 - Integration-ready architecture
 
-### Technologies Used
+#### Technologies Used
 - Programming Language: Python 3.10+
 - Backend Framework: FastAPI, Uvicorn
 - AI & NLP: SentenceTransformers, Retrieval-Augmented Generation (RAG)
@@ -137,7 +137,7 @@ bizclone/
 | Feedback UI  | `/feedback`          | Owner supervision demo |
 
 
-### Set up
+## Set up
 1. Clone the repository:
    ```bash
    git clone <repository-url>
@@ -170,8 +170,52 @@ bizclone/
    ```bash
    pip install -r requirements.txt
    ```
-5. Run the command to trigger the program
-    ```python
+
+5. Configuration: All sensitive configurations are managed in `.env` file:
+    ```bash
+    # Copy template to create your own
+    cp .env.example .env
+    ```
+
+6. Run the command to trigger the program
+    ```bash
     uvicorn main:app --reload
     ```
-    After program is triggered, for email agent, the Owner can open Feedback UI Page to correct the KB: http://localhost:8000/feedback
+    After program is triggered, the Owner can open:
+    - **Feedback UI** (KB Management): http://localhost:8000/feedback
+    - **Email Review UI** (Emergency emails): http://localhost:8000/review
+    - **API Documentation**: http://localhost:8000/docs
+
+
+## API Schemas
+All channel responses (Email, Teams, WhatsApp, Call, Facebook) follow a unified Pydantic schema:
+
+```json
+{
+  "channel": "email",
+  "status": "auto_send",
+  "intent": "appointment_booking_request",
+  "reply": "Your scheduled appointment for March 5 at 10:00 AM...",
+  "booking": {
+    "id": "BK20260302100000001",
+    "slot": "2026-03-05 10:00",
+    "customer_email": "customer@example.com",
+    "status": "confirmed"
+  },
+  "error_code": null,
+  "error_message": null
+}
+```
+
+**Status Values:**
+- `auto_send` - Ready to send automatically
+- `needs_review` - Requires owner review (emergency cases)
+- `failed` - Processing failed
+
+**Intent Types:**
+- `pricing_inquiry`
+- `appointment_booking_request`
+- `cancellation_request`
+- `business_hours_question`
+- `emergency_service_request`
+- `general_faq_question`
