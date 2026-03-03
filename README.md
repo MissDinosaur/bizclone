@@ -81,6 +81,21 @@ A simple Feedback UI instantly makes Learning Mode look like a real product:
 - LLM
 - Scheduling
 
+## Channel Integration
+
+To integrate a new channel (Teams, WhatsApp, Telegram, etc.) into the multi-channel system:
+
+**See: [CHANNEL_INTEGRATION.md](./CHANNEL_INTEGRATION.md)** for complete step-by-step guide.
+
+The guide includes:
+- Architecture overview
+- Channel component structure
+- Step-by-step implementation for new channels
+- Response schema requirements
+- Testing patterns
+- Debugging tips
+- Integration checklist
+
 ## Project Architecture
 ```text
 bizclone/
@@ -127,8 +142,7 @@ bizclone/
 │── scheduling/                  # Shared appointment integration layer
 │   └── scheduler.py
 │
-└── tests/
-│   └── test_email_agent.py
+│── tests/
 │
 ├── main.py                       # Program entrance
 ├── requirements.txt
