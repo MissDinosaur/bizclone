@@ -3,6 +3,7 @@ from channels.email.parser import parse_email
 from channels.email.intent_classifier import IntentClassifier
 from rag.rag_pipeline import EmailRAGPipeline
 from scheduling.scheduler import check_availability, book_slot
+from knowledge_base.email_history_store import EmailHistoryStore
 from channels.schemas import ChannelMessageResponseSchema, IntentType, MessageStatus, BookingResponseSchema
 import config.config as cfg
 
@@ -42,6 +43,7 @@ class EmailAgent:
     def __init__(self):
         self.rag = EmailRAGPipeline()
         self.intent_model = IntentClassifier()
+        self.email_store = EmailHistoryStore()
 
     def process_email(self, email_payload: dict) -> ChannelMessageResponseSchema:
         """
@@ -55,6 +57,19 @@ class EmailAgent:
         # Step 1: Parse email payload
         parsed = parse_email(email_payload)
         text = parsed["text"]
+        customer_email = email_payload["from"]
+        subject = email_payload.get("subject", "(no subject)")
+
+        # Step 1: Save incoming email to history
+        self.email_store.save_email(
+            customer_email=customer_email,
+            sender_category="customer",
+            subject=subject,
+            body=text,
+            our_reply=None,  # Will add this later
+            intent=None,  # Will set after detection
+            channel="email"
+        )
 
         # Step 2: Intent Detection (NLP)
         intent_result = self.intent_model.predict_intent(text)
@@ -65,7 +80,7 @@ class EmailAgent:
         booking = None
         booking_response = None
         if intent == cfg.APPOINTMENT:
-            booking = self._handle_booking_request(email_payload["from"], text)
+            booking = self._handle_booking_request(customer_email, text)
             if booking and booking.get("status") == "confirmed":
                 booking_response = BookingResponseSchema(
                     id=booking["id"],
@@ -84,9 +99,21 @@ class EmailAgent:
             booking=booking
         )
         
+        # Step 5: Save the generated reply to history (for outgoing emails)
+        self.email_store.save_email(
+            customer_email=customer_email,
+            sender_category="support",
+            subject=f"Re: {subject}",
+            body=reply_text,
+            our_reply=reply_text,
+            intent=intent,
+            channel="email"
+        )
+        logger.debug(f"email - saved reply history for {customer_email}")
+        
         # Emergency emails require owner review
         if intent == cfg.EMERGENCY:
-            logger.warning(f"email - emergency detected from {email_payload['from']}", extra={"channel": "email"})
+            logger.warning(f"email - emergency detected from {customer_email}", extra={"channel": "email"})
             return ChannelMessageResponseSchema(
                 channel="email",
                 status=MessageStatus.NEEDS_REVIEW,
