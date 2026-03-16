@@ -13,7 +13,7 @@ from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 
-from knowledge_base.email_history_models import Base, EmailHistory
+from database.orm_models import EmailHistory
 
 logger = logging.getLogger(__name__)
 
@@ -21,34 +21,34 @@ logger = logging.getLogger(__name__)
 class EmailHistoryStore:
     """Manages email history storage and retrieval."""
     
-    def __init__(self, db_path: str = None):
+    def __init__(self, db_url: str = None):
         """
-        Initialize the email history store.
+        Initialize the email history store with PostgreSQL.
         Args:
-            db_path: Path to SQLite database file.
-                    Defaults to 'data/bizclone.db' or DATABASE_URL env var.
+            db_url: PostgreSQL connection URL.
+                   Defaults to DATABASE_URL environment variable (required).
+        Raises:
+            ValueError: If DATABASE_URL is not set or not a valid PostgreSQL URL.
         """
-        if db_path is None:
-            # Try to use DATABASE_URL from environment, fall back to default
-            db_url = os.getenv("DATABASE_URL", "sqlite:///data/bizclone.db")
-            if db_url.startswith("sqlite"):
-                # Extract path from sqlite:///path format
-                db_path = db_url.replace("sqlite:///", "")
-            else:
-                db_path = "data/bizclone.db"
+        if db_url is None:
+            db_url = os.getenv("DATABASE_URL")
+            if not db_url:
+                raise ValueError(
+                    "DATABASE_URL environment variable is required and must be set. "
+                    "Example: postgresql://user:password@host:5432/database"
+                )
         
-        # Ensure data directory exists
-        os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
+        if not db_url.startswith("postgresql://") and not db_url.startswith("postgres://"):
+            raise ValueError(
+                f"Invalid database URL. Only PostgreSQL is supported. "
+                f"Got: {db_url[:50]}..."
+            )
         
         # Initialize database engine
-        db_url = f"sqlite:///{db_path}"
         self.engine = create_engine(db_url, echo=False)
-        
-        # Create tables if they don't exist
-        Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
         
-        logger.info(f"EmailHistoryStore initialized with database: {db_path}")
+        logger.info("EmailHistoryStore initialized with PostgreSQL database")
     
     def save_email(self, customer_email: str, sender_category: str, subject: str,
                    body: str, our_reply: str = None, intent: str = None,
@@ -99,16 +99,58 @@ class EmailHistoryStore:
         finally:
             session.close()
     
-    def get_customer_history(self, customer_email: str, limit: int = 5,
-                           channel: str = None) -> list:
+    def update_email_reply(self, customer_email: str, subject: str, updated_reply: str) -> bool:
         """
-        Retrieve email history for a customer.
+        Update the reply for a specific email conversation.
+        Used when owner modifies the AI-generated reply before sending.
         
         Args:
             customer_email: Customer's email address
-            limit: Maximum number of recent emails to retrieve
-            channel: Optional filter by channel (e.g., "email", "whatsapp")
+            subject: Email subject (to identify the conversation)
+            our_reply: Updated reply text
         
+        Returns:
+            True if updated successfully, False otherwise
+        """
+        session = self.Session()
+        try:
+            # Find the most recent email with this subject and customer
+            email = session.query(EmailHistory)\
+                .filter(EmailHistory.customer_email == customer_email)\
+                .filter(EmailHistory.subject == subject)\
+                .order_by(desc(EmailHistory.timestamp))\
+                .first()
+            
+            if not email:
+                logger.warning(
+                    f"Email not found for {customer_email} with subject '{subject}'"
+                )
+                return False
+            
+            # Update the reply
+            email.our_reply = updated_reply
+            session.commit()
+            
+            logger.debug(f"Updated reply for email from {customer_email}")
+            return True
+            
+        except SQLAlchemyError as e:
+            logger.error(f"Database error updating email reply: {str(e)}")
+            session.rollback()
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error updating email reply: {str(e)}")
+            session.rollback()
+            return False
+        finally:
+            session.close()
+    
+    def get_customer_history(self, customer_email: str, limit: int = 5) -> list:
+        """
+        Retrieve email history for a customer.
+        Args:
+            customer_email: Customer's email address
+            limit: Maximum number of recent emails to retrieve
         Returns:
             List of email records (dicts) in chronological order,
             or empty list if none found or error occurred
@@ -117,9 +159,7 @@ class EmailHistoryStore:
         try:
             query = session.query(EmailHistory)\
                 .filter(EmailHistory.customer_email == customer_email)
-            
-            if channel:
-                query = query.filter(EmailHistory.channel == channel)
+            query = query.filter(EmailHistory.channel == "email")
             
             emails = query\
                 .order_by(desc(EmailHistory.timestamp))\
@@ -146,11 +186,9 @@ class EmailHistoryStore:
     def get_conversation_for_prompt(self, customer_email: str, limit: int = 5) -> str:
         """
         Get formatted email history for use in LLM prompts.
-        
         Args:
             customer_email: Customer's email address
             limit: Maximum number of recent emails
-        
         Returns:
             Formatted string with conversation history suitable for LLM prompt
         """

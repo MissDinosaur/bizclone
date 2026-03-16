@@ -19,11 +19,11 @@ class EmailRAGPipeline:
         self.llm = LLMClient()
         self.email_store = EmailHistoryStore()
 
-    def generate_email_reply(self, customer_email: str, intent: str, booking=None):
+    def generate_email_reply(self, customer_email: str, body: str, intent: str, booking=None):
         """
         Generate an email reply draft using:
-
-        - customer email text
+        - customer email address
+        - body of the email
         - predicted intent
         - retrieved business knowledge
         - email conversation history (previous interactions)
@@ -33,7 +33,7 @@ class EmailRAGPipeline:
         # -----------------------------
         # Step 1: Retrieve KB context
         # -----------------------------
-        retrieved_docs = self.retriever.retrieve(customer_email)
+        retrieved_docs = self.retriever.retrieve(body)
         context = "\n".join([f"- {doc}" for doc in retrieved_docs])
 
         # -----------------------------
@@ -44,7 +44,7 @@ class EmailRAGPipeline:
             customer_email,
             limit=5  # Last 5 interactions
         )
-        logger.debug(f"Retrieved email history for {customer_email}")
+        logger.debug(f"Retrieved last 5 email history for {customer_email}")
 
         # -----------------------------
         # Step 3: Add scheduling context

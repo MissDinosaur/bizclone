@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 class EmailWatcher(BaseChannelWatcher):
     """
     Background Email Polling Service.
-
     Every N seconds:
     - fetch unread emails
     - run Email Agent pipeline

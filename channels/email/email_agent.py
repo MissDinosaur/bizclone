@@ -56,7 +56,7 @@ class EmailAgent:
 
         # Step 1: Parse email payload
         parsed = parse_email(email_payload)
-        text = parsed["text"]
+        email_text = parsed["text"]
         customer_email = email_payload["from"]
         subject = email_payload.get("subject", "(no subject)")
 
@@ -65,38 +65,39 @@ class EmailAgent:
             customer_email=customer_email,
             sender_category="customer",
             subject=subject,
-            body=text,
+            body=email_text,
             our_reply=None,  # Will add this later
             intent=None,  # Will set after detection
             channel="email"
         )
 
         # Step 2: Intent Detection (NLP)
-        intent_result = self.intent_model.predict_intent(text)
+        intent_result = self.intent_model.predict_intent(email_text)
         intent = intent_result["intent"]
         logger.info(f"email - intent detected: {intent}", extra={"channel": "email"})
         
         # Step 3: Scheduling Logic (Optional)
-        booking = None
+        booking_info = None
         booking_response = None
         if intent == cfg.APPOINTMENT:
-            booking = self._handle_booking_request(customer_email, text)
-            if booking and booking.get("status") == "confirmed":
+            booking_info = self._handle_booking_request(customer_email, email_text)
+            if booking_info and booking_info.get("status") == "confirmed":
                 booking_response = BookingResponseSchema(
-                    id=booking["id"],
-                    slot=booking["slot"],
-                    customer_email=booking["customer_email"],
-                    channel=booking["channel"],
-                    status=booking["status"],
-                    booked_at=booking["booked_at"],
-                    notes=booking.get("notes")
+                    id=booking_info["id"],
+                    slot=booking_info["slot"],
+                    customer_email=booking_info["customer_email"],
+                    channel=booking_info["channel"],
+                    status=booking_info["status"],
+                    booked_at=booking_info["booked_at"],
+                    notes=booking_info.get("notes")
                 )
 
         # Step 4: RAG + LLM Email Draft
         reply_text, retrieved_docs = self.rag.generate_email_reply(
-            customer_email=text,
+            customer_email=customer_email,
+            body=email_text,
             intent=intent,
-            booking=booking
+            booking=booking_info
         )
         
         # Step 5: Save the generated reply to history (for outgoing emails)
@@ -149,7 +150,7 @@ class EmailAgent:
             logger.warning(f"email - no available slots for booking from {customer_email}")
             return None
         
-        # Try to book the first available slot
+        # Try to book the first available slot and save the booking info to the database
         selected_slot = available_slots[0]
         booking = book_slot(
             customer_email=customer_email,

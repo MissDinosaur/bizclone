@@ -1,9 +1,17 @@
 from fastapi import FastAPI
 import logging
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Initialize logging first
-import logger_config
+import config.logger_config as logger_config
 logger = logger_config.get_logger(__name__)
+
+# Database initialization
+from database.initialization import init_database
 
 # Email agent core
 from channels.channel_polling_manager import ChannelPollingManager
@@ -11,11 +19,6 @@ from api.kb_learning_api import router as learning_router
 from ui.kb_feedback_ui import router as feedback_ui_router
 from ui.review_email_ui import router as review_router
 from config.config import APP_TITLE, HOST, PORT
-import os
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 app = FastAPI(title=APP_TITLE)
 
@@ -53,8 +56,15 @@ polling_manager = ChannelPollingManager(config=CHANNEL_CONFIG)
 def startup_event():
     """
     When FastAPI launches:
-    start all configured channel polling services in background threads.
+    - Initialize database tables and load initial KB data
+    - Start all configured channel polling services in background threads
     """
+    logger.info("Application startup initiated...")
+    
+    # Initialize database (creates tables, loads KB data)
+    init_database()
+    
+    # Start channel polling
     polling_manager.start_all()
     active_channels = polling_manager.list_active_channels()
     logger.info(f"Application started | Active channels: {', '.join(active_channels) if active_channels else 'None'}")

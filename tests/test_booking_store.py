@@ -6,7 +6,7 @@ import pytest
 import os
 import tempfile
 import shutil
-from scheduling.booking_store import BookingStore
+from scheduling.booking_store_json import BookingStore
 
 
 class TestBookingStore:

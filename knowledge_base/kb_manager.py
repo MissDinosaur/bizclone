@@ -9,7 +9,7 @@ class KnowledgeBaseManager:
     Manages structured KB storage + versioning.
     """
 
-    def __init__(self, kb_path=cfg.LATEST_KB_JSON_FILE_PATH):
+    def __init__(self, kb_path=cfg.INITIAL_KB_JSON_PATH):
         self.kb_path = kb_path
 
         os.makedirs(cfg.KB_VERSIONS_DIR, exist_ok=True)

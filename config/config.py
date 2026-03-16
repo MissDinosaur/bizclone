@@ -30,7 +30,8 @@ TRANSFORMER = "all-MiniLM-L6-v2"
 UPDATES_LOG_PATH = "data/kb/updates/feedback_log.jsonl"
 KB_UPDATES = "data/kb/updates"
 KB_VERSIONS_DIR = "data/kb/versions"
-LATEST_KB_JSON_FILE_PATH = "data/kb/latest_email_kb.json"
+
+INITIAL_KB_JSON_PATH = "database/latest_email_kb.json"
 
 # Business Configuration (loaded from .env)
 BUSINESS_DOMAIN = os.getenv("BUSINESS_DOMAIN", "plumbing")
@@ -46,7 +47,8 @@ BOOKINGS_FILE = os.getenv("BOOKINGS_FILE", "bookings.jsonl")
 BOOKINGS_DIR = os.getenv("BOOKINGS_DIR", "data/scheduling")
 
 # Database
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/bizclone.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+REQUIRED_TABLES = ['email_history', 'booking', 'knowledge_base', 'kb_feedback']
 
 # Legacy API Keys (from .env)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")

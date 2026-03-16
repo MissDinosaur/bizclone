@@ -1,5 +1,8 @@
 import re
-from knowledge_base.kb_manager import KnowledgeBaseManager
+import logging
+from knowledge_base.kb_store import KBStore
+
+logger = logging.getLogger(__name__)
 
 
 class KnowledgeBaseUpdater:
@@ -8,25 +11,27 @@ class KnowledgeBaseUpdater:
     - services pricing
     - policies
     - FAQs
+    
+    Stores all changes in database via KBStore for full version history.
     """
 
     def __init__(self):
-        self.kb_manager = KnowledgeBaseManager()
+        self.kb_store = KBStore()
 
     # -------------------------------
     # MAIN ENTRY POINT
     # -------------------------------
     def apply_update(self, feedback_entry: dict):
         """
-        Apply correction into the correct KB section.
+        Apply correction into the correct KB section and save to database.
+        Returns: (updated_kb, version_number)
         """
         kb_field = feedback_entry["kb_field"]
-        print(f"kb_field is: {kb_field}.")
+        logger.info(f"Applying update to KB field: {kb_field}")
 
-        kb = self.kb_manager.load_kb()
+        kb = self.kb_store.get_current_kb()
 
         if kb_field == "service":
-            # Service update using service-specific fields
             service_name = feedback_entry.get("service_name")
             service_description = feedback_entry.get("service_description")
             service_price = feedback_entry.get("service_price")
@@ -45,59 +50,74 @@ class KnowledgeBaseUpdater:
             kb = self._update_faq(kb, correction_text)
 
         else:
-            print("Unknown kb_field, fallback to FAQ append.")
+            logger.warning(f"Unknown kb_field '{kb_field}', defaulting to FAQ")
+            logger.info("Unknown kb_field, fallback to FAQ append.")
             customer_question = feedback_entry["customer_question"]
             owner_correction = feedback_entry["owner_correction"]
             correction_text = f"{customer_question} - {owner_correction}".strip()
             kb = self._update_faq(kb, correction_text)
 
-        # Save updated KB (with version backup)
-        self.kb_manager.update_kb(kb)
-
-        return kb
+        # Save updated KB to database and activate immediately
+        change_desc = f"Update {kb_field}: {feedback_entry['customer_question'][:50]}"
+        if kb_field == "service":
+            change_desc = f"Update service {feedback_entry.get('service_name')[:50]} and its details."
+        version_number = self.kb_store.save_version(
+            kb_data=kb,
+            change_desc=change_desc,
+            updated_by="system",
+            activate=True  # Create and activate in one atomic operation
+        )
+        
+        logger.info(f"KB updated and activated as version {version_number}")
+        return kb, version_number
 
     def apply_insert(self, feedback_entry: dict):
         """
-        Insert new entry into the correct KB section.
+        Insert new entry into the correct KB section and save to database.
+        
+        Returns: (updated_kb, version_number)
         """
         kb_field = feedback_entry["kb_field"]
-        
-        print(f"Inserting new entry into {kb_field}.")
+        logger.info(f"Inserting into KB field: {kb_field}")
 
-        kb = self.kb_manager.load_kb()
+        kb = self.kb_store.get_current_kb()
 
         if kb_field == "service":
-            # Service insert using service-specific fields
             service_name = feedback_entry.get("service_name")
             service_description = feedback_entry.get("service_description")
             service_price = feedback_entry.get("service_price")
-            print(f"Service: {service_name}")
-            print(f"Description: {service_description}")
-            print(f"Price: {service_price}")
             kb = self._insert_service(kb, service_name, service_description, service_price)
 
         elif kb_field == "policy":
             customer_question = feedback_entry["customer_question"]
             owner_correction = feedback_entry["owner_correction"]
-            print(f"Policy: {customer_question}")
             kb = self._insert_policy(kb, customer_question, owner_correction)
 
         elif kb_field == "faq":
             customer_question = feedback_entry["customer_question"]
             owner_correction = feedback_entry["owner_correction"]
-            print(f"Question: {customer_question}")
             kb = self._insert_faq(kb, customer_question, owner_correction)
 
         else:
-            print("Unknown kb_field, fallback to FAQ insert.")
+            logger.warning(f"Unknown kb_field '{kb_field}', defaulting to FAQ insert")
             customer_question = feedback_entry["customer_question"]
             owner_correction = feedback_entry["owner_correction"]
             kb = self._insert_faq(kb, customer_question, owner_correction)
 
-        # Save updated KB (with version backup)
-        self.kb_manager.update_kb(kb)
-
-        return kb
+        # Save updated KB to database and activate immediately
+        change_desc = f"Insert {kb_field}: {feedback_entry['customer_question'][:50]}"
+        if kb_field == "service":
+            change_desc = f"Insert service {feedback_entry.get('service_name')[:50]} and its details."
+        version_number = self.kb_store.save_version(
+            kb_data=kb,
+            change_desc=change_desc,
+            updated_by="system",
+            activate=True  # Create and activate in one atomic operation
+        )
+        
+        logger.info(f"KB updated and activated as version {version_number}")
+        print(f"Knowledge Base updated successfully as version {version_number}.")
+        return kb, version_number
 
     # -------------------------------
     # SERVICE UPDATE
@@ -116,13 +136,13 @@ class KnowledgeBaseUpdater:
         service_key = service_name.lower().replace(" ", "_").strip()
         
         if service_key not in services:
-            print(f"Service '{service_key}' not found. Creating new entry.")
+            logger.info(f"Service '{service_key}' not found. Creating new entry.")
             services[service_key] = {
                 "description": service_description or "Service description",
                 "price": service_price or "Contact for pricing"
             }
         else:
-            print(f"Updating service '{service_key}'")
+            logger.info(f"Updating service '{service_key}'")
             if service_description:
                 services[service_key]["description"] = service_description
             if service_price:

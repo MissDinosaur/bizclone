@@ -1,14 +1,92 @@
-# bizclone
-1. Project Introduction 
-Small enterprises—plumbers, mechanics, consultants, tutors, salon owners, and other service providers—face a critical challenge: managing customer communications and scheduling while delivering hands-on services. With limited staff and budget, these business owners often struggle to respond promptly to inquiries, manage appointments, and maintain consistent customer service quality. 
+# BizClone - AI-Powered Email Agent
 
-This project aims to develop "BizClone" - an AI-powered digital assistant that learns from a business owner's communication patterns, scheduling preferences, and service offerings to autonomously handle customer interactions across multiple channels. The system will process inquiries from emails, SMS, WhatsApp, voice calls, and social media, providing intelligent responses, scheduling appointments, sending follow-ups, and managing customer relationships exactly as the business owner would. 
+## Quick Start
 
-**Key Innovation:** Unlike generic chatbots, BizClone learns the master's unique 
-communication style, business policies, pricing, and decision-making patterns through a supervised learning phase, then operates autonomously while maintaining the personal touch that small businesses rely on. 
-This project combines cutting-edge NLP, speech processing, multi-agent AI systems, 
-calendar integration, and workflow automation to deliver a production-ready MVP that can be marketed to small enterprises.
-### bizclone-email-agent
+> **PostgreSQL Required** - This application uses PostgreSQL exclusively.
+
+### SETUP
+**Option 1: Docker (Fastest - 1 minute)**
+
+```bash
+docker-compose up -d --build
+open http://localhost:8000/docs
+```
+
+See [DOCKER_GUIDE.md](DOCKER_GUIDE.md) for details
+
+**Option 2: Local Setup**
+
+```bash
+# 1. Install PostgreSQL (Windows, Mac, or Linux)
+# 2. Create database and user
+# 3. Set DATABASE_URL environment variable
+# 4. Run: python main.py
+```
+
+See [POSTGRES_SETUP.md](POSTGRES_SETUP.md) for step-by-step instructions for your OS
+
+---
+
+## Project Overview
+
+Small enterprises—plumbers, mechanics, consultants, tutors, salon owners, and other service providers—face a critical challenge: managing customer communications and scheduling while delivering hands-on services. With limited staff and budget, these business owners often struggle to respond promptly to inquiries, manage appointments, and maintain consistent customer service quality.
+
+**BizClone** is an AI-powered digital assistant that learns from a business owner's communication patterns, scheduling preferences, and service offerings to autonomously handle customer interactions across multiple channels. The system processes inquiries from emails, SMS, WhatsApp, voice calls, and social media, providing intelligent responses, scheduling appointments, sending follow-ups, and managing customer relationships exactly as the business owner would.
+
+**Key Innovation:** Unlike generic chatbots, BizClone learns the owner's unique communication style, business policies, pricing, and decision-making patterns through supervised learning, then operates autonomously while maintaining the personal touch that small businesses rely on.
+
+This project combines cutting-edge NLP, speech processing, multi-agent AI systems, calendar integration, and workflow automation to deliver a production-ready MVP.
+
+---
+
+## Documentation
+
+| Guide | Purpose |
+|-------|---------|
+| [POSTGRES_SETUP.md](POSTGRES_SETUP.md) | PostgreSQL installation & setup for Windows, Mac, Linux, Cloud |
+| [DOCKER_GUIDE.md](DOCKER_GUIDE.md) | Docker deployment with PostgreSQL |
+| [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) | Complete database design & SQL reference |
+| [CHANNEL_INTEGRATION.md](CHANNEL_INTEGRATION.md) | Email, Teams, WhatsApp channel setup |
+| [SCHEDULING_SYSTEM.md](scheduling/SCHEDULING_SYSTEM.md) | Appointment booking system |
+
+---
+
+## Architecture Overview
+
+### Email Agent Pipeline
+
+**Email Processing Flow:**
+```
+Customer Email
+    ↓
+Email Parser
+    ↓
+Intent Classification
+    ↓
+Retrieve Conversation History (from PostgreSQL)
+    ↓
+Query Knowledge Base (PostgreSQL + ChromaDB)
+    ↓
+Generate LLM Response with Context
+    ↓
+Owner Review & Approval
+    ↓
+Send Reply via Gmail
+    ↓
+Store in Database
+```
+
+### Database Architecture
+
+**4 PostgreSQL Tables:**
+- **email_history** - Customer conversations & email context
+- **booking** - Appointment bookings (multi-channel)
+- **knowledge_base** - Knowledge base versions with active KB cache (consolidated from kb_version + kb_current)
+- **kb_feedback** - Audit trail of KB modifications
+
+See [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) for full schema details
+
+### Email Agent Features
 A complete Email Agent microservice with its own knowledge base and retrieval system.
 
 The assistant learns the business owner’s style and policies, then autonomously handles customer interactions across channels.
@@ -19,7 +97,19 @@ Incoming Email → Emails Parser → Intent Detection → Email Knowledge Base �
 
 Gmail Inbox → Email Agent → Router → KB/RAG → Response → Send back via Gmail
 
-
+```text
+Owner 提交反馈
+    ↓
+FeedbackStore → 插入 kb_feedback 表
+    ↓
+KnowledgeBaseUpdater → 读取 knowledge_base (WHERE is_active=TRUE)
+    ↓
+更新 → 创建新行在 knowledge_base 表
+    ↓
+更新新记录为 is_active=TRUE
+    ↓
+VectorIndex → 重建 ChromaDB 索引
+```
 
 #### Workflow:
 ```text
@@ -376,3 +466,29 @@ The prompt now includes:
 - Last 5 emails from this customer
 - Previous replies to similar questions
 - Customer communication history
+
+
+### Quick Start
+**Windows (PowerShell)**
+```bash
+cd bizclone
+.\start-docker.bat
+```
+**Linux/Mac (Bash)**
+```bash
+cd bizclone
+chmod +x start-docker.sh
+./start-docker.sh
+```
+**Docker (Recommended - 1 minute)**
+```bash
+cd bizclone
+docker-compose up -d --build
+```
+
+What Happens Automatically?
+- PostgreSQL container starts (port 5432)
+- Tables created via SQLAlchemy ORM when app starts
+- BizClone API accessible at http://localhost:8000/docs
+- All services health-checked
+- Data persists in Docker volumes
