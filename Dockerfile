@@ -1,5 +1,5 @@
 # Multi-stage build for BizClone
-FROM python:3.10-sli
+FROM python:3.10-slim
 
 WORKDIR /app
 
