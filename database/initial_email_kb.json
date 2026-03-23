@@ -5,27 +5,27 @@
   "services": {
     "leak_repair": {
       "description": "Fixing leaking pipes, faucets, and water connections in kitchens and bathrooms.",
-      "price": "\u20ac80 per hour"
+      "price": "€80 per hour"
     },
     "drain_cleaning": {
       "description": "Removing clogs in sinks, showers, toilets, and main drain lines.",
-      "price": "\u20ac64 per hour"
+      "price": "€64 per hour"
     },
     "toilet_repair": {
       "description": "Repairing flushing issues, leaks, and toilet installation problems.",
-      "price": "\u20ac111 per hour"
+      "price": "€111 per hour"
     },
     "water_heater_service": {
       "description": "Inspection and repair of household water heating systems.",
-      "price": "\u20ac100 per hour"
+      "price": "€100 per hour"
     },
     "emergency_plumbing": {
       "description": "24/7 urgent plumbing support for flooding, burst pipes, and severe leaks.",
-      "price": "\u20ac107 per hour (updated)"
+      "price": "€107 per hour (updated)"
     },
     "kitchen_drain_unclogging": {
       "description": "Removing blockages from a kitchen sink drain to restore normal water flow",
-      "price": "\u20ac104 per hour"
+      "price": "€104 per hour"
     }
   },
   "policies": {
@@ -36,7 +36,7 @@
     "payment_methods": "We accept cash, bank transfer, and PayPal after service completion.",
     "invoice": "Invoices are provided upon request for all services.",
     "travel_fee": "A small travel fee may apply outside central Hamburg.",
-    "general_update": "How much is the leak repair - It costs \u20ac81/hour"
+    "general_update": "How much is the leak repair - It costs €81/hour"
   },
   "faqs": [
     {
@@ -53,11 +53,11 @@
     },
     {
       "q": "How much does a plumbing repair cost?",
-      "a": "Our standard plumbing repair starts at \u20ac80 per hour."
+      "a": "Our standard plumbing repair starts at €80 per hour."
     },
     {
       "q": "Do you charge extra for emergency calls?",
-      "a": "Yes, emergency services are charged at \u20ac120 per hour."
+      "a": "Yes, emergency services are charged at €120 per hour."
     },
     {
       "q": "Can I book an appointment by email?",
@@ -69,7 +69,7 @@
     },
     {
       "q": "How fast can you respond to emergencies?",
-      "a": "We aim to respond within 1\u20132 hours depending on location and workload."
+      "a": "We aim to respond within 1–2 hours depending on location and workload."
     },
     {
       "q": "Do you clean clogged drains?",
@@ -141,7 +141,7 @@
     },
     {
       "q": "How long does a typical repair take?",
-      "a": "Most small repairs take 1\u20132 hours depending on complexity."
+      "a": "Most small repairs take 1–2 hours depending on complexity."
     },
     {
       "q": "Do you provide free estimates?",
