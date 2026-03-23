@@ -70,7 +70,7 @@ class EmailHistoryStore:
         try:
             email_record = EmailHistory(
                 customer_email=customer_email,
-                sender=sender_category,
+                sender_category=sender_category,
                 subject=subject,
                 body=body,
                 our_reply=our_reply,
@@ -202,7 +202,7 @@ class EmailHistoryStore:
         
         for email in history:
             timestamp = email.get("timestamp", "Unknown")
-            sender = email.get("sender", "Unknown").upper()
+            sender = email.get("sender_category", "Unknown").upper()
             subject = email.get("subject", "(no subject)")
             body = email.get("body", "")
             reply = email.get("our_reply", "")

@@ -58,25 +58,10 @@ echo ""
 echo "Service Status:"
 docker-compose ps
 
-echo ""
-echo -e "${YELLOW}Database Credentials:${NC}"
-echo "  Username: bizclone_user"
-echo "  Host: postgres (from container)"
-echo "  Host: localhost (from host machine)"
-echo "  Port: 5432"
-echo ""
-
 echo -e "${YELLOW}Application URLs:${NC}"
-echo "  API Docs: http://localhost:8000/docs"
-echo "  Alternative: http://localhost:8000/redoc"
-echo ""
-
-echo -e "${YELLOW}Useful Commands:${NC}"
-echo "  View logs:        docker-compose logs -f"
-echo "  Stop services:    docker-compose down"
-echo "  Restart services: docker-compose restart"
-echo "  Access database:  docker-compose exec postgres psql -U bizclone_user -d bizclone_db"
-echo "  Access bash:      docker-compose exec bizclone /bin/bash"
+echo "  Feedback UI (KB Management):  http://localhost:8000/feedback"
+echo "  Email Review UI (Emergency emails): http://localhost:8000/review"
+echo "  API Documentation: http://localhost:8000/docs"
 echo ""
 
 # Show application logs

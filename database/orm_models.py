@@ -8,7 +8,7 @@ Defines all persistent data models:
 4. KBFeedback - Knowledge base update log
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, Text, Index, JSON, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Text, Index, JSON, Boolean, ForeignKey, TIMESTAMP, PrimaryKeyConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
@@ -21,13 +21,14 @@ class EmailHistory(Base):
     
     id = Column(Integer, primary_key=True)
     customer_email = Column(String(255), nullable=False, index=True)
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
-    sender = Column(String(50), nullable=False)  # "customer" or "support"
-    subject = Column(String(512), nullable=False)
+    sender_category = Column(String(50))  # customer or support category
+    subject = Column(String(500))
     body = Column(Text, nullable=False)
     our_reply = Column(Text)
-    intent = Column(String(100))
+    intent = Column(String(100), index=True)
     channel = Column(String(50), default="email")
+    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
     
     __table_args__ = (
         Index('idx_customer_timestamp', 'customer_email', 'timestamp'),
@@ -37,30 +38,33 @@ class EmailHistory(Base):
     def to_dict(self):
         return {
             "id": self.id,
-            "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M"),
-            "sender": self.sender,
+            "customer_email": self.customer_email,
+            "sender_category": self.sender_category,
             "subject": self.subject,
             "body": self.body,
             "our_reply": self.our_reply,
             "intent": self.intent,
-            "channel": self.channel
+            "channel": self.channel,
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None
         }
 
 
 class Booking(Base):
     """Appointment bookings across all channels."""
-    __tablename__ = "bookings"
+    __tablename__ = "booking"
     
-    id = Column(String(50), primary_key=True)  # BK20260312...
+    id = Column(String(50), primary_key=True)
     customer_email = Column(String(255), nullable=False, index=True)
     slot = Column(DateTime, nullable=False, index=True)
-    channel = Column(String(50), default="email")
+    channel = Column(String(50))
     notes = Column(Text)
-    status = Column(String(50), default="confirmed", index=True)  # confirmed, cancelled, completed, no-show
+    status = Column(String(50), default="confirmed", index=True)
     booked_at = Column(DateTime, default=datetime.utcnow)
     reminder_sent = Column(Boolean, default=False)
     cancellation_reason = Column(Text)
     cancelled_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)
     
     __table_args__ = (
         Index('idx_customer_slot', 'customer_email', 'slot'),
@@ -71,37 +75,43 @@ class Booking(Base):
         return {
             "id": self.id,
             "customer_email": self.customer_email,
-            "slot": self.slot.isoformat(),
+            "slot": self.slot.isoformat() if self.slot else None,
             "channel": self.channel,
             "notes": self.notes,
             "status": self.status,
-            "booked_at": self.booked_at.isoformat(),
+            "booked_at": self.booked_at.isoformat() if self.booked_at else None,
             "reminder_sent": self.reminder_sent,
             "cancellation_reason": self.cancellation_reason,
-            "cancelled_at": self.cancelled_at.isoformat() if self.cancelled_at else None
+            "cancelled_at": self.cancelled_at.isoformat() if self.cancelled_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None
         }
 
 
 class KnowledgeBase(Base):
     """
-    Consolidated Knowledge Base table (merged kb_version + kb_current).
-    Stores all KB versions with version tracking and active flag.
+    Knowledge Base table with item-level versioning.
+    Each record represents a version of a specific KB item (individual service, policy, or faq).
+    Multiple items can share the same version_id when initialized together.
+    When an item is updated, a new version_id is created only for that item.
+    
+    Composite primary key: (version_id, kb_field, item_key)
     """
     __tablename__ = "knowledge_base"
     
-    version_id = Column(Integer, primary_key=True)
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
-    kb_data = Column(JSON, nullable=False)  # Full KB JSON snapshot
-    services = Column(JSON)  # Cached: {service_id: {name, description, price}}
-    policies = Column(JSON)  # Cached: {policy_key: policy_text}
-    faqs = Column(JSON)      # Cached: [{q: ..., a: ...}, ...]
+    version_id = Column(Integer, primary_key=True, nullable=False)
+    kb_field = Column(String(50), primary_key=True, nullable=False)  # 'faq', 'policy', or 'service'
+    item_key = Column(String(255), primary_key=True, nullable=False)  # Unique key for this item
+    detail = Column(JSON, nullable=False)
     change_description = Column(Text)
     updated_by = Column(String(255))
     is_active = Column(Boolean, default=False, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
     last_updated = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     __table_args__ = (
+        Index('idx_kb_field_active', 'kb_field', 'is_active'),
+        Index('idx_kb_item_active', 'kb_field', 'item_key', 'is_active'),
         Index('idx_timestamp', 'timestamp'),
         Index('idx_is_active', 'is_active'),
         Index('idx_last_updated', 'last_updated'),
@@ -110,15 +120,15 @@ class KnowledgeBase(Base):
     def to_dict(self):
         return {
             "version_id": self.version_id,
-            "timestamp": self.timestamp.isoformat(),
-            "kb_data": self.kb_data,
-            "services": self.services,
-            "policies": self.policies,
-            "faqs": self.faqs,
+            "kb_field": self.kb_field,
+            "item_key": self.item_key,
+            "detail": self.detail,
             "change_description": self.change_description,
             "updated_by": self.updated_by,
             "is_active": self.is_active,
-            "last_updated": self.last_updated.isoformat()
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "last_updated": self.last_updated.isoformat() if self.last_updated else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None
         }
 
 
@@ -127,14 +137,15 @@ class KBFeedback(Base):
     __tablename__ = "kb_feedback"
     
     id = Column(Integer, primary_key=True)
-    operation = Column(String(50), nullable=False)  # insert, update
-    kb_field = Column(String(50), nullable=False)   # service, policy, faq
+    operation = Column(String(50))
+    kb_field = Column(String(100))
     customer_question = Column(Text)
     owner_correction = Column(Text)
     service_name = Column(String(255))
     service_description = Column(Text)
     service_price = Column(String(100))
-    kb_version_id = Column(Integer, ForeignKey("knowledge_base.version_id"))
+    policy_name = Column(String(255))
+    kb_version_id = Column(Integer)  # Reference to KB version, no foreign key constraint
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     
     __table_args__ = (
@@ -153,6 +164,7 @@ class KBFeedback(Base):
             "service_name": self.service_name,
             "service_description": self.service_description,
             "service_price": self.service_price,
+            "policy_name": self.policy_name,
             "kb_version_id": self.kb_version_id,
             "created_at": self.created_at.isoformat()
         }

@@ -100,7 +100,7 @@ Gmail Inbox → Email Agent → Router → KB/RAG → Response → Send back via
 ```text
 Owner 提交反馈
     ↓
-FeedbackStore → 插入 kb_feedback 表
+KBStore.save_feedback() → 插入 kb_feedback 表
     ↓
 KnowledgeBaseUpdater → 读取 knowledge_base (WHERE is_active=TRUE)
     ↓
@@ -252,7 +252,7 @@ bizclone/
 │   └── kb/
 │   │   ├── updates/
 │   │   ├── versions/
-│   │   └── latest_email_kb.json
+│   │   └── initial_email_kb.json
 |
 ├── llm_engine/
 │   └── llm_client.py
@@ -426,7 +426,7 @@ store = EmailHistoryStore()
 # Save incoming email
 store.save_email(
     customer_email="customer@example.com",
-    sender="customer",
+    sender_category="customer",
     subject="Question about services",
     body="...",
     intent="pricing_inquiry",

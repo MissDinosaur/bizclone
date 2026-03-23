@@ -1,5 +1,4 @@
 import logging
-from knowledge_base.learning.feedback_store import FeedbackStore
 from knowledge_base.learning.kb_updater import KnowledgeBaseUpdater
 from knowledge_base.vector_index import VectorIndex
 
@@ -16,7 +15,6 @@ class LearningMode:
     """
 
     def __init__(self):
-        self.store = FeedbackStore()
         self.updater = KnowledgeBaseUpdater()
         self.vector_index = VectorIndex()
 
@@ -32,27 +30,34 @@ class LearningMode:
 
         try:
             # Step 1: Apply KB update/insert and save to database
+            version_number = None
             if feedback_entry.get("operation") == "update":
                 logger.info("Updating knowledge base from database")
-                print("Updating knowledge base.")
-                updated_kb, version_number = self.updater.apply_update(feedback_entry=feedback_entry)
+                updated_detail, version_number = self.updater.apply_update(feedback_entry=feedback_entry)
+                
+                # apply_update returns (None, None) if service update had both fields empty
+                if version_number is None:
+                    logger.info("Update skipped: no changes made")
+                    return {
+                        "status": "info",
+                        "message": "Update skipped: both description and price were empty"
+                    }
                 
             elif feedback_entry.get("operation") == "insert":
                 logger.info("Inserting new entry into knowledge base")
-                print("Inserting new entry into knowledge base.")
-                updated_kb, version_number = self.updater.apply_insert(feedback_entry=feedback_entry)
+                updated_detail, version_number = self.updater.apply_insert(feedback_entry=feedback_entry)
             else:
                 logger.error(f"Unknown operation: {feedback_entry.get('operation')}")
                 return {"status": "error", "message": "Unknown operation type"}
                 
             # Step 2: Save feedback to database with version linkage
-            self.store.save(feedback_entry, kb_version_id=version_number)
+            self.updater.kb_store.save_feedback(feedback_entry, kb_version_id=version_number)
             logger.info(f"Feedback saved and linked to version {version_number}")
             
-            # Step 3: Rebuild vector DB so RAG uses new knowledge
-            logger.info("Rebuilding vector index")
-            print("Rebuilding vector index...")
-            self.vector_index.rebuild_index(updated_kb)
+            # Step 3: Rebuild vector DB with full KB structure so RAG uses new knowledge
+            logger.info("Rebuilding vector index with updated KB")
+            current_kb = self.updater.kb_store.get_current_kb()
+            self.vector_index.rebuild_index(current_kb)
             
             logger.info(f"Learning update applied successfully - version {version_number}")
             return {

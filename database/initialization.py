@@ -69,7 +69,7 @@ def init_database():
         else:
             logger.info(f"✓ All {len(REQUIRED_TABLES)} required tables exist")
         
-        # Initialize knowledge_base table with data from latest_email_kb.json if empty
+        # Initialize knowledge_base table with data from initial_email_kb.json if empty
         logger.info("Checking if knowledge_base needs initialization...")
         _initialize_knowledge_base(engine)
         
@@ -81,10 +81,8 @@ def init_database():
 
 def _initialize_knowledge_base(engine):
     """
-    Load initial KB data from latest_email_kb.json into knowledge_base table.
-    Only runs if knowledge_base is empty (first initialization).
-    Creates a single KnowledgeBase record with version_id auto-incremented to 1
-    as the initial version with full KB data and is_active=True.
+    Load initial KB data from initial_email_kb.json into knowledge_base table.
+    Uses ORM to properly handle JSON serialization.
     """
     from database.orm_models import KnowledgeBase
     
@@ -111,32 +109,72 @@ def _initialize_knowledge_base(engine):
         with open(kb_file_path, 'r', encoding='utf-8') as f:
             kb_data = json.load(f)
         
-        # Extract services, policies, faqs for caching
+        # Extract services, policies, faqs
         services = kb_data.get("services", {})
         policies = kb_data.get("policies", {})
         faqs = kb_data.get("faqs", [])
         
-        # Create initial KB version (v1 with auto-increment version_id)
         now = datetime.utcnow()
-        kb_record = KnowledgeBase(
-            timestamp=now,
-            kb_data=kb_data,  # Store complete KB data
-            services=services,
-            policies=policies,
-            faqs=faqs,
-            change_description="Initial KB loaded from latest_email_kb.json",
-            updated_by="system",
-            is_active=True,
-            last_updated=now,
-            created_at=now
-        )
-        session.add(kb_record)
+        change_desc = "Initial KB loaded from initial_email_kb.json"
+        
+        # Insert each service using ORM
+        for service_key, service_detail in services.items():
+            kb_entry = KnowledgeBase(
+                version_id=1,
+                kb_field="service",
+                item_key=service_key,
+                detail=service_detail,  # ORM handles JSON serialization
+                change_description=change_desc,
+                updated_by="system",
+                is_active=True,
+                timestamp=now,
+                last_updated=now,
+                created_at=now
+            )
+            session.add(kb_entry)
+        
+        # Insert each policy using ORM
+        for policy_key, policy_detail in policies.items():
+            kb_entry = KnowledgeBase(
+                version_id=1,
+                kb_field="policy",
+                item_key=policy_key,
+                detail=policy_detail,  # ORM handles JSON serialization
+                change_description=change_desc,
+                updated_by="system",
+                is_active=True,
+                timestamp=now,
+                last_updated=now,
+                created_at=now
+            )
+            session.add(kb_entry)
+        
+        # Insert each FAQ using ORM
+        for i, faq in enumerate(faqs):
+            faq_key = f"faq_{i:03d}"
+            # Ensure consistent field order: q before a
+            ordered_faq = {"q": faq.get("q"), "a": faq.get("a")}
+            kb_entry = KnowledgeBase(
+                version_id=1,
+                kb_field="faq",
+                item_key=faq_key,
+                detail=ordered_faq,  # ORM handles JSON serialization
+                change_description=change_desc,
+                updated_by="system",
+                is_active=True,
+                timestamp=now,
+                last_updated=now,
+                created_at=now
+            )
+            session.add(kb_entry)
+        
         session.commit()
         
         logger.info(f"✓ knowledge_base initialized with version_id=1")
         logger.info(f"  - Services: {len(services)} items")
         logger.info(f"  - Policies: {len(policies)} items")
         logger.info(f"  - FAQs: {len(faqs)} items")
+        logger.info(f"  - Total records: {len(services) + len(policies) + len(faqs)}")
         
     except json.JSONDecodeError as e:
         logger.error(f"✗ Failed to parse KB file: {str(e)}")

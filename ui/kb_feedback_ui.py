@@ -2,8 +2,10 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from knowledge_base.learning.feedback_entry import FeedbackEntry
-
+import logging
 import requests
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 templates = Jinja2Templates(directory="ui/templates")
@@ -42,17 +44,25 @@ def submit_kb_update(
     service_name: str = Form(None),
     service_description: str = Form(None),
     service_price: str = Form(None),
+    policy_name: str = Form(None)
 ):
     """
     Owner manually updates existing knowledge or inserts new knowledge
     into the system KB.
     
     For UPDATE/INSERT Service: service_name, service_description, service_price are used
-    For UPDATE/INSERT Policy/FAQ: customer_question, owner_correction are used
+    For UPDATE/INSERT Policy: policy_name, owner_correction are used
+    For UPDATE/INSERT FAQ: customer_question, owner_correction are used
     """
+    # Debug logging
+    logger.info(f"KB Form submitted: operation={operation}, kb_field={kb_field}")
+    logger.info(f"  service_name={service_name}, service_description={service_description}, service_price={service_price}")
+    logger.info(f"  policy_name={policy_name}, customer_question={customer_question}, owner_correction={owner_correction}")
+    
     kb_entry = FeedbackEntry(
         customer_question=customer_question,
         owner_correction=owner_correction,
+        policy_name=policy_name,
         service_name=service_name,
         service_description=service_description,
         service_price=service_price,

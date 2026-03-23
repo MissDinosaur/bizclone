@@ -82,7 +82,9 @@ def setup_logging():
     # Only show WARNING and above from these libraries
     third_party_loggers = [
         'googleapiclient.discovery',      # Google API client
+        'googleapis.discovery',           # Google API discovery
         'urllib3.connectionpool',         # HTTP connection pool
+        'urllib3',                        # urllib3
         'httpcore.http11',               # HTTP core
         'httpx',                         # HTTP client
         'httpcore',                      # HTTP core library
@@ -90,13 +92,21 @@ def setup_logging():
         'openai',                        # OpenAI library
         'chromadb',                      # ChromaDB
         'transformers',                  # Hugging Face transformers
+        'transformers.utils.hub',        # HuggingFace hub utilities
         'sentence_transformers',         # Sentence transformers
+        'huggingface_hub',               # HuggingFace hub
+        'huggingface_hub.file_download', # HuggingFace file download
         'asyncio',                       # Async IO
         'python_multipart.multipart',    # Multipart form data parsing
+        'tqdm',                          # Progress bars
+        'sqlalchemy.engine',             # SQLAlchemy SQL execution logs
+        'sqlalchemy.pool',               # SQLAlchemy connection pool
+        'sqlalchemy.dialects',           # SQLAlchemy dialects
+        'uvicorn.access',                # Uvicorn HTTP access logs
     ]
     
     for logger_name in third_party_loggers:
-        logging.getLogger(logger_name).setLevel(logging.WARNING)
+        logging.getLogger(logger_name).setLevel(logging.ERROR)
     
     # Log startup info
     logger.info(f"Logging initialized | Environment: {ENVIRONMENT} | Level: {LOG_LEVEL}")

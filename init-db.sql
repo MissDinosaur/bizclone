@@ -71,30 +71,33 @@ CREATE SEQUENCE IF NOT EXISTS knowledge_base_version_number_seq START 1;
 
 -- ============================================================
 -- Table: knowledge_base
--- Consolidated KB storage (merged from kb_version and kb_current)
--- Tracks all versions with is_active flag for the current version
+-- KB storage with item-level versioning
+-- Each record represents a version of a specific KB item (individual service, policy, or faq)
+-- Multiple items can share the same version_id when initialized together
 -- ============================================================
 CREATE TABLE IF NOT EXISTS knowledge_base (
-    version_id INTEGER PRIMARY KEY DEFAULT nextval('knowledge_base_version_number_seq'),
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    kb_data JSONB NOT NULL,
-    services JSONB,
-    policies JSONB,
-    faqs JSONB,
+    version_id INTEGER NOT NULL DEFAULT nextval('knowledge_base_version_number_seq'),
+    kb_field VARCHAR(50) NOT NULL CHECK (kb_field IN ('faq', 'policy', 'service')),
+    item_key VARCHAR(255) NOT NULL,
+    detail JSON NOT NULL,
     change_description TEXT,
     updated_by VARCHAR(255),
     is_active BOOLEAN DEFAULT FALSE,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (version_id, kb_field, item_key)
 );
 
-CREATE INDEX IF NOT EXISTS idx_knowledge_base_timestamp ON knowledge_base(timestamp);
-CREATE INDEX IF NOT EXISTS idx_knowledge_base_is_active ON knowledge_base(is_active);
-CREATE INDEX IF NOT EXISTS idx_knowledge_base_last_updated ON knowledge_base(last_updated);
+CREATE INDEX IF NOT EXISTS idx_kb_field_active ON knowledge_base(kb_field, is_active);
+CREATE INDEX IF NOT EXISTS idx_kb_item_active ON knowledge_base(kb_field, item_key, is_active);
+CREATE INDEX IF NOT EXISTS idx_timestamp ON knowledge_base(timestamp);
+CREATE INDEX IF NOT EXISTS idx_is_active ON knowledge_base(is_active);
+CREATE INDEX IF NOT EXISTS idx_last_updated ON knowledge_base(last_updated);
 
 -- ============================================================
 -- Table: kb_feedback
--- Complete audit trail of KB modifications
+-- Complete audit trail of KB modifications (feedback history)
 -- ============================================================
 CREATE SEQUENCE IF NOT EXISTS kb_feedback_id_seq START 1;
 
@@ -107,9 +110,9 @@ CREATE TABLE IF NOT EXISTS kb_feedback (
     service_name VARCHAR(255),
     service_description TEXT,
     service_price VARCHAR(100),
+    policy_name VARCHAR(255),
     kb_version_id INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (kb_version_id) REFERENCES knowledge_base(version_id) ON DELETE SET NULL
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_kb_feedback_kb_field ON kb_feedback(kb_field);

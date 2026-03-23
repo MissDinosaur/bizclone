@@ -251,6 +251,9 @@ TWILIO_AUTH_TOKEN=your-auth-token
 WHATSAPP_FROM_NUMBER=whatsapp:+1234567890
 CHANNEL_WHATSAPP_ENABLED=True
 CHANNEL_WHATSAPP_POLL_INTERVAL=300
+
+# PostgreSQL Database (Required for all channels)
+DATABASE_URL=postgresql://user:password@host:5432/database_name
 ```
 
 **File:** `.env.example`
@@ -264,6 +267,9 @@ TWILIO_AUTH_TOKEN=your-twilio-auth-token
 WHATSAPP_FROM_NUMBER=whatsapp:+1234567890
 CHANNEL_WHATSAPP_ENABLED=False
 CHANNEL_WHATSAPP_POLL_INTERVAL=300
+
+# PostgreSQL Database (Required)
+DATABASE_URL=postgresql://user:password@host:5432/database_name
 ```
 
 ### Step 7: Update main.py Configuration
@@ -282,6 +288,88 @@ CHANNEL_CONFIG = {
     },
 }
 ```
+
+---
+
+## Data Persistence with PostgreSQL
+
+All channels integrate with PostgreSQL database for persistent storage of:
+
+### 1. Email History Storage
+
+Each processed message is stored in the `email_history` table:
+
+```python
+# channels/email/email_watcher.py (example)
+from knowledge_base.email_history_store import EmailHistoryStore
+
+store = EmailHistoryStore()
+
+def process_message(self, message: dict):
+    # ... process message ...
+    
+    # Store email in database
+    store.save_email(
+        customer_email=message['from'],
+        sender_category='customer',
+        subject=message['subject'],
+        body=message['body'],
+        intent=result.intent.value,
+        channel='email',
+        timestamp=datetime.utcnow()
+    )
+```
+
+### 2. Booking Storage
+
+When a booking is confirmed, it's stored in the `booking` table:
+
+```python
+from scheduling.scheduler import create_booking
+
+def _handle_booking_request(self, customer_email: str, slot: datetime):
+    booking_id = create_booking(
+        customer_email=customer_email,
+        slot=slot,
+        channel='whatsapp',
+        notes='Booked via WhatsApp'
+    )
+    return booking_id
+```
+
+### 3. KB Feedback Audit Trail
+
+When owners correct the KB, changes are tracked in `kb_feedback` table:
+
+```python
+from knowledge_base.kb_store import KBStore
+
+kb_store = KBStore()
+
+# Automatically linked when KB updates occur
+kb_store.save_feedback(
+    feedback_entry={
+        'operation': 'update',
+        'kb_field': 'policy',
+        'customer_question': None,
+        'owner_correction': 'Updated policy text',
+        'policy_name': 'travel_fee'
+    },
+    kb_version_id=version_number
+)
+```
+
+### Database Initialization
+
+On application startup, PostgreSQL tables are automatically created if they don't exist:
+
+```python
+# database/initialization.py
+from database.orm_models import Base
+Base.metadata.create_all(engine)  # Creates all tables from ORM models
+```
+
+See [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) for complete schema documentation.
 
 ---
 
@@ -350,6 +438,50 @@ def process_message(self, message: dict):
     else:  # failed
         logger.error(f"whatsapp - processing failed: {result.error_message}")
 ```
+
+---
+
+## Database Requirements
+
+All channels require PostgreSQL database for:
+- Storing email conversation history (`email_history` table)
+- Persistent booking records (`booking` table)
+- KB version control and audit trail (`knowledge_base`, `kb_feedback` tables)
+
+### Database Setup
+
+**1. Docker Deployment (Recommended):**
+```bash
+docker-compose up --build -d
+```
+PostgreSQL automatically initializes with schema and initial data.
+
+**2. Local Development:**
+```bash
+# Start PostgreSQL
+pg_ctl start
+
+# Create database
+createdb bizclone_db -U your_user
+
+# Set environment variable
+export DATABASE_URL="postgresql://your_user:password@localhost:5432/bizclone_db"
+
+# Start application (tables auto-create on startup)
+python main.py
+```
+
+**3. Verify Database Connection:**
+```bash
+# Test connection
+psql postgresql://user:password@host:5432/database_name -c "SELECT 1"
+
+# Inside application logs
+[INFO] [database.initialization] ✓ PostgreSQL connected: PostgreSQL 16.13
+[INFO] [database.initialization] ✓ All 4 required tables exist
+```
+
+For detailed schema documentation, see [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md).
 
 ---
 

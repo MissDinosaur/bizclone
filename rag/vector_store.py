@@ -1,6 +1,9 @@
 import chromadb
 from sentence_transformers import SentenceTransformer
 import config.config as cfg
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class EmailVectorStore:
@@ -10,14 +13,24 @@ class EmailVectorStore:
         self.model = SentenceTransformer(cfg.TRANSFORMER)
 
     def add_documents(self, items):
-        for item in items:
-            embedding = self.model.encode(item.content).tolist()
+        for idx, item in enumerate(items):
+            # Handle both string and object inputs
+            if isinstance(item, str):
+                content = item
+                doc_id = f"kb_item_{idx}"
+                category = "kb"
+            else:
+                content = item.content
+                doc_id = item.id
+                category = item.category
+            
+            embedding = self.model.encode(content).tolist()
 
             self.collection.add(
-                ids=[item.id],
-                documents=[item.content],
+                ids=[doc_id],
+                documents=[content],
                 embeddings=[embedding],
-                metadatas=[{"category": item.category}]
+                metadatas=[{"category": category}]
             )
 
     def query(self, text, top_k=3):

@@ -14,6 +14,6 @@ def submit_feedback(entry: FeedbackEntry):
     Business owner submits correction feedback.
     """
 
-    result = learning_system.process_feedback(entry.dict())
+    result = learning_system.process_feedback(entry.model_dump())
 
     return result

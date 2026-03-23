@@ -31,7 +31,7 @@ UPDATES_LOG_PATH = "data/kb/updates/feedback_log.jsonl"
 KB_UPDATES = "data/kb/updates"
 KB_VERSIONS_DIR = "data/kb/versions"
 
-INITIAL_KB_JSON_PATH = "database/latest_email_kb.json"
+INITIAL_KB_JSON_PATH = "database/initial_email_kb.json"
 
 # Business Configuration (loaded from .env)
 BUSINESS_DOMAIN = os.getenv("BUSINESS_DOMAIN", "plumbing")

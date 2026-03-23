@@ -45,36 +45,54 @@ class KBStore:
         self.Session = sessionmaker(bind=self.engine)
         logger.info("KBStore initialized with PostgreSQL database")
     
-    def save_version(self, kb_data: dict, change_desc: str = None, updated_by: str = None, activate: bool = True) -> int:
+    def save_version(self, kb_field: str, item_key: str, detail: dict, change_desc: str = None, updated_by: str = None, activate: bool = True) -> int:
         """
-        Save new KB version and optionally activate it.
-        When activate=True (default), this method is atomic:
-        - Deactivates all existing versions
+        Save new KB version for a specific item.
+        When activate=True (default), this method atomically:
+        - Deactivates the current active version of this item
         - Creates and activates the new version
+        
         Args:
-            kb_data: KB dictionary with services, policies, faqs
+            kb_field: 'faq', 'policy', or 'service'
+            item_key: Unique key for this item (e.g., "emergency_plumbing" for service)
+            detail: JSONB content for this item
             change_desc: Description of changes made
             updated_by: Who made the change (system/user)
             activate: Whether to activate this version immediately (default True)
-        Returns: version_id (auto-generated)
+            
+        Returns: version_id (auto-generated or reused)
         """
+        if kb_field not in ['faq', 'policy', 'service']:
+            raise ValueError(f"Invalid kb_field: {kb_field}. Must be 'faq', 'policy', or 'service'")
+        
         session = self.Session()
         try:
-            # If activating, deactivate all existing versions first
+            # If activating, deactivate the current active version of this item
             if activate:
-                session.query(KnowledgeBase).update({KnowledgeBase.is_active: False})
+                session.query(KnowledgeBase).filter(
+                    KnowledgeBase.kb_field == kb_field,
+                    KnowledgeBase.item_key == item_key,
+                    KnowledgeBase.is_active == True
+                ).update({KnowledgeBase.is_active: False})
             
             now = datetime.utcnow()
-            # Create new KB version
+            
+            # Get the next version_id
+            max_version = session.query(KnowledgeBase).order_by(
+                desc(KnowledgeBase.version_id)
+            ).first()
+            next_version_id = (max_version.version_id + 1) if max_version else 1
+            
+            # Create new KB version for this item
             updated_kb = KnowledgeBase(
-                timestamp=now,
-                kb_data=kb_data,
-                services=kb_data.get("services"),
-                policies=kb_data.get("policies"),
-                faqs=kb_data.get("faqs"),
+                version_id=next_version_id,
+                kb_field=kb_field,
+                item_key=item_key,
+                detail=detail,
                 change_description=change_desc,
                 updated_by=updated_by,
                 is_active=activate,
+                timestamp=now,
                 last_updated=now,
                 created_at=now
             )
@@ -83,9 +101,9 @@ class KBStore:
             
             version_id = updated_kb.version_id
             if activate:
-                logger.info(f"Saved and activated KB version {version_id}")
+                logger.info(f"Saved and activated KB version {version_id} for {kb_field}[{item_key}]")
             else:
-                logger.info(f"Saved KB version {version_id} (not activated)")
+                logger.info(f"Saved KB version {version_id} for {kb_field}[{item_key}] (not activated)")
             return version_id
         except SQLAlchemyError as e:
             logger.error(f"Error saving KB version: {e}")
@@ -168,30 +186,34 @@ class KBStore:
             session.close()
     
     def get_current_kb(self) -> dict:
-        """Get currently active KB."""
+        """Get currently active KB by combining all active items into structured format."""
         session = self.Session()
         try:
-            current = session.query(KnowledgeBase)\
-                    .filter(KnowledgeBase.is_active == True).first()
+            # Get all active items
+            active_items = session.query(KnowledgeBase).filter(
+                KnowledgeBase.is_active == True
+            ).all()
             
-            if not current:
-                logger.warning("No active KB found")
-                return None
-            
-            # Reconstruct full KB from cache
+            # Reconstruct full KB from active items
             kb_data = {
-                "services": current.services or {},
-                "policies": current.policies or {},
-                "faqs": current.faqs or {}
+                "services": {},
+                "policies": {},
+                "faqs": []
             }
+            
+            for item in active_items:
+                if item.kb_field == 'service':
+                    kb_data["services"][item.item_key] = item.detail
+                elif item.kb_field == 'policy':
+                    kb_data["policies"][item.item_key] = item.detail
+                elif item.kb_field == 'faq':
+                    kb_data["faqs"].append(item.detail)
+            
             return kb_data
         finally:
             session.close()
     
-    def save_feedback(self, operation: str, kb_field: str, customer_question: str = None,
-                     owner_correction: str = None, service_name: str = None,
-                     service_description: str = None, service_price: str = None,
-                     kb_version_id: int = None) -> int:
+    def save_feedback(self, feedback_entry: dict, kb_version_id: int = None) -> int:
         """
         Log KB feedback/update.
         Returns: feedback_id
@@ -199,20 +221,21 @@ class KBStore:
         session = self.Session()
         try:
             feedback = KBFeedback(
-                operation=operation,
-                kb_field=kb_field,
-                customer_question=customer_question,
-                owner_correction=owner_correction,
-                service_name=service_name,
-                service_description=service_description,
-                service_price=service_price,
+                operation=feedback_entry.get("operation", ""),
+                kb_field=feedback_entry.get("kb_field", ""),
+                customer_question=feedback_entry.get("customer_question", ""),
+                owner_correction=feedback_entry.get("owner_correction", ""),
+                service_name=feedback_entry.get("service_name", ""),
+                service_description=feedback_entry.get("service_description", ""),
+                service_price=feedback_entry.get("service_price", ""),
+                policy_name=feedback_entry.get("policy_name", ""),
                 kb_version_id=kb_version_id,
                 created_at=datetime.utcnow()
             )
             session.add(feedback)
             session.commit()
             
-            logger.debug(f"Saved KB feedback: {operation} on {kb_field}")
+            logger.info(f"Saved KB feedback: {feedback_entry.get('operation', '')} on {feedback_entry.get('kb_field', '')}")
             return feedback.id
         except SQLAlchemyError as e:
             logger.error(f"Error saving KB feedback: {e}")

@@ -168,7 +168,18 @@ class EmailAgent:
 
 
 # Module-level convenience function for backward compatibility
-_email_agent = EmailAgent()
+_email_agent = None
+
+
+def get_email_agent():
+    """
+    Get or create the global EmailAgent instance.
+    Uses lazy initialization to ensure database is ready first.
+    """
+    global _email_agent
+    if _email_agent is None:
+        _email_agent = EmailAgent()
+    return _email_agent
 
 
 def process_email(email_payload: dict) -> ChannelMessageResponseSchema:
@@ -177,5 +188,6 @@ def process_email(email_payload: dict) -> ChannelMessageResponseSchema:
     Maintains backward compatibility with existing code that calls
     process_email() directly.
     """
-    return _email_agent.process_email(email_payload)
+    agent = get_email_agent()
+    return agent.process_email(email_payload)
 

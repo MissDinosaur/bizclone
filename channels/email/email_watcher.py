@@ -56,11 +56,15 @@ class EmailWatcher(BaseChannelWatcher):
 
         # Case 2: Auto-send normal email
         if result.status == "auto_send":
-            self.gmail.send_email_reply(
-                to_email=email["from"],
-                subject=email["subject"],
-                body=result.reply,
-                thread_id=email["thread_id"],
-                message_id=email["message_id"]
-            )
-            logger.info(f"email - reply sent to {email['from']}")
+            try:
+                self.gmail.send_email_reply(
+                    to_email=email["from"],
+                    subject=email["subject"],
+                    body=result.reply,
+                    thread_id=email["thread_id"],
+                    message_id=email["message_id"]
+                )
+                logger.info(f"email - reply sent to {email['from']}")
+            except RuntimeError as e:
+                logger.error(f"Cannot send email - {str(e)}")
+                logger.warning(f"Gmail not configured. Email from {email['from']} will require manual handling.")

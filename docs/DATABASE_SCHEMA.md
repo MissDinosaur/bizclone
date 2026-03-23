@@ -10,29 +10,64 @@ BizClone uses a comprehensive PostgreSQL schema with 4 tables, optimized for:
 
 ## Database Initialization
 
-### Automatic (Recommended)
+### Automatic (Recommended) - Docker Deployment
 
-Tables are automatically created when the application starts via SQLAlchemy ORM:
+When using Docker Compose, PostgreSQL automatically initializes:
+
+```bash
+docker-compose up --build -d
+```
+
+**Process:**
+1. PostgreSQL container starts
+2. `init-db.sql` script runs on first startup
+3. Application container waits for database health check
+4. SQLAlchemy ORM creates any missing tables
+5. Initial KB data loads from `database/initial_email_kb.json`
+
+**Key Configuration:**
+```yaml
+# docker-compose.yml
+services:
+  postgres_db:
+    image: postgres:16-alpine
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+```
+
+### Manual (Local Development)
+
+For local development without Docker:
+
+```bash
+# 1. Create PostgreSQL database
+createb bizclone_db -U your_user
+
+# 2. Set DATABASE_URL environment variable
+export DATABASE_URL="postgresql://your_user:password@localhost:5432/bizclone_db"
+
+# 3. Run application (tables create automatically on startup)
+python main.py
+```
+
+### Via SQLAlchemy ORM
+
+Tables are created when the application starts:
 
 ```python
-# In main.py startup event
-Base.metadata.create_all(engine)
+# In database/initialization.py
+from database.orm_models import Base
+
+Base.metadata.create_all(engine)  # SQLAlchemy creates all tables
 ```
 
-Or through Docker initialization script:
-```sql
--- data/init-db.sql runs automatically on container startup
--- Creates all schema with proper sequences and indexes
-```
+### Manual SQL Creation (Optional)
 
-### Manual SQL Creation
-
-If you need to create tables manually, use the SQL below:
+If you need to create tables manually, use the SQL from `init-db.sql`:
 
 ```sql
 -- Create sequences for auto-increment
 CREATE SEQUENCE IF NOT EXISTS knowledge_base_version_number_seq START 1;
-CREATE SEQUENCE IF NOT EXISTS kb_feedback_id_seq START 1;
 
 -- EmailHistory Table
 CREATE TABLE IF NOT EXISTS email_history (
@@ -112,6 +147,53 @@ CREATE INDEX idx_kb_field ON kb_feedback(kb_field);
 CREATE INDEX idx_created_at ON kb_feedback(created_at);
 CREATE INDEX idx_created_at_operation ON kb_feedback(created_at, operation);
 ```
+
+## Environment Configuration
+
+### Required Environment Variables
+
+PostgreSQL connection is configured via `DATABASE_URL` environment variable:
+
+```bash
+# .env file
+DATABASE_URL=postgresql://user:password@host:port/database_name
+```
+
+**Examples:**
+
+**Local Development (without Docker):**
+```bash
+DATABASE_URL=postgresql://postgres:password@localhost:5432/bizclone_db
+```
+
+**Docker Deployment (recommended):**
+```bash
+# In docker-compose.yml, PostgreSQL runs as service "postgres_db"
+DATABASE_URL=postgresql://postgres:password@postgres_db:5432/bizclone_db
+```
+
+**Cloud Database (AWS RDS):**
+```bash
+DATABASE_URL=postgresql://admin:password@my-rds-instance.region.rds.amazonaws.com:5432/bizclone
+```
+
+**Docker Compose Configuration:**
+```yaml
+# docker-compose.yml
+services:
+  postgres_db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+```
+
+---
 
 ## Table Descriptions
 
@@ -304,17 +386,3 @@ FROM kb_feedback
 WHERE created_at > CURRENT_DATE - INTERVAL '7 days'
 ORDER BY created_at DESC;
 ```
-
-
-### Monitor Database Size
-```sql
--- Check table sizes
-SELECT 
-  table_name,
-  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
-FROM pg_tables
-JOIN information_schema.tables ON table_name = tablename
-WHERE schemaname = 'public'
-ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
-```
-

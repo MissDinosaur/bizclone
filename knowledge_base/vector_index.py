@@ -1,7 +1,10 @@
 import chromadb
+import logging
 #from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 import config.config as cfg
 from sentence_transformers import SentenceTransformer
+
+logger = logging.getLogger(__name__)
 
 class VectorIndex:
     def __init__(self):
@@ -37,16 +40,22 @@ class VectorIndex:
 
         i = 0
         for faq in kb_data.get("faqs", []):
-            docs.append(f"Q: {faq['q']} A: {faq['a']}")
-            ids.append(f"faq-{i}")
-            i += 1
+            # faq is now a dict (SQLAlchemy JSON type returns Python objects)
+            if isinstance(faq, dict):
+                q_text = faq.get('q', '')
+                a_text = faq.get('a', '')
+                if q_text or a_text:
+                    docs.append(f"Q: {q_text} A: {a_text}")
+                    ids.append(f"faq-{i}")
+                    i += 1
 
         for service_name, service_info in kb_data.get("services", {}).items():
-            docs.append(
-                f"Service: {service_name}, Price: {service_info.get('price')}"
-            )
-            ids.append(f"service-{i}")
-            i += 1
+            # service_info is now a dict (SQLAlchemy JSON type returns Python objects)
+            if isinstance(service_info, dict):
+                price = service_info.get('price', '')
+                docs.append(f"Service: {service_name}, Price: {price}")
+                ids.append(f"service-{i}")
+                i += 1
 
         # Add documents
         if docs:

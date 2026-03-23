@@ -13,7 +13,7 @@ class FeedbackEntry(BaseModel):
     # Generic fields (used for policy and faq)
     customer_question: Optional[str] = None
     owner_correction: Optional[str] = None
-    
+    policy_name: Optional[str] = None
     # Service-specific fields (used when kb_field="service")
     service_name: Optional[str] = None
     service_description: Optional[str] = None

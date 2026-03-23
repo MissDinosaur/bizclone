@@ -21,6 +21,10 @@ COPY . .
 # Create data directory for logs and file storage
 RUN mkdir -p data logs
 
+# Suppress verbose progress bars and model loading logs
+ENV HF_HUB_DISABLE_PROGRESS_BARS=1
+ENV PYTHONUNBUFFERED=1
+
 # Expose port
 EXPOSE 8000
 

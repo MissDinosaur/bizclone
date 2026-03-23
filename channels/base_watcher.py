@@ -58,11 +58,11 @@ class BaseChannelWatcher(ABC):
                 messages = self.fetch_unread_messages()
 
                 if messages:
-                    logger.debug(f"{self.channel_name.upper()} found {len(messages)} new message(s)")
+                    logger.info(f"{self.channel_name.upper()} found {len(messages)} new message(s)")
                     for message in messages:
                         self.process_message(message)
                 else:
-                    logger.debug(f"{self.channel_name.upper()} no new messages")
+                    logger.info(f"{self.channel_name.upper()} polling... (no new messages)")
 
             except Exception as e:
                 logger.error(f"{self.channel_name.upper()} watcher error: {str(e)}", exc_info=True)

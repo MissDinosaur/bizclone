@@ -34,18 +34,19 @@ docker-compose logs -f postgres
 Connect to PostgreSQL database:
 
 ```bash
-# Using docker-compose
-docker-compose exec postgres psql -U bizclone_user -d bizclone_db
+# Using docker-compose, postgres_db is the service name
+docker-compose exec postgres_db psql -U bizclone_user -d bizclone_db
+
 
 # Or from your machine (if PostgreSQL client installed)
-psql -h localhost -U bizclone_user -d bizclone_db
+psql -h localhost -p 5433 -U bizclone_user -d bizclone_db
 ```
 
 Default credentials:
-- **Username**
+- **Username**: bizclone_user
 - **Password**
 - **Database**
-- **Port**: `5432`
+- **Port**: `5433`
 
 ## Common Commands
 
@@ -68,7 +69,7 @@ docker-compose down -v
 docker-compose logs -f bizclone
 
 # Database logs
-docker-compose logs -f postgres
+docker-compose logs -f postgres_db
 
 # All logs
 docker-compose logs -f
@@ -96,7 +97,7 @@ docker-compose exec bizclone python script.py
 docker-compose exec bizclone /bin/bash
 
 # Access database
-docker-compose exec postgres psql -U bizclone_user -d bizclone_db
+docker-compose exec postgres_db psql -U bizclone_user -d bizclone_db
 ```
 
 ## Environment Configuration
@@ -124,13 +125,13 @@ docker-compose down -v
 
 ```bash
 # Check if PostgreSQL is running and healthy
-docker-compose ps postgres
+docker-compose ps postgres_db
 
 # View PostgreSQL logs
-docker-compose logs postgres
+docker-compose logs postgres_db
 
 # Test database connectivity
-docker-compose exec postgres pg_isready -U bizclone_user -d bizclone_db
+docker-compose exec postgres_db pg_isready -U bizclone_user -d bizclone_db
 ```
 
 ### Application Won't Start
@@ -180,7 +181,7 @@ docker-compose -f docker-compose.prod.yml up -d
 │                                     │
 │  ┌─────────────┐   ┌─────────────┐ │
 │  │  BizClone   │   │ PostgreSQL  │ │
-│  │  (Port 8000)├──┤ (Port 5432) │ │
+│  │  (Port 8000)├──┤ (Port 5433) │ │
 │  └─────────────┘   └─────────────┘ │
 │                                     │
 │  Service: bizclone ↔ Service: postgres
@@ -188,7 +189,7 @@ docker-compose -f docker-compose.prod.yml up -d
 └─────────────────────────────────────┘
         ↓
     Host Machine
-    (Port 8000, 5432 exposed)
+    (Port 8000, 5433 exposed)
 ```
 
 ## Health Checks
@@ -200,7 +201,7 @@ Both services have health checks configured:
 docker-compose exec bizclone curl http://localhost:8000/health
 
 # Check database health
-docker-compose exec postgres pg_isready -U bizclone_user -d bizclone_db
+docker-compose exec postgres_db pg_isready -U bizclone_user -d bizclone_db
 ```
 
 ## Notes

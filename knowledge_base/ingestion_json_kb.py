@@ -1,5 +1,15 @@
 import json
-from knowledge_base.schema import KnowledgeItem
+from pydantic import BaseModel
+from typing import List
+
+
+class KnowledgeItem(BaseModel):
+    id: str
+    category: str
+    title: str
+    content: str
+    tags: List[str] = []
+    version: int = 1
 
 
 def load_email_kb(path: str):

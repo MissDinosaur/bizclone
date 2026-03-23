@@ -12,15 +12,20 @@
 
 from openai import OpenAI
 import os
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 class LLMClient:
     def __init__(self):
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY not found in environment variables")
+        
+        # Log key availability (don't log the actual key)
+        logger.debug(f"OpenAI API Key found: {'*' * 10}...{api_key[-10:] if len(api_key) > 10 else api_key}")
 
         self.client = OpenAI(api_key=api_key)
 
