@@ -83,19 +83,33 @@ bizclone/
 
 The Knowledge Base consolidates business information for intelligent responses:
 
-- **Services**: Plumbing services with descriptions and hourly rates
-  - leak_repair, drain_cleaning, toilet_repair, water_heater_service, emergency_plumbing, kitchen_drain_unclogging
+- **Services**: Plumbing services with descriptions and hourly rates.
+  - Example:     
+  ```json
+  "toilet_repair": {
+      "description": "Repairing flushing issues, leaks, and toilet installation problems.",
+      "price": "\u20ac111 per hour"
+    }
+  ```
+- **Policies**: Business operating rules and procedures.
+  - Example:     
+  ```json
+  "payment_methods": "We accept cash, bank transfer, and PayPal after service completion."
+  ```
 
-- **Policies**: Business operating rules and procedures
-  - Working hours, emergency availability, cancellation policy, late arrival fee, payment methods, invoicing, travel fee
-
-- **FAQs**: Customer frequently asked questions with AI-trained replies
-  - Coverage: service areas, pricing, booking, emergency response, technical capabilities
+- **FAQs**: Customer frequently asked questions with AI-trained replies.
+  - Example:     
+  ```json
+    {
+      "q": "How much does a plumbing repair cost?",
+      "a": "Our standard plumbing repair starts at \u20ac80 per hour."
+    }
+  ```
 
 Stored in `database/initial_email_kb.json` and uploaded to PostgreSQL + ChromaDB on startup for RAG-powered responses.
 
 **Knowledge Base Updating Workflow**
-
+```text
 Business Owner edits KB in KB Manage UI
     ↓
 Updating table knowledge_base
@@ -103,7 +117,7 @@ Updating table knowledge_base
 Set updated records is_active=Ture
     ↓
 Set old version records is_active=False
-
+```
 
 ### 1. Email Agent Pipeline
 
