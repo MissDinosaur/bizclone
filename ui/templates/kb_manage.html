@@ -275,7 +275,7 @@
             const field2Hint = document.getElementById('faq_field2_hint');
 
             if (operation === 'update') {
-                field1Label.textContent = 'Customer Question Pattern *';
+                field1Label.textContent = 'Customer Question *';
                 field2Label.textContent = 'Corrected Answer *';
                 field1Hint.textContent = 'Example: "Do you service water heaters?"';
                 field2Hint.textContent = 'Example: "Yes, we inspect and repair household water heaters."';
@@ -322,7 +322,7 @@
         <!-- SERVICE-SPECIFIC FIELDS -->
         <div id="service_fields_container" style="display: none;">
             <label id="service_name_label">New Service Name *</label>
-            <input type="text" name="service_name" placeholder="Example: roof leak repair" required>
+            <input type="text" name="service_name" placeholder="Service name" required>
             <div class="field-hint" id="service_name_hint">Example: "roof leak repair"</div>
 
             <label id="service_desc_label">Service Description *</label>
@@ -330,29 +330,29 @@
             <div class="field-hint" id="service_desc_hint">Example: "Professional roof leak detection and repair services"</div>
 
             <label id="service_price_label">Service Price *</label>
-            <input type="text" name="service_price" placeholder="Example: €140 per hour" required>
+            <input type="text" name="service_price" placeholder="Service price" required>
             <div class="field-hint" id="service_price_hint">Example: "€140 per hour"</div>
         </div>
 
         <!-- POLICY-SPECIFIC FIELDS -->
         <div id="policy_fields_container" style="display: none;">
             <label id="policy_name_label">Policy Name *</label>            
-            <input type="text" name="policy_name" placeholder="Example: emergency hours" required>
+            <input type="text" name="policy_name" placeholder="Policy name" required>
             <div class="field-hint" id="policy_name_hint">Example: "emergency hours"</div>
 
             <label id="policy_text_label">Corrected Answer *</label>
-            <input type="text" name="owner_correction" placeholder="Example: Emergency plumbing is available 24/7 including weekends." required>
+            <input type="text" name="owner_correction" placeholder="Corrected answer" required>
             <div class="field-hint" id="policy_text_hint">Example: "Emergency plumbing is available 24/7 including weekends."</div>
         </div>
 
         <!-- FAQ-SPECIFIC FIELDS -->
         <div id="faq_fields_container" style="display: none;">
             <label id="faq_field1_label">Customer Question Pattern *</label>
-            <input type="text" name="customer_question" placeholder="Example: Do you service water heaters?" required>
+            <input type="text" name="customer_question" placeholder="Customer question" required>
             <div class="field-hint" id="faq_field1_hint">Example: "Do you service water heaters?"</div>
 
             <label id="faq_field2_label">Corrected Answer *</label>
-            <input type="text" name="owner_correction" placeholder="Example: Yes, we inspect and repair household water heaters." required>
+            <input type="text" name="owner_correction" placeholder="Owner answer" required>
             <div class="field-hint" id="faq_field2_hint">Example: "Yes, we inspect and repair household water heaters."</div>
         </div>
 
