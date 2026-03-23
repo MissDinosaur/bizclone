@@ -16,17 +16,24 @@ BizClone requires **PostgreSQL**.
 docker-compose up -d --build
 ```
 
-### 2. Verify Services are Running
+### 2. Verify Services are Running and View Logs
 
 ```bash
 # Check service status
 docker-compose ps
 
 # View application logs
-docker-compose logs -f bizclone
+docker-compose logs -f bizclone   #  bizclone is the service name
+or
+docker logs -f bizclone_app   # bizclone_app is the container name
 
 # View database logs
-docker-compose logs -f postgres
+docker-compose logs -f postgres_db    #  postgres_db is the service name
+or
+docker-compose logs -f bizclone_postgres  # bizclone_postgres is the container name
+
+# All logs
+docker-compose logs -f
 ```
 
 ### 3. Database Access
@@ -62,18 +69,6 @@ docker-compose down
 docker-compose down -v
 ```
 
-### View Logs
-
-```bash
-# Application logs
-docker-compose logs -f bizclone
-
-# Database logs
-docker-compose logs -f postgres_db
-
-# All logs
-docker-compose logs -f
-```
 
 ### Restart Services
 
@@ -91,10 +86,12 @@ docker-compose up -d --build
 
 ```bash
 # Run Python script in app container
-docker-compose exec bizclone python script.py
+docker exec -it bizclone_app python script.py  # bizclone_app is the container name
 
 # Access app shell
-docker-compose exec bizclone /bin/bash
+docker exec -it bizclone_app bash
+or 
+docker exec -it bizclone_app sh
 
 # Access database
 docker-compose exec postgres_db psql -U bizclone_user -d bizclone_db
@@ -198,7 +195,7 @@ Both services have health checks configured:
 
 ```bash
 # Check application health
-docker-compose exec bizclone curl http://localhost:8000/health
+curl http://localhost:8000/health
 
 # Check database health
 docker-compose exec postgres_db pg_isready -U bizclone_user -d bizclone_db
