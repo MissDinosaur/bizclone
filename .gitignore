@@ -3,7 +3,6 @@ data/
 venv310/
 logs/
 .env
-test_kb_init.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
