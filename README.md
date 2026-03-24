@@ -1,4 +1,6 @@
-# BizClone - AI-Powered Email Agent
+# BizClone - AI-Powered Assistant
+This branch will be the final project dev branch with ALL Channels integrated.
+
 ## Project Overview
 
 Small enterprises—plumbers, mechanics, consultants, tutors, salon owners, and other service providers—face a critical challenge: managing customer communications and scheduling while delivering hands-on services. With limited staff and budget, these business owners often struggle to respond promptly to inquiries, manage appointments, and maintain consistent customer service quality.
