@@ -1,5 +1,7 @@
 # bizclone
-Using Json only
+This branch save email data only in json files, not introducing external database.
+
+**DO NOT REFER TO IT.** It will be delete later.
 
 
 ### bizclone-email-agent
