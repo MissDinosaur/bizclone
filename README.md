@@ -1,4 +1,6 @@
 # bizclone
+Using Json only
+
 
 ### bizclone-email-agent
 A complete Email Agent microservice with its own knowledge base and retrieval system.
