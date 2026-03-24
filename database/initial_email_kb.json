@@ -1,0 +1,247 @@
+{
+  "business_name": "BizClone Plumbing Services",
+  "location": "Hamburg, Germany",
+  "business_type": "Small Enterprise Plumber",
+  "services": {
+    "leak_repair": {
+      "description": "Fixing leaking pipes, faucets, and water connections in kitchens and bathrooms.",
+      "price": "€80 per hour"
+    },
+    "drain_cleaning": {
+      "description": "Removing clogs in sinks, showers, toilets, and main drain lines.",
+      "price": "€64 per hour"
+    },
+    "toilet_repair": {
+      "description": "Repairing flushing issues, leaks, and toilet installation problems.",
+      "price": "€111 per hour"
+    },
+    "water_heater_service": {
+      "description": "Inspection and repair of household water heating systems.",
+      "price": "€100 per hour"
+    },
+    "emergency_plumbing": {
+      "description": "24/7 urgent plumbing support for flooding, burst pipes, and severe leaks.",
+      "price": "€107 per hour (updated)"
+    },
+    "kitchen_drain_unclogging": {
+      "description": "Removing blockages from a kitchen sink drain to restore normal water flow",
+      "price": "€104 per hour"
+    }
+  },
+  "policies": {
+    "working_hours": "We operate Monday to Friday, 9:00 AM to 6:00 PM.",
+    "emergency_hours": "Emergency plumbing is available 24/7 including weekends.",
+    "cancellation": "Appointments can be cancelled free of charge up to 24 hours in advance.",
+    "late_arrival": "If the customer is more than 15 minutes late, the appointment may be rescheduled.",
+    "payment_methods": "We accept cash, bank transfer, and PayPal after service completion.",
+    "invoice": "Invoices are provided upon request for all services.",
+    "travel_fee": "A small travel fee may apply outside central Hamburg.",
+    "general_update": "How much is the leak repair - It costs €81/hour"
+  },
+  "faqs": [
+    {
+      "q": "What areas do you serve?",
+      "a": "We serve Hamburg and nearby surrounding areas."
+    },
+    {
+      "q": "What are your working hours?",
+      "a": "We operate Monday to Friday, 9:00 AM to 6:00 PM."
+    },
+    {
+      "q": "Do you offer emergency plumbing?",
+      "a": "Yes, we provide 24/7 emergency plumbing support."
+    },
+    {
+      "q": "How much does a plumbing repair cost?",
+      "a": "Our standard plumbing repair starts at €80 per hour."
+    },
+    {
+      "q": "Do you charge extra for emergency calls?",
+      "a": "Yes, emergency services are charged at €120 per hour."
+    },
+    {
+      "q": "Can I book an appointment by email?",
+      "a": "Yes, simply email us your issue and preferred time slot."
+    },
+    {
+      "q": "Do you repair leaking faucets?",
+      "a": "Yes, we repair leaking taps and replace faulty parts."
+    },
+    {
+      "q": "How fast can you respond to emergencies?",
+      "a": "We aim to respond within 1–2 hours depending on location and workload."
+    },
+    {
+      "q": "Do you clean clogged drains?",
+      "a": "Yes, we provide drain cleaning for sinks, showers, and toilets."
+    },
+    {
+      "q": "Do you fix burst pipes?",
+      "a": "Yes, burst pipe repair is one of our emergency services."
+    },
+    {
+      "q": "Can you install a new toilet?",
+      "a": "Yes, we offer toilet installation and replacement services."
+    },
+    {
+      "q": "Do you repair toilets that keep running?",
+      "a": "Yes, we can fix flushing and running water issues."
+    },
+    {
+      "q": "Can you help with low water pressure?",
+      "a": "Yes, we can inspect and resolve low pressure problems."
+    },
+    {
+      "q": "Do you service water heaters?",
+      "a": "Yes, we inspect and repair household water heaters."
+    },
+    {
+      "q": "Can you replace old pipes?",
+      "a": "Yes, we provide pipe replacement and upgrades when needed."
+    },
+    {
+      "q": "Do you work on weekends?",
+      "a": "Only emergency services are available on weekends."
+    },
+    {
+      "q": "Is there a travel fee?",
+      "a": "A small travel fee may apply outside central Hamburg."
+    },
+    {
+      "q": "What payment methods do you accept?",
+      "a": "We accept cash, bank transfer, and PayPal."
+    },
+    {
+      "q": "Do you provide invoices?",
+      "a": "Yes, invoices are available upon request."
+    },
+    {
+      "q": "Can I cancel my appointment?",
+      "a": "Yes, cancellations are free up to 24 hours before the appointment."
+    },
+    {
+      "q": "What happens if I cancel late?",
+      "a": "Late cancellations may incur a small service fee."
+    },
+    {
+      "q": "Can you fix a leaking shower?",
+      "a": "Yes, we repair leaks in showers and bathtubs."
+    },
+    {
+      "q": "Do you unclog toilets?",
+      "a": "Yes, toilet clog removal is part of our drain cleaning services."
+    },
+    {
+      "q": "Can you repair kitchen sink leaks?",
+      "a": "Yes, kitchen plumbing repair is a common service we provide."
+    },
+    {
+      "q": "Do you replace broken faucets?",
+      "a": "Yes, faucet replacement is available if repair is not possible."
+    },
+    {
+      "q": "How long does a typical repair take?",
+      "a": "Most small repairs take 1–2 hours depending on complexity."
+    },
+    {
+      "q": "Do you provide free estimates?",
+      "a": "We can provide an estimate after understanding the issue."
+    },
+    {
+      "q": "Can you inspect my plumbing system?",
+      "a": "Yes, we offer plumbing inspections for households."
+    },
+    {
+      "q": "Do you handle apartment building plumbing?",
+      "a": "Yes, we support both private homes and small apartment buildings."
+    },
+    {
+      "q": "Can you help with flooding?",
+      "a": "Yes, flooding and water damage emergencies are handled immediately."
+    },
+    {
+      "q": "Do you repair washing machine connections?",
+      "a": "Yes, we fix and replace washing machine water connections."
+    },
+    {
+      "q": "Do you repair dishwasher plumbing issues?",
+      "a": "Yes, dishwasher leaks and drainage issues are supported."
+    },
+    {
+      "q": "Can you install a new sink?",
+      "a": "Yes, sink installation is available upon request."
+    },
+    {
+      "q": "Do you fix noisy pipes?",
+      "a": "Yes, we can diagnose and reduce pipe vibration or noise."
+    },
+    {
+      "q": "Can you remove bad odors from drains?",
+      "a": "Yes, drain cleaning often resolves odor issues."
+    },
+    {
+      "q": "Do you offer preventive maintenance?",
+      "a": "Yes, we provide maintenance services to prevent future problems."
+    },
+    {
+      "q": "Do you work with landlords and property managers?",
+      "a": "Yes, we frequently support rental property maintenance."
+    },
+    {
+      "q": "Can you help with bathroom renovation plumbing?",
+      "a": "Yes, we support plumbing work during renovations."
+    },
+    {
+      "q": "Do you repair radiator leaks?",
+      "a": "Yes, minor heating-related plumbing leaks can be handled."
+    },
+    {
+      "q": "Can you install water filters?",
+      "a": "Yes, water filter installation is available."
+    },
+    {
+      "q": "Do you fix outdoor plumbing issues?",
+      "a": "Yes, we handle outdoor pipes and garden water systems."
+    },
+    {
+      "q": "Do you replace shower heads?",
+      "a": "Yes, shower fixture replacement is available."
+    },
+    {
+      "q": "Can you fix blocked main sewer lines?",
+      "a": "Yes, severe blockages may require specialized drain cleaning."
+    },
+    {
+      "q": "How do I know if I have a hidden leak?",
+      "a": "Signs include damp walls, mold, or unexplained water bills."
+    },
+    {
+      "q": "Do you offer same-day service?",
+      "a": "Same-day service may be available depending on schedule."
+    },
+    {
+      "q": "How do I book the fastest appointment?",
+      "a": "Email us with your issue and urgency, and we will confirm the earliest slot."
+    },
+    {
+      "q": "Can you recommend what to do before you arrive?",
+      "a": "Yes, we may suggest shutting off the main water valve in emergencies."
+    },
+    {
+      "q": "Do you provide English support?",
+      "a": "Yes, we can communicate in English for international customers."
+    },
+    {
+      "q": "What should I include in my email request?",
+      "a": "Please include your address, issue description, and preferred appointment time."
+    },
+    {
+      "q": "Do you guarantee your repairs?",
+      "a": "Yes, we stand by our work and offer a service guarantee on repairs."
+    },
+    {
+      "q": "Do you have the female workers?",
+      "a": "Yes, we have. We have 3 female repairman in our company."
+    }
+  ]
+}
