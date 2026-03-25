@@ -9,6 +9,7 @@ from channels.call.call_watcher import CallWatcher
 from channels.teams.teams_watcher import TeamsWatcher
 from channels.whatsapp.whatsapp_watcher import WhatsAppWatcher
 from channels.facebook.facebook_watcher import FacebookWatcher
+from channels.instagram.instagram_watcher import InstagramWatcher
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +68,13 @@ class ChannelPollingManager:
         if whatsapp_config.get("enabled", False):
             self.watchers["whatsapp"] = WhatsAppWatcher(
                 poll_interval=whatsapp_config.get("poll_interval", 300)
+            )
+
+        # Instagram watcher
+        instagram_config = self.config.get("instagram", {"enabled": False, "poll_interval": 60})
+        if instagram_config.get("enabled", False):
+            self.watchers["instagram"] = InstagramWatcher(
+                poll_interval=instagram_config.get("poll_interval", 60)
             )
 
         # Facebook watcher

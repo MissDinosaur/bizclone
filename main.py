@@ -50,6 +50,10 @@ CHANNEL_CONFIG = {
         "enabled": os.getenv("CHANNEL_WHATSAPP_ENABLED", "False").lower() == "true",
         "poll_interval": int(os.getenv("CHANNEL_WHATSAPP_POLL_INTERVAL", 300))
     },
+    "instagram": {
+        "enabled": os.getenv("CHANNEL_INSTAGRAM_ENABLED", "False").lower() == "true",
+        "poll_interval": int(os.getenv("CHANNEL_INSTAGRAM_POLL_INTERVAL", 60))
+    },
     "facebook": {
         "enabled": os.getenv("CHANNEL_FACEBOOK_ENABLED", "False").lower() == "true",
         "poll_interval": int(os.getenv("CHANNEL_FACEBOOK_POLL_INTERVAL", 300))
