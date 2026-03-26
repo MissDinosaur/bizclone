@@ -75,3 +75,6 @@ celerybeat.pid
 
 # Added by ggshield
 .cache_ggshield
+
+
+backend/credentials/google_calendar.json
