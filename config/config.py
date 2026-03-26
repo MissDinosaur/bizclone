@@ -50,6 +50,26 @@ BOOKINGS_DIR = os.getenv("BOOKINGS_DIR", "data/scheduling")
 DATABASE_URL = os.getenv("DATABASE_URL")
 REQUIRED_TABLES = ['email_history', 'booking', 'knowledge_base', 'kb_feedback']
 
+# Urgency Detection Configuration
+# Defines how emails are escalated based on urgency level (not intent)
+ESCALATION_CONFIG = {
+    "CRITICAL": {
+        "auto_reply": False,           # Always escalate, never auto-reply
+        "owner_notification": True,    # Send owner notification immediately
+        "sla_hours": 1                 # SLA: owner should respond within 1 hour
+    },
+    "HIGH": {
+        "auto_reply": False,           # Always escalate
+        "owner_notification": True,
+        "sla_hours": 24                # SLA: owner should respond within 24 hours
+    },
+    "NORMAL": {
+        "auto_reply": True,            # Safe to auto-reply
+        "owner_notification": False,
+        "sla_hours": 48                # SLA: async processing acceptable
+    }
+}
+
 # Legacy API Keys (from .env)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 ALLOWED_SENDERS = os.getenv("ALLOWED_SENDERS", "").split(",") if os.getenv("ALLOWED_SENDERS") else []

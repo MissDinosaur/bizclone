@@ -4,6 +4,7 @@ venv310/
 logs/
 .env
 test_kb_init.py
+docs/INTEGRATION_COMPLETE.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

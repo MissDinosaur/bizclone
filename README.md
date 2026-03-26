@@ -83,6 +83,7 @@ bizclone/
 ## Channel Input
 
 ### Knowledge Base
+The KB was expanded to over 100 structured entries to improve retrieval coverage and response quality in the RAG pipeline.
 
 The Knowledge Base consolidates business information for intelligent responses:
 
@@ -130,16 +131,16 @@ Customer Email
     ↓
 Email Parser
     ↓
-Intent Classification
+Intent Classification + Urgency Detection
     ↓
 Retrieve Conversation History (from PostgreSQL)
     ↓
 Query Knowledge Base (PostgreSQL + ChromaDB)
     ↓
 Generate LLM Response with Context (Intent + Email + Email history + KB)
-    ↓
-Owner Review & Approval
-    ↓
+    ↓ If Normal Case             ↓ If Emergenct Case
+    ↓                  Owner Review & Approval
+    ↓                            ↓
 Send Reply via Gmail or Calendar Booking
     ↓
 Store in Database

@@ -117,11 +117,16 @@
             const faqFieldsContainer = document.getElementById('faq_fields_container');
             
             // Helper function to set required and name attributes
-            function manageContainer(container, isActive) {
+            function manageContainer(container, isActive, isServiceUpdate = false) {
                 const inputs = container.querySelectorAll('input, textarea');
                 inputs.forEach(input => {
                     if (isActive) {
-                        input.setAttribute('required', '');
+                        // For service update, description and price are optional
+                        if (isServiceUpdate && (input.name === 'service_description' || input.name === 'service_price')) {
+                            input.removeAttribute('required');
+                        } else {
+                            input.setAttribute('required', '');
+                        }
                         // Restore name attribute for active fields
                         const originalName = input.getAttribute('data-name');
                         if (originalName) {
@@ -140,7 +145,8 @@
                 serviceFieldsContainer.style.display = 'block';
                 policyFieldsContainer.style.display = 'none';
                 faqFieldsContainer.style.display = 'none';
-                manageContainer(serviceFieldsContainer, true);
+                const isServiceUpdate = operation === 'update';
+                manageContainer(serviceFieldsContainer, true, isServiceUpdate);
                 manageContainer(policyFieldsContainer, false);
                 manageContainer(faqFieldsContainer, false);
                 updateServiceLabels(operation);
@@ -171,6 +177,7 @@
         });
 
         function validateAndSubmit(event) {
+            const operation = document.getElementById('operation').value;
             const kb_field = document.getElementById('kb_field').value;
             const errorMsg = document.getElementById('error_message');
             
@@ -234,11 +241,11 @@
 
             if (operation === 'update') {
                 nameLabel.textContent = 'Service Name *';
-                descLabel.textContent = 'Updated Description';
-                priceLabel.textContent = 'Updated Price';
+                descLabel.textContent = 'Updated Description';  // No asterisk - optional
+                priceLabel.textContent = 'Updated Price';      // No asterisk - optional
                 nameHint.textContent = 'Example: "emergency plumbing"';
-                descHint.textContent = 'Example: "24/7 urgent plumbing support with priority response"';
-                priceHint.textContent = 'Example: "€120 per hour"';
+                descHint.textContent = 'Example: "24/7 urgent plumbing support with priority response" (Optional)';
+                priceHint.textContent = 'Example: "€120 per hour" (Optional)';
             } else if (operation === 'insert') {
                 nameLabel.textContent = 'New Service Name *';
                 descLabel.textContent = 'Service Description *';

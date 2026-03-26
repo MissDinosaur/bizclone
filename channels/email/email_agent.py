@@ -1,6 +1,7 @@
 import logging
 from channels.email.parser import parse_email
 from channels.email.intent_classifier import IntentClassifier
+from channels.email.urgency_detector import UrgencyDetector
 from rag.rag_pipeline import EmailRAGPipeline
 from scheduling.scheduler import check_availability, book_slot
 from knowledge_base.email_history_store import EmailHistoryStore
@@ -14,16 +15,36 @@ logger = logging.getLogger(__name__)
 
 def _intent_to_enum(intent_str: str) -> IntentType:
     """
-    Convert intent string to IntentType enum.
-    Handles mapping from config constants to enum values.
+    Convert intent string (15 new categories) to IntentType enum.
+    Note: EMERGENCY is no longer an intent - it's now detected as urgency level.
+    Maps new 15-category intents to IntentType enum values (also 15 values now).
     """
-    intent_mapping = {
-        cfg.PRICE_INQUERY: IntentType.PRICING_INQUIRY,
-        cfg.APPOINTMENT: IntentType.APPOINTMENT,
-        cfg.CANCELLATION: IntentType.CANCELLATION,
-        cfg.WORKING_HOUR: IntentType.WORKING_HOURS,
-        cfg.EMERGENCY: IntentType.EMERGENCY,
-        cfg.FAQ: IntentType.FAQ,
+    intent_mapping = {        
+        # New 15-category intent labels → IntentType enum (15 values)
+        # Query intents
+        "price_inquiry": IntentType.PRICING_INQUIRY,
+        "payment_inquiry": IntentType.PAYMENT_INQUIRY,
+        "working_hours": IntentType.WORKING_HOURS,
+        "upgrade_inquiry": IntentType.UPGRADE_INQUIRY,
+        
+        # Action intents
+        "appointment": IntentType.APPOINTMENT,
+        "cancellation": IntentType.CANCELLATION,
+        "service_request": IntentType.SERVICE_REQUEST,
+        "bulk_inquiry": IntentType.BULK_INQUIRY,
+        
+        # Feedback intents
+        "complaint": IntentType.COMPLAINT,
+        "feedback": IntentType.FEEDBACK,
+        "warranty_claim": IntentType.WARRANTY_CLAIM,
+        "replacement_request": IntentType.REPLACEMENT_REQUEST,
+        
+        # Financial intents
+        "refund_request": IntentType.REFUND_REQUEST,
+        
+        # Fallback
+        "faq": IntentType.FAQ,
+        "other": IntentType.OTHER,
     }
     
     return intent_mapping.get(intent_str, IntentType.FAQ)  # Default to FAQ if unknown
@@ -34,15 +55,20 @@ class EmailAgent:
     Email message processor.
     Handles the end-to-end email pipeline:
     1. Parse incoming email
-    2. Predict intent using NLP model
-    3. Retrieve relevant KB context (RAG)
-    4. Generate final reply draft using LLM
-    5. Optionally handle scheduling requests
+    2. Predict intent using NLP model (15 categories)
+    3. Detect urgency level (CRITICAL/HIGH/NORMAL) - INDEPENDENT of intent
+    4. Retrieve relevant KB context (RAG)
+    5. Generate final reply draft using LLM
+    6. Optionally handle scheduling requests
+    
+    Note: Intent (what user wants) and Urgency (time-sensitivity) are
+    detected separately for better decision-making.
     """
 
     def __init__(self):
         self.rag = EmailRAGPipeline()
         self.intent_model = IntentClassifier()
+        self.urgency_detector = UrgencyDetector()
         self.email_store = EmailHistoryStore()
 
     def process_email(self, email_payload: dict) -> ChannelMessageResponseSchema:
@@ -71,10 +97,22 @@ class EmailAgent:
             channel="email"
         )
 
-        # Step 2: Intent Detection (NLP)
+        # Step 2: Intent Detection (NLP) - SEPARATE from urgency
         intent_result = self.intent_model.predict_intent(email_text)
         intent = intent_result["intent"]
-        logger.info(f"email - intent detected: {intent}", extra={"channel": "email"})
+        intent_confidence = intent_result["confidence"]
+        logger.info(f"email - intent: {intent} ({intent_confidence:.0%})", extra={"channel": "email"})
+        
+        # Step 2b: Urgency Detection (keyword-based) - INDEPENDENT of intent
+        urgency_result = self.urgency_detector.detect_urgency(email_text, intent=intent)
+        urgency_level = urgency_result["urgency_level"]
+        urgency_confidence = urgency_result["confidence"]
+        escalation_reason = urgency_result["escalation_reason"]
+        detected_keywords = urgency_result["detected_keywords"]
+        
+        logger.info(f"email - urgency: {urgency_level} ({urgency_confidence:.0%}) - {escalation_reason}", extra={"channel": "email"})
+        if detected_keywords:
+            logger.warning(f"email - escalation keywords: {detected_keywords}", extra={"channel": "email"})
         
         # Step 3: Scheduling Logic (Optional)
         booking_info = None
@@ -112,9 +150,13 @@ class EmailAgent:
         )
         logger.debug(f"email - saved reply history for {customer_email}")
         
-        # Emergency emails require owner review
-        if intent == cfg.EMERGENCY:
-            logger.warning(f"email - emergency detected from {customer_email}", extra={"channel": "email"})
+        # Step 6: DECISION LOGIC - Based on URGENCY
+        # Urgency determines escalation, intent determines reply content
+        should_escalate = self.urgency_detector.should_escalate_to_owner(urgency_level)
+        
+        if should_escalate:
+            logger.warning(f"email - [{urgency_level}] escalating to owner from {customer_email}", extra={"channel": "email"})
+            logger.warning(f"email - reason: {escalation_reason}", extra={"channel": "email"})
             return ChannelMessageResponseSchema(
                 channel="email",
                 status=MessageStatus.NEEDS_REVIEW,
@@ -123,10 +165,18 @@ class EmailAgent:
                 booking=booking_response,
                 retrieved_docs=retrieved_docs,
                 error_code=None,
-                error_message=None
+                error_message=None,
+                # NEW: Store urgency info for owner review context
+                metadata={
+                    "urgency_level": urgency_level,
+                    "urgency_confidence": urgency_confidence,
+                    "escalation_reason": escalation_reason,
+                    "detected_keywords": detected_keywords,
+                    "intent_confidence": intent_confidence
+                }
             )
         
-        logger.info(f"email - auto-send response", extra={"channel": "email"})
+        logger.info(f"email - auto-sending response (urgency: {urgency_level})", extra={"channel": "email"})
         return ChannelMessageResponseSchema(
             channel="email",
             status=MessageStatus.AUTO_SEND,
@@ -135,7 +185,11 @@ class EmailAgent:
             booking=booking_response,
             retrieved_docs=retrieved_docs,
             error_code=None,
-            error_message=None
+            error_message=None,
+            metadata={
+                "urgency_level": urgency_level,
+                "urgency_confidence": urgency_confidence
+            }
         )
 
     def _handle_booking_request(self, customer_email: str, message_text: str) -> dict:

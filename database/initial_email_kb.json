@@ -26,6 +26,34 @@
     "kitchen_drain_unclogging": {
       "description": "Removing blockages from a kitchen sink drain to restore normal water flow",
       "price": "€104 per hour"
+    },
+    "pipe_installation": {
+      "description": "Installing new water pipes for kitchens, bathrooms, or renovations.",
+      "price": "€120 per hour"
+    },
+    "bathroom_plumbing": {
+      "description": "Full bathroom plumbing services including installation and repair.",
+      "price": "€110 per hour"
+    },
+    "water_leak_detection": {
+      "description": "Advanced detection of hidden leaks using specialized tools.",
+      "price": "€95 per hour"
+    },
+    "sewer_line_repair": {
+      "description": "Repair and maintenance of main sewer lines.",
+      "price": "€130 per hour"
+    },
+    "radiator_installation": {
+      "description": "Installation and replacement of home radiators.",
+      "price": "€105 per hour"
+    },
+    "pipe_insulation": {
+      "description": "Insulating pipes to prevent freezing and heat loss.",
+      "price": "€70 per hour"
+    },
+    "gas_line_inspection": {
+      "description": "Inspection of gas pipelines for safety compliance.",
+      "price": "€115 per hour"
     }
   },
   "policies": {
@@ -36,7 +64,14 @@
     "payment_methods": "We accept cash, bank transfer, and PayPal after service completion.",
     "invoice": "Invoices are provided upon request for all services.",
     "travel_fee": "A small travel fee may apply outside central Hamburg.",
-    "general_update": "How much is the leak repair - It costs €81/hour"
+    "general_update": "How much is the leak repair - It costs €81/hour",
+    "warranty": "We provide a 6-month warranty on most repair services.",
+    "response_time": "Standard service requests are handled within 24–48 hours.",
+    "emergency_priority": "Emergency cases are prioritized over standard bookings.",
+    "materials_policy": "Material costs are billed separately if required.",
+    "inspection_fee": "A small inspection fee may apply if no repair is performed.",
+    "reschedule_policy": "Appointments can be rescheduled at least 12 hours in advance.",
+    "safety_policy": "Our technicians follow strict safety and hygiene standards."
   },
   "faqs": [
     {
@@ -242,6 +277,78 @@
     {
       "q": "Do you have the female workers?",
       "a": "Yes, we have. We have 3 female repairman in our company."
+    },
+    {
+      "q": "Do you offer fixed prices?",
+      "a": "Some services have fixed pricing, while others depend on the complexity."
+    },
+    {
+      "q": "Are there any hidden costs?",
+      "a": "No, all costs are communicated clearly before starting the work."
+    },
+    {
+      "q": "Is VAT included in your prices?",
+      "a": "Yes, all prices include VAT unless otherwise stated."
+    },
+    {
+      "q": "Do you charge for inspection visits?",
+      "a": "An inspection fee may apply if no repair is carried out."
+    },
+    {
+      "q": "Do you offer fixed prices?",
+      "a": "Some services have fixed pricing, while others depend on the complexity."
+    },
+    {
+      "q": "Are there any hidden costs?",
+      "a": "No, all costs are communicated clearly before starting the work."
+    },
+    {
+      "q": "Is VAT included in your prices?",
+      "a": "Yes, all prices include VAT unless otherwise stated."
+    },
+    {
+      "q": "Do you charge for inspection visits?",
+      "a": "An inspection fee may apply if no repair is carried out."
+    },
+    {
+      "q": "How quickly can I get an appointment?",
+      "a": "Usually within 1–2 business days depending on availability."
+    },
+    {
+      "q": "Do you have female technicians?",
+      "a": "Yes, we have trained female technicians available upon request."
+    },
+    {
+      "q": "Do you offer evening appointments?",
+      "a": "Limited evening slots may be available upon request."
+    },
+    {
+      "q": "Can you detect hidden leaks?",
+      "a": "Yes, we use specialized equipment for leak detection."
+    },
+    {
+      "q": "Do you replace old plumbing systems?",
+      "a": "Yes, we provide full system upgrades."
+    },
+    {
+      "q": "Can you install smart water systems?",
+      "a": "Yes, smart monitoring solutions are available."
+    },
+    {
+      "q": "Do I need to be home during the repair?",
+      "a": "Yes, access is required unless otherwise arranged."
+    },
+    {
+      "q": "How should I prepare for a visit?",
+      "a": "Please clear the work area and ensure accessibility."
+    },
+    {
+      "q": "Do I need to be home during the repair?",
+      "a": "Yes, access is required unless otherwise arranged."
+    },
+    {
+      "q": "How should I prepare for a visit?",
+      "a": "Please clear the work area and ensure accessibility."
     }
   ]
 }

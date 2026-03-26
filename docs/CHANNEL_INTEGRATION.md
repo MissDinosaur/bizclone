@@ -162,14 +162,8 @@ class WhatsAppAgent:
 
     
     def _intent_to_enum(self, intent_str: str) -> IntentType:
-        """Convert intent string to IntentType enum."""
+        """Convert intent string to IntentType enum (15 categories)."""
         intent_mapping = {
-            cfg.PRICE_INQUERY: IntentType.PRICING_INQUIRY,
-            cfg.APPOINTMENT: IntentType.APPOINTMENT,
-            cfg.CANCELLATION: IntentType.CANCELLATION,
-            cfg.WORKING_HOUR: IntentType.WORKING_HOURS,
-            cfg.EMERGENCY: IntentType.EMERGENCY,
-            cfg.FAQ: IntentType.FAQ,
         }
         return intent_mapping.get(intent_str, IntentType.FAQ)
 

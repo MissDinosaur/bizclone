@@ -13,13 +13,41 @@ from datetime import datetime
 
 
 class IntentType(str, Enum):
-    """Standardized intent classification across all channels."""
-    PRICING_INQUIRY = "pricing_inquiry"
+    """
+    Standardized intent classification across all channels.
+    15 intent categories (EMERGENCY removed - now handled by UrgencyDetector as urgency level).
+    
+    Categories:
+    - Query intents (4): pricing, payment, working hours, upgrade inquiries
+    - Action intents (4): appointment, cancellation, service request, bulk inquiry
+    - Feedback intents (4): complaint, feedback, warranty claim, replacement request
+    - Financial intents (1): refund request
+    - Fallback (2): FAQ, other
+    """
+    # Query intents (4)
+    PRICING_INQUIRY = "price_inquiry"
+    PAYMENT_INQUIRY = "payment_inquiry"
+    WORKING_HOURS = "working_hours_inquiry"
+    UPGRADE_INQUIRY = "upgrade_inquiry"
+    
+    # Action intents (4)
     APPOINTMENT = "appointment_booking_request"
     CANCELLATION = "cancellation_request"
-    WORKING_HOURS = "business_hours_question"
-    EMERGENCY = "emergency_service_request"
+    SERVICE_REQUEST = "service_request"
+    BULK_INQUIRY = "bulk_inquiry"
+    
+    # Feedback intents (4)
+    COMPLAINT = "complaint"
+    FEEDBACK = "positive_feedback"
+    WARRANTY_CLAIM = "warranty_claim_request"
+    REPLACEMENT_REQUEST = "replacement_request"
+    
+    # Financial intents (1)
+    REFUND_REQUEST = "refund_request"
+    
+    # Fallback (2)
     FAQ = "general_faq_question"
+    OTHER = "other"
 
 
 class BookingResponseSchema(BaseModel):
@@ -67,6 +95,7 @@ class ChannelMessageResponseSchema(BaseModel):
     retrieved_docs: Optional[List[str]] = Field(None, description="KB documents used to generate reply")
     error_code: Optional[str] = Field(None, description="Error code if status is failed")
     error_message: Optional[str] = Field(None, description="Detailed error message if status is failed")
+    metadata: Optional[dict] = Field(None, description="Additional metadata (urgency_level, confidence scores, escalation_reason, etc.)")
     
     class Config:
         """Pydantic config."""
