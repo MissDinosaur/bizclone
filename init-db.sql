@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS knowledge_base (
 
 CREATE INDEX IF NOT EXISTS idx_kb_field_active ON knowledge_base(kb_field, is_active);
 CREATE INDEX IF NOT EXISTS idx_kb_item_active ON knowledge_base(kb_field, item_key, is_active);
+CREATE INDEX IF NOT EXISTS idx_kb_field_item_version ON knowledge_base(kb_field, item_key, version_id);
 CREATE INDEX IF NOT EXISTS idx_timestamp ON knowledge_base(timestamp);
 CREATE INDEX IF NOT EXISTS idx_is_active ON knowledge_base(is_active);
 CREATE INDEX IF NOT EXISTS idx_last_updated ON knowledge_base(last_updated);
@@ -98,6 +99,7 @@ CREATE INDEX IF NOT EXISTS idx_last_updated ON knowledge_base(last_updated);
 -- ============================================================
 -- Table: kb_feedback
 -- Complete audit trail of KB modifications (feedback history)
+-- Foreign Key: (kb_version_id, kb_field, item_key) REFERENCES knowledge_base (version_id, kb_field, item_key)
 -- ============================================================
 CREATE SEQUENCE IF NOT EXISTS kb_feedback_id_seq START 1;
 
@@ -105,19 +107,26 @@ CREATE TABLE IF NOT EXISTS kb_feedback (
     id INTEGER PRIMARY KEY DEFAULT nextval('kb_feedback_id_seq'),
     operation VARCHAR(50),
     kb_field VARCHAR(100),
+    item_key VARCHAR(255),
+    kb_version_id INTEGER,
     customer_question TEXT,
     owner_correction TEXT,
     service_name VARCHAR(255),
     service_description TEXT,
     service_price VARCHAR(100),
     policy_name VARCHAR(255),
-    kb_version_id INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_kb_feedback_knowledge_base 
+        FOREIGN KEY (kb_version_id, kb_field, item_key) 
+        REFERENCES knowledge_base(version_id, kb_field, item_key)
+        ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_kb_feedback_kb_field ON kb_feedback(kb_field);
 CREATE INDEX IF NOT EXISTS idx_kb_feedback_timestamp ON kb_feedback(created_at);
 CREATE INDEX IF NOT EXISTS idx_kb_feedback_timestamp_operation ON kb_feedback(created_at, operation);
+CREATE INDEX IF NOT EXISTS idx_kb_feedback_version_key ON kb_feedback(kb_version_id, kb_field, item_key);
 
 -- ============================================================
 -- Grant table permissions to application user

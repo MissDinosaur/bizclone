@@ -6,7 +6,7 @@ Handles version control, current KB caching, and feedback logging.
 import logging
 import os
 from datetime import datetime
-from sqlalchemy import create_engine, desc
+from sqlalchemy import create_engine, desc, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -45,12 +45,19 @@ class KBStore:
         self.Session = sessionmaker(bind=self.engine)
         logger.info("KBStore initialized with PostgreSQL database")
     
-    def save_version(self, kb_field: str, item_key: str, detail: dict, change_desc: str = None, updated_by: str = None, activate: bool = True) -> int:
+    def save_version(self,
+            kb_field: str,
+            item_key: str,
+            detail: dict,
+            change_desc: str = None,
+            updated_by: str = None,
+            is_insert: bool = False) -> int:
         """
         Save new KB version for a specific item.
-        When activate=True (default), this method atomically:
+        When is_insert=False (default), this method atomically:
         - Deactivates the current active version of this item
-        - Creates and activates the new version
+        - Creates and activates the new version with version_id = max+1 for this item
+        When is_insert=True, this method creates a new version with version_id=1 for this item (used for new inserts).
         
         Args:
             kb_field: 'faq', 'policy', or 'service'
@@ -58,17 +65,38 @@ class KBStore:
             detail: JSONB content for this item
             change_desc: Description of changes made
             updated_by: Who made the change (system/user)
-            activate: Whether to activate this version immediately (default True)
+            is_insert: Whether this is an insert (version_id=1) or update (version_id=max+1)
             
-        Returns: version_id (auto-generated or reused)
+        Returns: version_id
         """
         if kb_field not in ['faq', 'policy', 'service']:
             raise ValueError(f"Invalid kb_field: {kb_field}. Must be 'faq', 'policy', or 'service'")
         
         session = self.Session()
         try:
-            # If activating, deactivate the current active version of this item
-            if activate:
+            # Special handling for FAQ: auto-generate item_key as "faq_XXXX"
+            if kb_field == 'faq' and is_insert:
+                # Find max FAQ number efficiently: only fetch item_key column
+                existing_faq_keys = session.query(KnowledgeBase.item_key).filter(
+                    KnowledgeBase.kb_field == 'faq'
+                ).distinct().all()
+                
+                max_faq_num = 0
+                for (faq_key,) in existing_faq_keys:
+                    if faq_key.startswith('faq_'):
+                        try:
+                            num = int(faq_key.split('_')[1])
+                            max_faq_num = max(max_faq_num, num)
+                        except (ValueError, IndexError):
+                            pass
+                
+                # Generate next FAQ item_key with 4-digit number
+                next_faq_num = max_faq_num + 1
+                item_key = f"faq_{next_faq_num:04d}"
+                logger.info(f"Generated FAQ item_key: {item_key}")
+            
+            # If updating operation, deactivate the current active version of this item
+            if not is_insert:
                 session.query(KnowledgeBase).filter(
                     KnowledgeBase.kb_field == kb_field,
                     KnowledgeBase.item_key == item_key,
@@ -77,21 +105,35 @@ class KBStore:
             
             now = datetime.utcnow()
             
-            # Get the next version_id
-            max_version = session.query(KnowledgeBase).order_by(
-                desc(KnowledgeBase.version_id)
-            ).first()
-            next_version_id = (max_version.version_id + 1) if max_version else 1
+            # Determine version_id based on operation type
+            if is_insert:
+                version_id = 1
+                logger.info(f"Insert operation: assigning version_id=1 for {kb_field}[{item_key}]")
+            else:
+                # Update: get max version_id for this kb_field+item_key using SQL MAX() function
+                # This is much more efficient than order_by().first() on large tables
+                max_version_id = session.query(func.max(KnowledgeBase.version_id)).filter(
+                    KnowledgeBase.kb_field == kb_field,
+                    KnowledgeBase.item_key == item_key
+                ).scalar()
+                
+                if max_version_id is not None:
+                    version_id = int(max_version_id) + 1
+                    logger.info(f"Update operation: max version was {max_version_id}, assigning {version_id} for {kb_field}[{item_key}]")
+                else:
+                    # No existing version for this item, start at 1
+                    version_id = 1
+                    logger.warning(f"Update operation but no existing version found for {kb_field}[{item_key}], starting at version_id=1")
             
             # Create new KB version for this item
             updated_kb = KnowledgeBase(
-                version_id=next_version_id,
+                version_id=version_id,
                 kb_field=kb_field,
                 item_key=item_key,
                 detail=detail,
                 change_description=change_desc,
                 updated_by=updated_by,
-                is_active=activate,
+                is_active=True,
                 timestamp=now,
                 last_updated=now,
                 created_at=now
@@ -99,11 +141,6 @@ class KBStore:
             session.add(updated_kb)
             session.commit()
             
-            version_id = updated_kb.version_id
-            if activate:
-                logger.info(f"Saved and activated KB version {version_id} for {kb_field}[{item_key}]")
-            else:
-                logger.info(f"Saved KB version {version_id} for {kb_field}[{item_key}] (not activated)")
             return version_id
         except SQLAlchemyError as e:
             logger.error(f"Error saving KB version: {e}")
@@ -216,6 +253,11 @@ class KBStore:
     def save_feedback(self, feedback_entry: dict, kb_version_id: int = None) -> int:
         """
         Log KB feedback/update.
+        
+        Args:
+            feedback_entry: Feedback data
+            kb_version_id: KB version ID for reference
+            
         Returns: feedback_id
         """
         session = self.Session()
@@ -235,7 +277,7 @@ class KBStore:
             session.add(feedback)
             session.commit()
             
-            logger.info(f"Saved KB feedback: {feedback_entry.get('operation', '')} on {feedback_entry.get('kb_field', '')}")
+            logger.info(f"Saved KB feedback: {feedback_entry.get('operation', '')} on {feedback_entry.get('kb_field', '')} version {kb_version_id}")
             return feedback.id
         except SQLAlchemyError as e:
             logger.error(f"Error saving KB feedback: {e}")

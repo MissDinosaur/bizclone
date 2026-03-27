@@ -26,11 +26,11 @@ class KnowledgeBaseUpdater:
         Apply correction to a specific KB item and save to database.
         For Service: merges with existing values, skips update if both fields empty.
         For Policy/FAQ: uses customer_question and owner_correction.
+        
         Returns: (updated_detail, version_number) or (None, None) if no update needed
         """
         kb_field = feedback_entry["kb_field"]
         logger.info(f"Applying update to KB field: {kb_field}")
-        logger.info(f"Feedback entry: {feedback_entry}")
 
         if kb_field == "service":
             service_name = feedback_entry.get("service_name")
@@ -48,7 +48,6 @@ class KnowledgeBaseUpdater:
             current_service = current_kb.get("services", {}).get(item_key, {})
             
             # Merge: use new value if provided, else keep original
-            # Pass Python dict directly to SQLAlchemy JSON type (no json.dumps needed)
             detail = {
                 "description": service_description if service_description else current_service.get("description", "Service description"),
                 "price": service_price if service_price else current_service.get("price", "Contact for pricing")
@@ -76,16 +75,23 @@ class KnowledgeBaseUpdater:
             change_desc = f"Update {kb_field}: question='{customer_question}', owner_correction={'provided' if owner_correction else 'kept'}"
         else:
             logger.error(f"Unknown kb_field '{kb_field}', defaulting to FAQ")
-            
+            return None, None
             
         # Save updated KB item to database and activate immediately
+        # is_insert=False indicates this is an UPDATE operation
         version_number = self.kb_store.save_version(
             kb_field=kb_field,
             item_key=item_key,
             detail=detail,
             change_desc=change_desc,
             updated_by="system",
-            activate=True
+            is_insert=False  # Update operation
+        )
+        
+        # Log feedback
+        self.kb_store.save_feedback(
+            feedback_entry=feedback_entry,
+            kb_version_id=version_number
         )
         
         logger.info(f"KB item {kb_field}[{item_key}] updated as version {version_number}, detail={detail}")
@@ -96,7 +102,7 @@ class KnowledgeBaseUpdater:
         Insert new entry into a specific KB item and save to database.
         For Service: uses service_name, service_description, service_price
         For Policy: uses policy_name, owner_correction
-        For FAQ: uses customer_question, owner_correction
+        For FAQ: uses customer_question, owner_correction, auto-generates item_key as "faq_XXXX"
         
         Returns: (detail, version_number)
         """
@@ -129,8 +135,7 @@ class KnowledgeBaseUpdater:
             customer_question = feedback_entry.get("customer_question")
             owner_correction = feedback_entry.get("owner_correction")
             logger.info(f"FAQ insert: question='{customer_question}', answer='{owner_correction}'")
-            item_key = customer_question.lower().replace("?", "").replace(" ", "_").strip()
-            # Pass dict directly (SQLAlchemy JSON type handles serialization)
+            item_key = None  # Will be auto-generated as "faq_XXXX" in save_version
             detail = {
                 "q": customer_question,
                 "a": owner_correction
@@ -141,14 +146,21 @@ class KnowledgeBaseUpdater:
             logger.error(f"Unknown kb_field '{kb_field}', defaulting to FAQ insert")
             return None, None
 
-        # Save new KB item to database and activate immediately        
+        # Save new KB item to database and activate immediately
+        # is_insert=True indicates this is an INSERT operation (version_id will be 1)
         version_number = self.kb_store.save_version(
             kb_field=kb_field,
             item_key=item_key,
             detail=detail,
             change_desc=change_desc,
             updated_by="system",
-            activate=True
+            is_insert=True  # Insert operation
+        )
+        
+        # Log feedback
+        self.kb_store.save_feedback(
+            feedback_entry=feedback_entry,
+            kb_version_id=version_number
         )
         
         logger.info(f"KB item {kb_field}[{item_key}] inserted as version {version_number}")

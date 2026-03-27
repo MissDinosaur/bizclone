@@ -21,7 +21,7 @@
     },
     "emergency_plumbing": {
       "description": "24/7 urgent plumbing support for flooding, burst pipes, and severe leaks.",
-      "price": "€107 per hour (updated)"
+      "price": "€107 per hour"
     },
     "kitchen_drain_unclogging": {
       "description": "Removing blockages from a kitchen sink drain to restore normal water flow",

@@ -151,7 +151,7 @@ def _initialize_knowledge_base(engine):
         
         # Insert each FAQ using ORM
         for i, faq in enumerate(faqs):
-            faq_key = f"faq_{i:03d}"
+            faq_key = f"faq_{i:04d}"  # 4-digit format: faq_0001, faq_0002, etc.
             # Ensure consistent field order: q before a
             ordered_faq = {"q": faq.get("q"), "a": faq.get("a")}
             kb_entry = KnowledgeBase(

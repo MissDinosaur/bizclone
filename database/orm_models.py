@@ -8,7 +8,7 @@ Defines all persistent data models:
 4. KBFeedback - Knowledge base update log
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, Text, Index, JSON, Boolean, ForeignKey, TIMESTAMP, PrimaryKeyConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Text, Index, JSON, Boolean, ForeignKey, TIMESTAMP, PrimaryKeyConstraint, ForeignKeyConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
@@ -133,25 +133,34 @@ class KnowledgeBase(Base):
 
 
 class KBFeedback(Base):
-    """Knowledge base update feedback log (audit trail)."""
+    """Knowledge base update feedback log (audit trail).
+    Foreign Key: (kb_version_id, kb_field, item_key) REFERENCES knowledge_base(version_id, kb_field, item_key)
+    """
     __tablename__ = "kb_feedback"
     
     id = Column(Integer, primary_key=True)
     operation = Column(String(50))
     kb_field = Column(String(100))
+    item_key = Column(String(255))
+    kb_version_id = Column(Integer)  # Part of composite FK
     customer_question = Column(Text)
     owner_correction = Column(Text)
     service_name = Column(String(255))
     service_description = Column(Text)
     service_price = Column(String(100))
     policy_name = Column(String(255))
-    kb_version_id = Column(Integer)  # Reference to KB version, no foreign key constraint
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     
     __table_args__ = (
+        ForeignKeyConstraint(
+            ['kb_version_id', 'kb_field', 'item_key'],
+            ['knowledge_base.version_id', 'knowledge_base.kb_field', 'knowledge_base.item_key'],
+            name='fk_kb_feedback_knowledge_base'
+        ),
         Index('idx_kb_field', 'kb_field'),
         Index('idx_created_at', 'created_at'),
         Index('idx_created_at_operation', 'created_at', 'operation'),
+        Index('idx_kb_feedback_version_key', 'kb_version_id', 'kb_field', 'item_key'),
     )
     
     def to_dict(self):
