@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency Email Review</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #d32f2f;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 25px;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .readonly {
+            background-color: #f2f2f2;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .button {
+            margin-top: 30px;
+            padding: 12px 24px;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .button:hover {
+            background-color: #1565c0;
+        }
+
+        .warning-box {
+            background: #fff3e0;
+            border-left: 5px solid #ff9800;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 6px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Emergency Email Review Required</h2>
+
+    <div class="warning-box">
+        This email has been classified as an <strong>Emergency Service Request</strong>.
+        Owner review is required before sending.
+    </div>
+
+    <form method="post" action="/review/submit">
+
+        <div class="section">
+            <label>Customer Email</label>
+            <input type="text" name="customer_email" value="{{ data.customer_email }}" class="readonly" readonly>
+        </div>
+
+        <div class="section">
+            <label>Subject</label>
+            <input type="text" name="subject" value="{{ data.subject }}" class="readonly" readonly>
+        </div>
+
+        <div class="section">
+            <label>Customer Message</label>
+            <textarea name="customer_question" class="readonly" readonly>{{ data.customer_question }}</textarea>
+        </div>
+
+        <div class="section">
+            <label>AI Draft Response</label>
+            <textarea name="agent_reply">{{ data.agent_reply }}</textarea>
+        </div>
+
+        <div class="section">
+            <label>Owner Correction (Optional)</label>
+            <textarea name="owner_correction" placeholder="Modify the response if needed..."></textarea>
+        </div>
+
+        <input type="hidden" name="thread_id" value="{{ data.thread_id }}">
+        <input type="hidden" name="message_id" value="{{ data.message_id }}">
+
+        <button type="submit" class="button">Approve & Send</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>

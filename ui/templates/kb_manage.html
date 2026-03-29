@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Knowledge Base Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 25px;
+            margin-bottom: 8px;
+        }
+
+        textarea,
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .button {
+            margin-top: 30px;
+            padding: 12px 24px;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .button:hover {
+            background-color: #1b5e20;
+        }
+
+        .button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 5px solid #1976d2;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .field-hint {
+            background: #f5f5f5;
+            border-left: 3px solid #ff9800;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .error-message {
+            background: #ffebee;
+            border-left: 5px solid #d32f2f;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            color: #c62828;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+    </style>
+    <script>
+        function updateFormFields() {
+            const operation = document.getElementById('operation').value;
+            const kb_field = document.getElementById('kb_field').value;
+            const errorMsg = document.getElementById('error_message');
+            
+            // Clear previous error when user changes selection
+            if (errorMsg) {
+                errorMsg.classList.remove('show');
+            }
+            
+            // Show/hide service-specific fields and manage required attribute
+            const serviceFieldsContainer = document.getElementById('service_fields_container');
+            const policyFieldsContainer = document.getElementById('policy_fields_container');
+            const faqFieldsContainer = document.getElementById('faq_fields_container');
+            
+            // Helper function to set required and name attributes
+            function manageContainer(container, isActive, isServiceUpdate = false) {
+                const inputs = container.querySelectorAll('input, textarea');
+                inputs.forEach(input => {
+                    if (isActive) {
+                        // For service update, description and price are optional
+                        if (isServiceUpdate && (input.name === 'service_description' || input.name === 'service_price')) {
+                            input.removeAttribute('required');
+                        } else {
+                            input.setAttribute('required', '');
+                        }
+                        // Restore name attribute for active fields
+                        const originalName = input.getAttribute('data-name');
+                        if (originalName) {
+                            input.setAttribute('name', originalName);
+                        }
+                    } else {
+                        input.removeAttribute('required');
+                        // Remove name attribute to prevent submission of hidden fields
+                        // (especially important for duplicate field names like "owner_correction")
+                        input.removeAttribute('name');
+                    }
+                });
+            }
+            
+            if (kb_field === 'service') {
+                serviceFieldsContainer.style.display = 'block';
+                policyFieldsContainer.style.display = 'none';
+                faqFieldsContainer.style.display = 'none';
+                const isServiceUpdate = operation === 'update';
+                manageContainer(serviceFieldsContainer, true, isServiceUpdate);
+                manageContainer(policyFieldsContainer, false);
+                manageContainer(faqFieldsContainer, false);
+                updateServiceLabels(operation);
+            } else if (kb_field === 'policy') {
+                serviceFieldsContainer.style.display = 'none';
+                policyFieldsContainer.style.display = 'block';
+                faqFieldsContainer.style.display = 'none';
+                manageContainer(serviceFieldsContainer, false);
+                manageContainer(policyFieldsContainer, true);
+                manageContainer(faqFieldsContainer, false);
+                updatePolicyLabels(operation, kb_field);
+            } else if (kb_field === 'faq') {
+                serviceFieldsContainer.style.display = 'none';
+                policyFieldsContainer.style.display = 'none';
+                faqFieldsContainer.style.display = 'block';
+                manageContainer(serviceFieldsContainer, false);
+                manageContainer(policyFieldsContainer, false);
+                manageContainer(faqFieldsContainer, true);
+                updateFaqLabels(operation, kb_field);
+            }
+        }
+        
+        // Initialize data-name attributes on all inputs (for later restoration)
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('input[name], textarea[name]').forEach(input => {
+                input.setAttribute('data-name', input.getAttribute('name'));
+            });
+        });
+
+        function validateAndSubmit(event) {
+            const operation = document.getElementById('operation').value;
+            const kb_field = document.getElementById('kb_field').value;
+            const errorMsg = document.getElementById('error_message');
+            
+            console.log('Form submit triggered. kb_field value:', kb_field);
+            
+            // Validate category is selected
+            if (!kb_field) {
+                event.preventDefault();
+                errorMsg.textContent = 'Please select a Knowledge Category first.';
+                errorMsg.classList.add('show');
+                console.log('Error: Category not selected');
+                return false;
+            }
+            
+            // Get the active fields container
+            let fieldsContainer = null;
+            if (kb_field === 'service') {
+                fieldsContainer = document.getElementById('service_fields_container');
+            } else if (kb_field === 'policy') {
+                fieldsContainer = document.getElementById('policy_fields_container');
+            } else if (kb_field === 'faq') {
+                fieldsContainer = document.getElementById('faq_fields_container');
+            }
+            
+            // Validate all required fields in the active container
+            if (fieldsContainer) {
+                const inputs = fieldsContainer.querySelectorAll('input[required], textarea[required]');
+                let hasEmpty = false;
+                let emptyField = '';
+                
+                for (let input of inputs) {
+                    if (!input.value.trim()) {
+                        hasEmpty = true;
+                        const label = input.previousElementSibling;
+                        emptyField = label ? label.textContent.replace(' *', '') : input.name;
+                        break;
+                    }
+                }
+                
+                if (hasEmpty) {
+                    event.preventDefault();
+                    errorMsg.textContent = `Please fill in all required fields. Missing: ${emptyField}`;
+                    errorMsg.classList.add('show');
+                    console.log('Error: Missing required field:', emptyField);
+                    return false;
+                }
+            }
+            
+            // All validation passed - allow form submission
+            console.log('Form validation passed. Submitting...');
+            return true;
+        }
+
+        function updateServiceLabels(operation) {
+            const nameLabel = document.getElementById('service_name_label');
+            const descLabel = document.getElementById('service_desc_label');
+            const priceLabel = document.getElementById('service_price_label');
+            const nameHint = document.getElementById('service_name_hint');
+            const descHint = document.getElementById('service_desc_hint');
+            const priceHint = document.getElementById('service_price_hint');
+
+            if (operation === 'update') {
+                nameLabel.textContent = 'Service Name *';
+                descLabel.textContent = 'Updated Description';  // No asterisk - optional
+                priceLabel.textContent = 'Updated Price';      // No asterisk - optional
+                nameHint.textContent = 'Example: "emergency plumbing"';
+                descHint.textContent = 'Example: "24/7 urgent plumbing support with priority response" (Optional)';
+                priceHint.textContent = 'Example: "€120 per hour" (Optional)';
+            } else if (operation === 'insert') {
+                nameLabel.textContent = 'New Service Name *';
+                descLabel.textContent = 'Service Description *';
+                priceLabel.textContent = 'Service Price *';
+                nameHint.textContent = 'Example: "roof leak repair"';
+                descHint.textContent = 'Example: "Professional roof leak detection and repair services"';
+                priceHint.textContent = 'Example: "€140 per hour"';
+            }
+        }
+
+        function updatePolicyLabels(operation, kb_field) {
+            const nameLabel = document.getElementById('policy_name_label');
+            const textLabel = document.getElementById('policy_text_label');
+            const nameHint = document.getElementById('policy_name_hint');
+            const textHint = document.getElementById('policy_text_hint');
+
+            if (operation === 'update') {
+                nameLabel.textContent = 'Policy Name *';
+                textLabel.textContent = 'Policy Text *';
+                nameHint.textContent = 'Example: "emergency hours"';
+                textHint.textContent = 'Example: "Emergency plumbing is available 24/7 including weekends."';
+            } else if (operation === 'insert') {
+                nameLabel.textContent = 'Policy Name *';
+                textLabel.textContent = 'Policy Text *';
+                nameHint.textContent = 'Example: "Warranty policy"';
+                textHint.textContent = 'Example: "We provide 30-day warranty on all parts..."';
+            }
+        }        
+
+        function updateFaqLabels(operation, kb_field) {
+            const field1Label = document.getElementById('faq_field1_label');
+            const field2Label = document.getElementById('faq_field2_label');
+            const field1Hint = document.getElementById('faq_field1_hint');
+            const field2Hint = document.getElementById('faq_field2_hint');
+
+            if (operation === 'update') {
+                field1Label.textContent = 'Customer Question *';
+                field2Label.textContent = 'Corrected Answer *';
+                field1Hint.textContent = 'Example: "Do you service water heaters?"';
+                field2Hint.textContent = 'Example: "Yes, we inspect and repair household water heaters."';
+            } else if (operation === 'insert') {
+                field1Label.textContent = 'Customer Question *';
+                field2Label.textContent = 'Standard Answer *';
+                field1Hint.textContent = 'Example: "Do you offer weekend appointments?"';
+                field2Hint.textContent = 'Example: "Yes, emergency services available 24/7..."';
+            }
+        }
+    </script>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Knowledge Base Management</h2>
+
+    <div class="info-box">
+        <strong>Insert</strong> new knowledge entries or <strong>update</strong> existing ones.
+        These changes will directly affect the RAG retrieval system and agent responses.
+    </div>
+
+    <form method="post" action="/kb/submit" onsubmit="return validateAndSubmit(event)">
+        
+        <div id="error_message" class="error-message"></div>
+        
+        <label for="operation">Operation *</label>
+        <select name="operation" id="operation" onchange="updateFormFields()" required> 
+            <option value="update">Update Existing Entry</option>
+            <option value="insert">Insert New Entry</option>
+        </select>
+
+        <div class="form-group">
+            <label for="kb_field">Knowledge Category *</label>
+            <select name="kb_field" id="kb_field" onchange="updateFormFields()" required>
+                <option value="">-- Select Category --</option>
+                {% for field in kb_fields %}
+                    <option value="{{ field }}">{{ field|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- SERVICE-SPECIFIC FIELDS -->
+        <div id="service_fields_container" style="display: none;">
+            <label id="service_name_label">New Service Name *</label>
+            <input type="text" name="service_name" placeholder="Service name" required>
+            <div class="field-hint" id="service_name_hint">Example: "roof leak repair"</div>
+
+            <label id="service_desc_label">Service Description *</label>
+            <textarea name="service_description" placeholder="Detailed description of the service..." style="min-height: 120px;" required></textarea>
+            <div class="field-hint" id="service_desc_hint">Example: "Professional roof leak detection and repair services"</div>
+
+            <label id="service_price_label">Service Price *</label>
+            <input type="text" name="service_price" placeholder="Service price" required>
+            <div class="field-hint" id="service_price_hint">Example: "€140 per hour"</div>
+        </div>
+
+        <!-- POLICY-SPECIFIC FIELDS -->
+        <div id="policy_fields_container" style="display: none;">
+            <label id="policy_name_label">Policy Name *</label>            
+            <input type="text" name="policy_name" placeholder="Policy name" required>
+            <div class="field-hint" id="policy_name_hint">Example: "emergency hours"</div>
+
+            <label id="policy_text_label">Corrected Answer *</label>
+            <input type="text" name="owner_correction" placeholder="Corrected answer" required>
+            <div class="field-hint" id="policy_text_hint">Example: "Emergency plumbing is available 24/7 including weekends."</div>
+        </div>
+
+        <!-- FAQ-SPECIFIC FIELDS -->
+        <div id="faq_fields_container" style="display: none;">
+            <label id="faq_field1_label">Customer Question Pattern *</label>
+            <input type="text" name="customer_question" placeholder="Customer question" required>
+            <div class="field-hint" id="faq_field1_hint">Example: "Do you service water heaters?"</div>
+
+            <label id="faq_field2_label">Corrected Answer *</label>
+            <input type="text" name="owner_correction" placeholder="Owner answer" required>
+            <div class="field-hint" id="faq_field2_hint">Example: "Yes, we inspect and repair household water heaters."</div>
+        </div>
+
+        <button type="submit" class="button">Apply Changes</button>
+
+    </form>
+
+</div>
+
+<script>
+    // Initialize form on page load
+    updateFormFields();
+</script>
+
+</body>
+</html>
