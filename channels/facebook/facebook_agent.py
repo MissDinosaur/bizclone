@@ -53,6 +53,10 @@ class FacebookAgent:
         )
 
         lowered = text.lower()
+        is_pricing_question = self._is_pricing_question(lowered)
+        is_hours_question = self._is_hours_question(lowered)
+        is_greeting = self._is_greeting(lowered)
+        is_booking_intent = self._is_booking_intent(lowered)
 
         intent = IntentType.FAQ
         booking_response: Optional[BookingResponseSchema] = None
@@ -111,7 +115,7 @@ class FacebookAgent:
             db.commit()
             db.refresh(state)
 
-        elif self._is_booking_intent(lowered):
+        elif is_booking_intent:
             intent = IntentType.APPOINTMENT
 
             if extracted_day and extracted_period:
@@ -172,37 +176,75 @@ class FacebookAgent:
         elif state.awaiting_booking_details and state.last_intent == self.BOOKING_AWAITING_DAY:
             intent = IntentType.APPOINTMENT
 
-            requested_period = extracted_period or (state.state_data or {}).get("requested_time_period")
-            requested_day = extracted_day or text.strip().lower()
-
-            if requested_period:
-                booking_response, reply, new_state_data = self._book_with_preferences(
-                    user_id=sender_id,
-                    requested_day=requested_day,
-                    requested_period=requested_period,
-                    state_data=state_data,
-                )
+            if is_pricing_question:
+                remembered_service = state_data.get("last_service")
+                intent = IntentType.PRICING_INQUIRY
+                if remembered_service:
+                    normalized_service = self._normalize_service_key(remembered_service)
+                    reply = self._build_service_pricing_reply(db, normalized_service)
+                    state.state_data = {
+                        **state_data,
+                        "last_service": normalized_service,
+                    }
+                    state.awaiting_pricing_service = False
+                else:
+                    reply = self._reply_ask_service_for_pricing()
+                    state.awaiting_pricing_service = True
+                    state.state_data = state_data
+                state.awaiting_booking_details = False
+                state.last_intent = IntentType.PRICING_INQUIRY.value
+            elif is_hours_question:
+                intent = IntentType.WORKING_HOURS
+                reply = self._reply_ask_hours_detail()
                 state.awaiting_pricing_service = False
-                if booking_response is None and reply.startswith("No available"):
+                state.awaiting_booking_details = False
+                state.state_data = state_data
+                state.last_intent = IntentType.WORKING_HOURS.value
+            elif is_greeting:
+                intent = IntentType.OTHER
+                reply = self._reply_greeting()
+                state.awaiting_pricing_service = False
+                state.awaiting_booking_details = False
+                state.state_data = state_data
+                state.last_intent = IntentType.OTHER.value
+            else:
+                requested_period = extracted_period or (state.state_data or {}).get("requested_time_period")
+                requested_day = extracted_day or self._extract_requested_day_text(lowered)
+
+                if not requested_day:
+                    reply = self._reply_ask_day(state_data)
+                    state.awaiting_pricing_service = False
+                    state.awaiting_booking_details = True
+                    state.last_intent = self.BOOKING_AWAITING_DAY
+                    state.state_data = state_data
+                elif requested_period:
+                    booking_response, reply, new_state_data = self._book_with_preferences(
+                        user_id=sender_id,
+                        requested_day=requested_day,
+                        requested_period=requested_period,
+                        state_data=state_data,
+                    )
+                    state.awaiting_pricing_service = False
+                    if booking_response is None and reply.startswith("No available"):
+                        state.awaiting_booking_details = True
+                        state.last_intent = self.BOOKING_AWAITING_TIME
+                    else:
+                        state.awaiting_booking_details = False
+                        state.last_intent = IntentType.APPOINTMENT.value
+                    state.state_data = {
+                        **new_state_data,
+                        "requested_day": requested_day,
+                        "requested_time_period": requested_period,
+                    }
+                else:
+                    reply = self._reply_ask_time_period(state_data)
+                    state.awaiting_pricing_service = False
                     state.awaiting_booking_details = True
                     state.last_intent = self.BOOKING_AWAITING_TIME
-                else:
-                    state.awaiting_booking_details = False
-                    state.last_intent = IntentType.APPOINTMENT.value
-                state.state_data = {
-                    **new_state_data,
-                    "requested_day": requested_day,
-                    "requested_time_period": requested_period,
-                }
-            else:
-                reply = self._reply_ask_time_period(state_data)
-                state.awaiting_pricing_service = False
-                state.awaiting_booking_details = True
-                state.last_intent = self.BOOKING_AWAITING_TIME
-                state.state_data = {
-                    **state_data,
-                    "requested_day": requested_day,
-                }
+                    state.state_data = {
+                        **state_data,
+                        "requested_day": requested_day,
+                    }
 
             db.commit()
             db.refresh(state)
@@ -212,7 +254,38 @@ class FacebookAgent:
 
             requested_day = (state.state_data or {}).get("requested_day", "tomorrow")
 
-            if explicit_slot:
+            if is_pricing_question:
+                remembered_service = state_data.get("last_service")
+                intent = IntentType.PRICING_INQUIRY
+                if remembered_service:
+                    normalized_service = self._normalize_service_key(remembered_service)
+                    reply = self._build_service_pricing_reply(db, normalized_service)
+                    state.state_data = {
+                        **state_data,
+                        "last_service": normalized_service,
+                    }
+                    state.awaiting_pricing_service = False
+                else:
+                    reply = self._reply_ask_service_for_pricing()
+                    state.awaiting_pricing_service = True
+                    state.state_data = state_data
+                state.awaiting_booking_details = False
+                state.last_intent = IntentType.PRICING_INQUIRY.value
+            elif is_hours_question:
+                intent = IntentType.WORKING_HOURS
+                reply = self._reply_ask_hours_detail()
+                state.awaiting_pricing_service = False
+                state.awaiting_booking_details = False
+                state.state_data = state_data
+                state.last_intent = IntentType.WORKING_HOURS.value
+            elif is_greeting:
+                intent = IntentType.OTHER
+                reply = self._reply_greeting()
+                state.awaiting_pricing_service = False
+                state.awaiting_booking_details = False
+                state.state_data = state_data
+                state.last_intent = IntentType.OTHER.value
+            elif explicit_slot:
                 booking_response, reply = self._book_explicit_slot(
                     user_id=sender_id,
                     requested_day=explicit_slot["day"],
@@ -245,26 +318,33 @@ class FacebookAgent:
                     "last_offered_slots": [],
                 }
             else:
-                requested_period = extracted_period or text.strip().lower()
+                requested_period = extracted_period or self._extract_time_period_text(lowered)
 
-                booking_response, reply, new_state_data = self._book_with_preferences(
-                    user_id=sender_id,
-                    requested_day=requested_day,
-                    requested_period=requested_period,
-                    state_data=state_data,
-                )
-                state.awaiting_pricing_service = False
-                if booking_response is None and reply.startswith("No available"):
+                if not requested_period:
+                    reply = self._reply_ask_time_period(state_data)
+                    state.awaiting_pricing_service = False
                     state.awaiting_booking_details = True
                     state.last_intent = self.BOOKING_AWAITING_TIME
+                    state.state_data = state_data
                 else:
-                    state.awaiting_booking_details = False
-                    state.last_intent = IntentType.APPOINTMENT.value
-                state.state_data = {
-                    **new_state_data,
-                    "requested_day": requested_day,
-                    "requested_time_period": requested_period,
-                }
+                    booking_response, reply, new_state_data = self._book_with_preferences(
+                        user_id=sender_id,
+                        requested_day=requested_day,
+                        requested_period=requested_period,
+                        state_data=state_data,
+                    )
+                    state.awaiting_pricing_service = False
+                    if booking_response is None and reply.startswith("No available"):
+                        state.awaiting_booking_details = True
+                        state.last_intent = self.BOOKING_AWAITING_TIME
+                    else:
+                        state.awaiting_booking_details = False
+                        state.last_intent = IntentType.APPOINTMENT.value
+                    state.state_data = {
+                        **new_state_data,
+                        "requested_day": requested_day,
+                        "requested_time_period": requested_period,
+                    }
             db.commit()
             db.refresh(state)
 
@@ -282,7 +362,7 @@ class FacebookAgent:
             db.commit()
             db.refresh(state)
 
-        elif self._is_greeting(lowered):
+        elif is_greeting:
             intent = IntentType.OTHER
             reply = self._reply_greeting()
             state.awaiting_pricing_service = False
@@ -292,7 +372,7 @@ class FacebookAgent:
             db.commit()
             db.refresh(state)
 
-        elif self._is_pricing_question(lowered):
+        elif is_pricing_question:
             intent = IntentType.PRICING_INQUIRY
             remembered_service = state_data.get("last_service")
 
@@ -322,7 +402,7 @@ class FacebookAgent:
             db.commit()
             db.refresh(state)
 
-        elif self._is_hours_question(lowered):
+        elif is_hours_question:
             intent = IntentType.WORKING_HOURS
             reply = self._reply_ask_hours_detail()
             state.awaiting_pricing_service = False
@@ -567,6 +647,32 @@ class FacebookAgent:
             period = "afternoon"
 
         return day, period
+
+    def _extract_requested_day_text(self, text: str):
+        lowered = text.strip().lower()
+
+        if lowered in {"today", "tomorrow"}:
+            return lowered
+
+        weekdays = {
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+            "sunday",
+        }
+        if lowered in weekdays:
+            return lowered
+
+        return None
+
+    def _extract_time_period_text(self, text: str):
+        lowered = text.strip().lower()
+        if lowered in {"morning", "afternoon"}:
+            return lowered
+        return None
 
     def _extract_explicit_slot_selection(self, text: str):
         lowered = text.strip().lower()
@@ -1068,11 +1174,25 @@ class FacebookAgent:
 
     def _ai_classify_and_reply(self, text: str):
         if not self.ai_client:
-            return IntentType.FAQ, "Thanks for your message. Could you please provide a bit more detail?"
+            return IntentType.FAQ, "Sure — could you tell me a bit more about the issue?"
 
         try:
             prompt = f"""
-You are a business messaging assistant.
+You are a Facebook Messenger assistant for a plumbing business.
+
+Your tone must be:
+- professional
+- short
+- helpful
+- natural
+- business-like
+
+Do not sound robotic.
+Do not sound vague.
+Do not say things like:
+- "I can assist you better"
+- "Could you please provide more detail" repeatedly
+- "How can I assist you today?" unless it is a greeting
 
 Classify the user's message into exactly one of these intents:
 - price_inquiry
@@ -1087,6 +1207,28 @@ Return strict JSON with this schema:
   "reply": "..."
 }}
 
+Rules for reply generation:
+- If greeting: reply briefly and warmly
+- If pricing-related but service unclear: ask which service they mean
+- If booking-related but date/time unclear: ask what day works best, and do not confirm any booking
+- If user mentions a plumbing issue: ask one short follow-up question without sounding repetitive
+- Keep replies under 25 words
+- No emojis
+- No markdown
+
+Examples:
+User: hello
+Reply: Hello. How can I help you today?
+
+User: I need help with a leak
+Reply: Sure — is it a kitchen leak, bathroom leak, or somewhere else?
+
+User: price?
+Reply: Please tell me which service you need pricing for.
+
+User: book me
+Reply: Sure — what day works best for you?
+
 User message:
 {text}
 """
@@ -1099,7 +1241,7 @@ User message:
             parsed = json.loads(raw_text)
 
             intent_str = parsed.get("intent", "general_faq_question")
-            reply = parsed.get("reply", "Thanks for your message. Could you please clarify your request?")
+            reply = parsed.get("reply", "Sure — could you tell me a bit more about the issue?")
 
             intent_map = {
                 "price_inquiry": IntentType.PRICING_INQUIRY,
@@ -1113,7 +1255,7 @@ User message:
 
         except Exception as exc:
             logger.exception("[FACEBOOK AI] Fallback used due to error: %s", exc)
-            return IntentType.FAQ, "Thanks for your message. Could you please provide a bit more detail?"
+            return IntentType.FAQ, "Sure — could you tell me a bit more about the issue?"
 
     def _to_booking_schema(self, booking) -> BookingResponseSchema:
         return BookingResponseSchema(

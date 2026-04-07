@@ -3,6 +3,8 @@ import logging
 import os
 from typing import Any, Dict, List
 
+import httpx
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
@@ -72,10 +74,21 @@ def _extract_text_messages(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
 @router.get("/webhook")
 async def verify_webhook(request: Request) -> PlainTextResponse:
     q = request.query_params
+    mode = q.get("hub.mode")
+    token = q.get("hub.verify_token")
+    challenge = q.get("hub.challenge") or ""
 
-    if q.get("hub.mode") == "subscribe" and q.get("hub.verify_token") == VERIFY_TOKEN:
-        return PlainTextResponse(q.get("hub.challenge") or "", status_code=200)
+    logger.info(
+        "[FACEBOOK WEBHOOK] Verification request received | mode=%s | token_present=%s",
+        mode,
+        bool(token),
+    )
 
+    if mode == "subscribe" and token == VERIFY_TOKEN:
+        logger.info("[FACEBOOK WEBHOOK] Verification successful")
+        return PlainTextResponse(challenge, status_code=200)
+
+    logger.warning("[FACEBOOK WEBHOOK] Verification failed")
     return PlainTextResponse("Verification failed", status_code=403)
 
 
@@ -83,15 +96,25 @@ async def verify_webhook(request: Request) -> PlainTextResponse:
 @router.post("/webhook")
 async def receive_webhook(request: Request, db: Session = Depends(get_db)) -> Dict[str, Any]:
     body = await request.body()
-    verify_meta_signature(request, body)
+    logger.info("[FACEBOOK WEBHOOK] Incoming webhook received | body_size=%s", len(body))
+
+    try:
+        verify_meta_signature(request, body)
+    except HTTPException as exc:
+        logger.warning("[FACEBOOK WEBHOOK] Signature verification failed: %s", exc.detail)
+        raise
 
     try:
         payload = json.loads(body.decode("utf-8"))
     except json.JSONDecodeError as exc:
+        logger.exception("[FACEBOOK WEBHOOK] Invalid JSON payload")
         raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
+
+    logger.info("[FACEBOOK WEBHOOK] Payload object=%s", payload.get("object"))
 
     extracted_messages = _extract_text_messages(payload)
     if not extracted_messages:
+        logger.info("[FACEBOOK WEBHOOK] No text messages extracted from payload")
         return {"ok": True, "messages_count": 0, "replies_sent": 0}
 
     agent = FacebookAgent()
@@ -112,6 +135,13 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)) -> Di
             raw=payload,
         )
 
+        logger.info(
+            "[FACEBOOK WEBHOOK] Processing normalized message | sender=%s | recipient=%s | mid=%s",
+            normalized.sender_id,
+            normalized.recipient_id,
+            normalized.channel_message_id,
+        )
+
         result = await agent.handle_incoming(normalized, db)
         processed_count += 1
 
@@ -122,7 +152,7 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)) -> Di
         logger.info("[FACEBOOK] Reply text: %s", reply_text)
 
         if normalized.sender_id.startswith("USER_"):
-            logger.info("[FACEBOOK] Skipping send_text for local test user")
+            logger.info("[FACEBOOK WEBHOOK] Skipping send_text for local test user")
             continue
 
         try:
@@ -131,8 +161,35 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)) -> Di
                 text=reply_text,
             )
             replies_sent += 1
+            logger.info(
+                "[FACEBOOK WEBHOOK] Reply delivered successfully | sender=%s | mid=%s",
+                normalized.sender_id,
+                normalized.channel_message_id,
+            )
+        except HTTPException as exc:
+            logger.exception(
+                "[FACEBOOK WEBHOOK] HTTP error while sending message | sender=%s | detail=%s",
+                normalized.sender_id,
+                exc.detail,
+            )
+        except httpx.HTTPError as exc:
+            logger.exception(
+                "[FACEBOOK WEBHOOK] HTTPX error while sending message | sender=%s | error=%s",
+                normalized.sender_id,
+                exc,
+            )
         except Exception as exc:
-            logger.exception("[FACEBOOK] Failed to send message: %s", exc)
+            logger.exception(
+                "[FACEBOOK WEBHOOK] Unexpected error while sending message | sender=%s | error=%s",
+                normalized.sender_id,
+                exc,
+            )
+
+    logger.info(
+        "[FACEBOOK WEBHOOK] Processing complete | messages_count=%s | replies_sent=%s",
+        processed_count,
+        replies_sent,
+    )
 
     return {
         "ok": True,
