@@ -72,6 +72,8 @@ class InstagramWatcher(BaseChannelWatcher):
             )
 
         try:
+            # FIX: timestamp parametresi save_email() tarafından desteklenmiyor,
+            # fonksiyon kendi içinde datetime.utcnow() kullanıyor
             self.store.save_email(
                 customer_email=sender_id,
                 sender_category="customer",
@@ -79,7 +81,6 @@ class InstagramWatcher(BaseChannelWatcher):
                 body=message["body"],
                 intent=result.intent,
                 channel="instagram",
-                timestamp=datetime.now(timezone.utc),
             )
         except Exception as exc:
             logger.warning(f"Instagram: history save failed — {exc}")

@@ -32,7 +32,9 @@ class InstagramAgent:
         text = message.get("body", "")
 
         try:
-            intent_str = self.intent_model.classify(text)
+            # FIX: predict_intent() yerine classify() çağrılıyordu
+            result = self.intent_model.predict_intent(text)
+            intent_str = result["intent"]
             intent = self._intent_to_enum(intent_str)
             logger.info(f"Instagram [{sender_id}]: intent={intent_str}")
 
@@ -47,16 +49,18 @@ class InstagramAgent:
                     booking=booking_result.get("booking"),
                 )
 
-            rag_result = self.rag.query(text)
-            reply = rag_result.get("answer", "Thanks for your message! We'll get back to you shortly. 🙏")
-            retrieved_docs = rag_result.get("source_documents", [])
+            reply, retrieved_docs = self.rag.generate_email_reply(
+                customer_email=sender_id,
+                body=text,
+                intent=intent_str,
+            )
 
             return ChannelMessageResponseSchema(
                 channel="instagram",
                 status=MessageStatus.AUTO_SEND,
                 intent=intent.value,
                 reply=reply,
-                retrieved_docs=[doc.metadata.get("source", "") for doc in retrieved_docs],
+                retrieved_docs=retrieved_docs,
             )
 
         except Exception as exc:
