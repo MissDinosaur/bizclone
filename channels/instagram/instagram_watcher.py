@@ -10,6 +10,9 @@ import logging
 import os
 from datetime import datetime, timezone
 
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+
 from channels.base_watcher import BaseChannelWatcher
 from channels.instagram.instagram_client import InstagramClient
 from channels.instagram.instagram_agent import process_message
@@ -31,7 +34,32 @@ class InstagramWatcher(BaseChannelWatcher):
             ig_user_id=os.getenv("INSTAGRAM_USER_ID", ""),
         )
         self.store = EmailHistoryStore()
-        self._seen_message_ids: set[str] = set()
+
+        # DB-persisted seen message IDs (survives restarts)
+        db_url = os.getenv("DATABASE_URL")
+        self.engine = create_engine(db_url, echo=False)
+        self.Session = sessionmaker(bind=self.engine)
+
+    def _is_processed(self, message_id: str) -> bool:
+        """Check if message_id already exists in DB."""
+        with self.engine.connect() as conn:
+            result = conn.execute(
+                text("SELECT 1 FROM instagram_processed_messages WHERE message_id = :mid"),
+                {"mid": message_id}
+            )
+            return result.fetchone() is not None
+
+    def _mark_processed(self, message_id: str) -> None:
+        """Save message_id to DB so it won't be processed again."""
+        try:
+            with self.engine.connect() as conn:
+                conn.execute(
+                    text("INSERT INTO instagram_processed_messages (message_id) VALUES (:mid) ON CONFLICT DO NOTHING"),
+                    {"mid": message_id}
+                )
+                conn.commit()
+        except Exception as exc:
+            logger.warning(f"Instagram: could not mark message as processed — {exc}")
 
     def fetch_unread_messages(self) -> list[dict]:
         raw_messages = self.client.fetch_unread_messages(max_results=20)
@@ -39,7 +67,7 @@ class InstagramWatcher(BaseChannelWatcher):
         new_messages = []
         for raw in raw_messages:
             msg_id = raw.get("message_id", "")
-            if msg_id and msg_id not in self._seen_message_ids:
+            if msg_id and not self._is_processed(msg_id):
                 new_messages.append(raw)
 
         logger.info(f"Instagram: {len(new_messages)} new message(s) to process.")
@@ -72,8 +100,6 @@ class InstagramWatcher(BaseChannelWatcher):
             )
 
         try:
-            # FIX: timestamp parametresi save_email() tarafından desteklenmiyor,
-            # fonksiyon kendi içinde datetime.utcnow() kullanıyor
             self.store.save_email(
                 customer_email=sender_id,
                 sender_category="customer",
@@ -86,4 +112,4 @@ class InstagramWatcher(BaseChannelWatcher):
             logger.warning(f"Instagram: history save failed — {exc}")
 
         if msg_id:
-            self._seen_message_ids.add(msg_id)
+            self._mark_processed(msg_id)

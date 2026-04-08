@@ -6,16 +6,16 @@
 CREATE SCHEMA IF NOT EXISTS public;
 
 -- Grant privileges to the application user
-GRANT ALL PRIVILEGES ON SCHEMA public TO bizclone_user;
+GRANT ALL PRIVILEGES ON SCHEMA public TO bizclone;
 
 -- Create extensions needed by the application
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Set default privileges
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO bizclone_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO bizclone_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO bizclone_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO bizclone;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO bizclone;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO bizclone;
 
 -- ============================================================
 -- Table: email_history
@@ -122,8 +122,8 @@ CREATE INDEX IF NOT EXISTS idx_kb_feedback_timestamp_operation ON kb_feedback(cr
 -- ============================================================
 -- Grant table permissions to application user
 -- ============================================================
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO bizclone_user;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO bizclone_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO bizclone;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO bizclone;
 
 -- Database is ready for application
 COMMENT ON DATABASE bizclone_db IS 'BizClone AI Email Assistant Database - PostgreSQL backend';
