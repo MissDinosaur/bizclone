@@ -173,6 +173,15 @@ class IntentClassifier:
         Returns:
             Dict with intent, confidence, method
         """
+        # Handle empty or whitespace-only input
+        if not email_text or not email_text.strip():
+            logger.info("Empty email text provided, defaulting to 'other' intent")
+            return {
+                "intent": "other",
+                "confidence": 0.0,
+                "method": "nlp"
+            }
+        
         # Use descriptions instead of just labels for better classification
         candidate_descriptions = [self.intent_descriptions[label] for label in self.intent_labels]
         

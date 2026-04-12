@@ -10,7 +10,7 @@ __pycache__/
 *.pyo
 *.egg-info/
 .eggs/
-test_kb_init.py
+tests/
 
 # Version control and CI/CD
 .git
