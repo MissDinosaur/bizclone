@@ -20,33 +20,49 @@ This project combines cutting-edge NLP, speech processing, multi-agent AI system
 ```text
 bizclone/
 │
-├── api/
-│   └── kb_learning_api.py        # api of KB updates
+├── api/                              # FastAPI endpoints (JSON responses)
+│   ├── kb_api.py                    # GET /api/kb/manage, POST /api/kb/submit
+│   ├── review_api.py                # GET /api/review/queue, /api/review/detail/{id}
+│   └── calendar_data_api.py         # GET /api/calendar/data, /api/calendar/booking/{id}
 |
-├── ui/
-│   ├── templates/
-│   ├── review_email_ui.py
-│   └── kb_feedback_ui.py
+├── ui/                                 # Frontend routing + static pages
+│   ├── home_ui.py                      # Main landing page
+│   ├── static_pages_ui.py              # Static HTML serving (client-side rendering)
+│   └── templates/                      # Client-rendered HTML pages
+│       ├── index.html                  # Home pages
+│       ├── kb_manage.html              # KB management (fetch /api/kb/manage)
+│       ├── kb_success.html             # KB success confirmation
+│       ├── review_form.html            # Email review queue (fetch /api/review/queue)
+│       ├── review_email_detail.html    # Individual email review (fetch /api/review/detail/{id})
+│       └── calendar.html               # Calendar view (fetch /api/calendar/data)
 |
 ├── database/
-│   ├── orm_models.py
-│   ├── initialization.py
-│   └── initial_email_kb.json
+│   ├── orm_models.py               # SQLAlchemy models (6 tables)
+│   ├── initialization.py           # DB initialization
+│   └── init-db.sql                 # SQL schema
 |
 ├── channels/
 │   ├── email/
-│   │   └── email_agent.py          # End-to-end orchestrator of emial agent
+│   │   ├── email_agent.py          # End-to-end email orchestrator
+│   │   ├── email_watcher.py        # Gmail polling
+│   │   ├── gmail_client.py         # Gmail API wrapper
+│   │   ├── intent_classifier.py    # Intent detection (mixed strategy)
+│   │   ├── parser.py               # Email parsing
+│   │   └── review_store.py         # Escalation queue
 │   ├── teams/
 │   ├── call/
-│   ├── facebook/
-│   ├── whatsup/
+│   ├── whatsapp/
 │   ├── base_watcher.py 
 │   └── channel_polling_manager.py
 |
 ├── knowledge_base/
-│   ├── learning/                # KB update + re-index
-│   ├── email_history_store.py
-│   ├── kb_store.py
+│   ├── learning/                   # KB update + re-index
+│   │   ├── kb_updater.py
+│   │   ├── feedback_store.py
+│   │   └── learning_mode.py
+│   ├── ingestion.py
+│   ├── kb_manager.py
+│   ├── schema.py
 │   └── vector_index.py
 |
 ├── rag/
@@ -57,35 +73,211 @@ bizclone/
 ├── llm_engine/
 │   └── llm_client.py
 │
-│── scheduling/                  # Shared appointment integration layer
+├── scheduling/                     # Birthday/Event scheduler
+│   ├── calendar_providers
+│   ├── birthday_scheduler.py                     
 │   ├── booking_store_db.py
-│   ├── scheduling_config.py
-│   └── scheduler.py
+│   ├── llm_booking_assistant
+│   ├── scheduler.py
+│   └── scheduling_config.py
 │
-│── tests/
+├── config/                         # Configuration
+│   └── config.py
 │
-├── main.py                       # Program entrance
+├── tests/
+│   ├── test_email_agent.py
+│   ├── test_gmail.py
+│   └── test_intent.py
+│
+├── main.py                         # FastAPI application entrance
 ├── requirements.txt
-└── README.md
+├── docker-compose.yml
+├── README.md
+└── start-docker.sh                 # Command file to trigger the program
+```
+---
+
+## Core Capabilities
+
+BizClone implements four main functional areas to automate business operations:
+
+### 1. **Intelligent Email Processing & Response**
+- Automatically receives and processes incoming emails from customers
+- Classifies customer intent using mixed-strategy engine (keyword patterns + NLP)
+- Generates intelligent, context-aware replies using RAG (Retrieval-Augmented Generation)
+- Escalates complex/urgent emails to business owner for review and approval
+- Auto-sends routine responses and sends owner-approved replies via Gmail
+- Maintains full email conversation history with threading (via Gmail message_id)
+
+### 2. **Smart Appointment Scheduling**
+- Detects appointment-related queries in customer emails
+- AI automatically selects best available time slots from owner's calendar
+- Generates appointment confirmation emails with iCalendar (.ics) attachments
+- Owner can review and modify proposed slots before confirmation
+- Integrates with Google Calendar (multi-account support)
+- Creates bookings with automatic birthday reminders
+
+### 3. **Knowledge Base Management**
+- Centralizes business information: services, pricing, policies, FAQs
+- Web interface (`/kb/manage`) for adding and editing KB entries
+- Versions all KB updates with audit trail (who changed what and when)
+- Automatically indexes KB for RAG retrieval in response generation
+- Supports rollback to previous KB versions
+- Active/inactive flags ensure only current information is used
+
+### 4. **Owner Review & Control System**
+- Web dashboard (`/review`) shows all emails requiring owner approval
+- Owner can edit AI-generated replies before sending
+- Owner can modify proposed appointment times
+- One-click approval sends final email and creates calendar booking
+- Audit trail tracks all owner actions and feedback for continuous learning
+
+---
+
+## Email Processing Pipeline
+
+### Overview
+The email processing system uses a sophisticated pipeline that separates **intent detection** from **urgency detection**, allowing intelligent escalation of critical emails to the business owner for review while automatically handling routine inquiries.
+
+### Pipeline Workflow
+
+```
+Email Arrives
+    ↓
+Step 1: Parse Email
+    ↓
+Step 2: Save to History (customer incoming)
+    ↓
+Step 3: Intent Detection (15 categories)
+    ↓
+Step 4: Urgency Detection (CRITICAL/HIGH/NORMAL)
+    ↓
+Step 5: Initialize Response Variables
+    ↓
+Step 6: Generate Reply (with slot selection for appointments)
+    ├─ If appointment: Select best time slot via LLM
+    └─ Generate reply with context
+    ↓
+Step 7-8: Decision Logic Based on Urgency
+    ├─ If NOT escalated → AUTO-SEND
+    │  ├─ Send reply immediately
+    │  ├─ If appointment: send booking email with .ics
+    │  └─ Save Draft Reply to Email_History
+    │
+    └─ If escalated → NEEDS OWNER REVIEW
+       ├─ Add to Review Queue
+       ├─ Owner visits http://localhost:8000/review
+       ├─ Owner can:
+       │  ├─ Edit reply text
+       │  ├─ Modify appointment time (if appointment)
+       │  └─ Click "Approve & Send"
+       └─ After owner approval:
+          ├─ Send final email
+          ├─ Save approved reply to history
+          ├─ If appointment: create booking with (possibly modified) slot
+          └─ Send booking confirmation with .ics
 ```
 
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Dual Decision Logic** | Intent determines reply content; Urgency determines if escalation needed |
+| **Appointment Handling** | AI selects best slot, generates reply with context, owner can modify slot before sending |
+| **Email History Tracking** | **Auto-save for non-urgent emails**, delayed-save for urgent emails (after owner approval); All emails tracked with `thread_id` and `message_id` for Gmail conversation grouping |
+| **Owner Review System** | Escalated emails queue at `/review`, owner can edit reply and/or appointment time before approval |
+| **Booking Integration** | Owner-approved appointment emails automatically create calendar bookings with .ics attachments |
+| **Gmail Threading** | All replies maintain conversation thread using Gmail's `thread_id` and `message_id` |
+
+---
 
 ## Documentation
 
 | Guide | Purpose |
 |-------|---------|
-| [DOCKER_GUIDE.md](DOCKER_GUIDE.md) | Docker deployment with PostgreSQL |
-| [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) | Complete database design & SQL reference |
-| [CHANNEL_INTEGRATION.md](CHANNEL_INTEGRATION.md) | Email, Teams, WhatsApp channel setup |
-| [SCHEDULING_SYSTEM.md](scheduling/SCHEDULING_SYSTEM.md) | Appointment booking system |
+| [DOCKER_GUIDE.md](docs/DOCKER_GUIDE.md) | Docker deployment with PostgreSQL |
+| [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Complete database design & SQL reference |
+| [CHANNEL_INTEGRATION.md](docs/CHANNEL_INTEGRATION.md) | Email, Teams, WhatsApp channel setup |
+| [SCHEDULING_SYSTEM.md](docs/SCHEDULING_SYSTEM.md) | Appointment booking system |
+
+---
+
+## API Endpoints
+
+BizClone provides JSON APIs for managing knowledge bases, email reviews, and calendar operations. All endpoints follow REST conventions and return JSON responses.
+
+### Knowledge Base APIs
+
+**`GET /api/kb/manage`** - Get KB field categories
+- Returns: JSON object with KB field definitions
+- Response: `{"service_category": [...], "policy_type": [...], ...}`
+
+**`POST /api/kb/submit`** - Submit KB update with new entry
+- Request: Form data with KB fields (category, value, description, etc.)
+- Validates: Field types, required/optional fields via Pydantic
+- Response: `{"status": "success", "message": "..."}`
+- Errors: 422 for validation errors (returns field-specific error details)
+
+### Email Review APIs
+
+**`GET /api/review/queue`** - Get pending emails for owner review
+- Returns: JSON array of escalated emails needing approval
+- Response: `[{"id": "...", "from": "...", "subject": "...", "preview": "..."}, ...]`
+
+**`GET /api/review/detail/{email_id}`** - Get full email details
+- Returns: Complete email content, generated reply, appointment info (if applicable)
+- Response: `{"id": "...", "from": "...", "subject": "...", "body": "...", "reply": "...", "appointment": {...}}`
+
+**`POST /api/review/submit`** - Owner approves/modifies and sends email
+- Request: JSON with `email_id`, `reply_text`, optional `appointment_slot` modification
+- Action: Sends final email, creates booking (if appointment), updates history
+- Response: `{"status": "success", "booking_id": "..."}`
+
+### Calendar APIs
+
+**`GET /api/calendar/data`** - Get calendar grid for month view
+- Query params: `year`, `month` (optional, defaults to current)
+- Returns: Calendar grid, booked slots, owner availability
+- Response: `{"year": 2026, "month": 4, "calendar_days": [[{date, events: []}, ...], ...]}`
+
+**`GET /api/calendar/booking/{booking_id}`** - Get booking details
+- Returns: Booking information with customer details and timeslot
+- Response: `{"id": "...", "customer_id": "...", "start_time": "...", "status": "..."}`
 
 
 ## Channel Input
 
-### Knowledge Base
-The KB was expanded to over 100 structured entries to improve retrieval coverage and response quality in the RAG pipeline.
+### Intent Classification System
 
-The Knowledge Base consolidates business information for intelligent responses:
+BizClone uses a sophisticated **mixed-strategy intent classifier** to accurately categorize customer intents:
+
+**Three-Level Classification Pipeline:**
+
+1. **Keyword Matching (Priority)** - Fast, high-confidence pattern matching
+   - Compiled regex patterns for 15 intent categories
+   - Examples: 
+     - `appointment`: "book", "schedule", "when available", weekday mentions
+     - `price_inquiry`: "price", "cost", "how much"  
+     - `complaint`: "terrible", "bad", "problem"
+   - Confidence: 0.6 - 0.95 (based on match count)
+
+2. **Zero-Shot NLP Classification** - Handles edge cases and nuanced language
+   - Uses SentenceTransformers with descriptive intent sentences
+   - Fallback when keyword matching uncertain
+   - Confidence: 0.0 - 1.0
+
+3. **Confidence-Based Fallback Logic** - Intelligent result selection
+   - Use keyword match if confidence > 0.7
+   - Use NLP result as fallback otherwise
+   - Prevents unreliable classifications
+   - Expected accuracy: 90-95%
+
+**15 Intent Categories:**
+`appointment`, `cancellation`, `price_inquiry`, `complaint`, `refund_request`, `follow_up`, `service_inquiry`, `testimonial`, `availability`, `rescheduling`, `general_inquiry`, `support`, `emergency`, `feedback`, `recommendation`
+
+### Knowledge Base
+
+The KB consolidates business information for intelligent responses:
 
 - **Services**: Plumbing services with descriptions and hourly rates.
   - Example:     
@@ -123,38 +315,17 @@ Set updated records is_active=Ture
 Set old version records is_active=False
 ```
 
-### 1. Email Agent Pipeline
-
-**Email Processing Flow:**
-```
-Customer Email
-    ↓
-Email Parser
-    ↓
-Intent Classification + Urgency Detection
-    ↓
-Retrieve Conversation History (from PostgreSQL)
-    ↓
-Query Knowledge Base (PostgreSQL + ChromaDB)
-    ↓
-Generate LLM Response with Context (Intent + Email + Email history + KB)
-    ↓ If Normal Case             ↓ If Emergenct Case
-    ↓                  Owner Review & Approval
-    ↓                            ↓
-Send Reply via Gmail or Calendar Booking
-    ↓
-Store in Database
-```
-
 ### Database Architecture
 
-**4 PostgreSQL Tables:**
-- **email_history** - Customer conversations & email context
-- **booking** - Appointment bookings (multi-channel)
-- **knowledge_base** - Knowledge base versions with active KB cache (consolidated from kb_version + kb_current)
-- **kb_feedback** - Audit trail of KB modifications
+**PostgreSQL - 6 Core Tables:**
+- **email_history** - Customer email conversations, thread tracking, and message history
+- **booking** - Appointment reservations with owner confirmation status
+- **knowledge_base** - Versioned knowledge base with active/inactive flags for RAG retrieval
+- **kb_feedback** - Audit trail tracking all KB modifications and learning updates
+- **customer** - Customer profiles for business operations
+- **calendar_account** - OAuth integrations with Google Calendar (multi-account support)
 
-See [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) for full schema details
+See [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) for full schema details
 
 
 ### Technologies Used
@@ -177,7 +348,7 @@ See [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) for full schema details
 
 To integrate a new channel (Teams, WhatsApp, Telegram, etc.) into the multi-channel system:
 
-**See: [CHANNEL_INTEGRATION.md](./CHANNEL_INTEGRATION.md)** for complete step-by-step guide.
+**See: [CHANNEL_INTEGRATION.md](docs/CHANNEL_INTEGRATION.md)** for complete step-by-step guide.
 
 The guide includes:
 - Architecture overview
@@ -187,6 +358,22 @@ The guide includes:
 - Testing patterns
 - Debugging tips
 - Integration checklist
+
+---
+
+## Key System Features
+
+| Feature | Implementation |
+|---------|-----------------|
+| **Multi-Channel Communication** | Email, Teams, WhatsApp, Calls (extensible channels) |
+| **Intelligent Intent Detection** | Mixed strategy (keyword + NLP) for 15 intent categories |
+| **Email Escalation Logic** | Automatic vs. manual review based on urgency detection |
+| **Knowledge Base Management** | Versioned KB with UI for adding/editing entries |
+| **Appointment Scheduling** | LLM-based slot selection with owner modification |
+| **Email Threading** | Gmail message_id tracking for conversation continuity |
+| **Calendar Integration** | Multi-account Google Calendar sync with .ics attachments |
+| **Owner Review System** | Web interface for approving/modifying escalated emails |
+| **Audit Trail** | Full feedback logging of KB modifications |
 
 ---
 
@@ -208,7 +395,7 @@ DATABASE_URL="postgresql://bizclone_user:password@localhost:5432/bizclone_db"
 Optional (Gmail, Teams integration):
 - `GMAIL_USER` - Gmail account for sending emails
 - `GMAIL_APP_PASSWORD` - Gmail app-specific password
-- Credentials file: `config/gmail/credentials.json` (OAuth setup)
+- Credentials file: `config/google/credentials.json` (OAuth setup)
 
 
 ### 2. Trigger Program
@@ -218,7 +405,11 @@ cd bizclone
 docker-compose up -d --build
 # or sh start-docker.sh
 ```
-See [DOCKER_GUIDE.md](DOCKER_GUIDE.md) for details
+Or
+```bash
+sh start-docker.sh
+```
+See [DOCKER_GUIDE.md](docs/DOCKER_GUIDE.md) for details
 
 **Option 2: Local Setup**
 
@@ -235,38 +426,107 @@ What Happens Automatically?
 - BizClone API accessible at http://localhost:8000/docs
 - All services health-checked
 - Data persists in Docker volumes
----
+
+### Frontend Interfaces
+
+After starting the application, access the owner control panels:
+
+| Interface | URL | Purpose |
+|-----------|-----|---------|
+| **API Docs** | http://localhost:8000/docs | Swagger UI for all endpoints |
+| **Home** | http://localhost:8000/ | Landing page |
+| **KB Management** | http://localhost:8000/kb/manage | Add/edit knowledge base entries |
+| **Email Review** | http://localhost:8000/review | Review & approve escalated emails |
+| **Calendar** | http://localhost:8000/calendar | View appointments and manage scheduling |
+
+**Frontend Architecture:**
+- Client-side rendering with vanilla JavaScript + fetch API
+- APIs return JSON, JavaScript dynamically populates HTML templates
+- No server-side templating (Jinja2) - pure static file serving
+- Real-time form validation and error display
 
 ### Verify Installation
 
 After starting the application, verify it's working correctly:
 
+**1. Check API is running**
 ```bash
-# 1. Check API is running
 curl http://localhost:8000/docs
+# Or open in browser: http://localhost:8000/docs
+```
 
-# 2. Verify database connection
+**2. Verify database connection**
+```bash
 docker-compose exec bizclone_app python -c "from database.initialization import init_database; init_database()"
+```
 
-# 3. Check KB data loaded (should show 65 records)
+**3. Check KB data loaded**
+```bash
 docker-compose exec bizclone_app python -c \
   "from sqlalchemy import create_engine, text
    import os
    engine = create_engine(os.getenv('DATABASE_URL'))
    with engine.connect() as conn:
-       result = conn.execute(text('SELECT COUNT(*) FROM knowledge_base WHERE is_active = TRUE'))
-       print(f'Active KB records: {result.scalar()}')"
+       kb_count = conn.execute(text('SELECT COUNT(*) FROM knowledge_base WHERE is_active = TRUE')).scalar()
+       booking_count = conn.execute(text('SELECT COUNT(*) FROM booking')).scalar()
+       print(f'Active KB records: {kb_count}')
+       print(f'Total bookings: {booking_count}')"
 ```
 
-Expected output:
-- API responds with Swagger documentation
-- Database connection successful
-- 65 knowledge base records loaded
+**4. Test API endpoints**
+```bash
+# Get KB fields
+curl http://localhost:8000/api/kb/manage
 
-After program is triggered, the Owner can open:
-- **Feedback UI** (KB Management): http://localhost:8000/feedback
-- **Email Review UI** (Emergency emails): http://localhost:8000/review
-- **API Documentation**: http://localhost:8000/docs
+# Get email review queue  
+curl http://localhost:8000/api/review/queue
+
+# Get calendar data (current month)
+curl http://localhost:8000/api/calendar/data
+```
+
+**Expected output:**
+- API Swagger documentation loads
+- Database connection successful
+- KB records displayed with proper counts
+- All API endpoints return valid JSON responses
+
+After verification, you can:
+1. Open http://localhost:8000 in browser (home page)
+2. Navigate to KB management at http://localhost:8000/kb/manage
+3. Submit test knowledge base entries
+4. Review confirmation at http://localhost:8000/kb/success
+
+
+---
+
+## System Design Principles
+
+**Client-Side Rendering:**
+- HTML templates are stateless and served as static files from `ui/templates/`
+- JavaScript (vanilla ES6) handles all UI interactions and data fetching
+- APIs respond with pure JSON (no templating)
+- Benefits: Decoupled frontend/backend, easier testing, better scalability
+
+**API-First Architecture:**
+- All data changes go through JSON REST APIs
+- FastAPI with Pydantic validation ensures data integrity
+- Clear separation between business logic (api/) and presentation (ui/)
+- OpenAPI/Swagger docs auto-generated at `/docs`
+
+**Database Design:**
+- PostgreSQL with SQLAlchemy ORM for type safety
+- 6-table normalized schema without unused tables
+- Versioned knowledge base for rollback capability
+- Audit trail via kb_feedback table
+
+**Extensibility:**
+- New channels can be added following CHANNEL_INTEGRATION.md pattern
+- Base classes (BaseWatcher) provide common interface
+- Plugins instantiated via ChannelPollingManager
+- Zero change required to core email pipeline
+
+---
 
 ## Troubleshooting
 
@@ -307,15 +567,91 @@ docker-compose logs bizclone_app | tail -20
 docker-compose down -v  # Delete volumes
 docker-compose up -d --build  # Fresh start
 
-# This will reload all 65 KB records from latest_email_kb.json
+# This will reload KB records from latest_email_kb.json
 ```
 
-**Forms Not Submitting**
+**Review Queue Shows No Emails**
 ```bash
-# Check browser console for errors (F12)
-# Ensure required fields are filled
-# Verify database is accepting writes
-docker exec bizclone_app psql -U bizclone_user -d bizclone_db -c "SELECT * FROM kb_feedback LIMIT 1;"
+# Check if email inbox has unprocessed emails
+curl http://localhost:8000/api/review/queue
+
+# Verify email watcher is running
+docker-compose logs bizclone_app | grep -i "email\|watcher"
+
+# Check if urgent/escalated emails exist
+docker-compose exec bizclone_app psql -U bizclone_user -d bizclone_db \
+  -c "SELECT id, from_email, urgency_level FROM email_history ORDER BY created_at DESC LIMIT 5;"
 ```
 
-For more details, see [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) and [DOCKER_GUIDE.md](DOCKER_GUIDE.md)
+**Calendar Shows No Bookings**
+```bash
+# Test API endpoint directly:
+curl http://localhost:8000/api/calendar/data
+
+# Check bookings in database:
+docker-compose exec bizclone_app psql -U bizclone_user -d bizclone_db \
+  -c "SELECT * FROM booking LIMIT 5;"
+
+# Verify calendar accounts are configured:
+docker-compose exec bizclone_app psql -U bizclone_user -d bizclone_db \
+  -c "SELECT * FROM calendar_account;"
+```
+
+**JavaScript Fetch Errors in Browser**
+```bash
+# Open browser DevTools (F12) → Console tab
+# Common issues:
+# 1. API endpoint URL wrong → Check /docs for correct paths
+# 2. CORS error → Check FastAPI middleware configuration
+# 3. 404 Not Found → Verify endpoint exists (test with curl first)
+# 4. 422 Validation → Check request body matches API schema
+```
+
+For more details, see [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) and [DOCKER_GUIDE.md](docs/DOCKER_GUIDE.md)
+
+---
+
+## Development
+
+### Testing
+
+Run test suite:
+```bash
+# Test email agent
+python -m pytest tests/test_email_agent.py -v
+
+# Test Gmail integration
+python -m pytest tests/test_gmail.py -v
+
+# Test intent classification
+python -m pytest tests/test_email_intent_classifier.py -v
+
+# All tests
+python -m pytest tests/ -v
+```
+
+## Project Status
+
+**Current Phase:** Core features operational and tested
+
+**Completed:**
+- Email parsing and Gmail integration
+- Intent classification (mixed keyword + NLP strategy)
+- Email escalation and owner review system
+- Knowledge base versioning and management UI
+- Appointment scheduling with slot selection
+- Calendar integration with Google Calendar  
+- Multi-channel architecture foundation
+- Database schema optimized (removed unused tables)
+
+**In Progress:**
+- Fine-tuning intent classifier accuracy
+- Teams channel implementation
+
+**Planned:**
+- WhatsApp channel integration
+- Voice call channel support
+- Advanced RAG optimization
+- Performance monitoring dashboard
+- User authentication system
+- Rate limiting and security hardening

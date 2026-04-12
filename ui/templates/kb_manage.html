@@ -98,9 +98,96 @@
         .error-message.show {
             display: block;
         }
+        
+        .success-message {
+            background: #e8f5e9;
+            border-left: 5px solid #2e7d32;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            color: #1b5e20;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 30px;
+        }
+        
+        .btn-home {
+            padding: 10px 20px;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn-home:hover {
+            background-color: #1565c0;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .loading-spinner {
+            display: none;
+            margin-left: 10px;
+            font-size: 14px;
+            color: #666;
+        }
 
     </style>
     <script>
+        async function loadKBFields() {
+            try {
+                const response = await fetch('/api/kb/manage');
+                const data = await response.json();
+                console.log('KB Fields loaded:', data);
+                
+                // Dynamically populate the Knowledge Category select dropdown
+                const kbFieldSelect = document.getElementById('kb_field');
+                
+                // Clear existing options (keep the default one)
+                while (kbFieldSelect.options.length > 1) {
+                    kbFieldSelect.remove(1);
+                }
+                
+                // Add options from API response
+                if (data.fields && typeof data.fields === 'object') {
+                    Object.entries(data.fields).forEach(([fieldKey, fieldName]) => {
+                        const option = document.createElement('option');
+                        option.value = fieldKey;
+                        option.textContent = fieldName;
+                        kbFieldSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading KB fields:', error);
+                document.getElementById('error_message').textContent = 'Error loading KB categories. Please refresh the page.';
+                document.getElementById('error_message').classList.add('show');
+            }
+        }
+
         function updateFormFields() {
             const operation = document.getElementById('operation').value;
             const kb_field = document.getElementById('kb_field').value;
@@ -135,7 +222,6 @@
                     } else {
                         input.removeAttribute('required');
                         // Remove name attribute to prevent submission of hidden fields
-                        // (especially important for duplicate field names like "owner_correction")
                         input.removeAttribute('name');
                     }
                 });
@@ -169,26 +255,31 @@
             }
         }
         
-        // Initialize data-name attributes on all inputs (for later restoration)
+        // Initialize data-name attributes on all inputs
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('input[name], textarea[name]').forEach(input => {
                 input.setAttribute('data-name', input.getAttribute('name'));
             });
+            loadKBFields();
         });
 
-        function validateAndSubmit(event) {
+        async function validateAndSubmit(event) {
+            event.preventDefault();
+            
             const operation = document.getElementById('operation').value;
             const kb_field = document.getElementById('kb_field').value;
             const errorMsg = document.getElementById('error_message');
+            const successMsg = document.getElementById('success_message');
+            const submitBtn = document.getElementById('submit_btn');
             
-            console.log('Form submit triggered. kb_field value:', kb_field);
+            // Hide messages
+            errorMsg.classList.remove('show');
+            successMsg.classList.remove('show');
             
             // Validate category is selected
             if (!kb_field) {
-                event.preventDefault();
                 errorMsg.textContent = 'Please select a Knowledge Category first.';
                 errorMsg.classList.add('show');
-                console.log('Error: Category not selected');
                 return false;
             }
             
@@ -218,17 +309,99 @@
                 }
                 
                 if (hasEmpty) {
-                    event.preventDefault();
                     errorMsg.textContent = `Please fill in all required fields. Missing: ${emptyField}`;
                     errorMsg.classList.add('show');
-                    console.log('Error: Missing required field:', emptyField);
                     return false;
                 }
             }
             
-            // All validation passed - allow form submission
-            console.log('Form validation passed. Submitting...');
-            return true;
+            // Prepare request data - only include non-empty values
+            const formData = new FormData(event.target);
+            const requestData = {};
+            
+            // Add required fields
+            requestData.kb_field = formData.get('kb_field');
+            requestData.operation = formData.get('operation');
+            
+            // Add optional fields only if they have values
+            const customer_question = formData.get('customer_question');
+            if (customer_question && customer_question.trim()) {
+                requestData.customer_question = customer_question;
+            }
+            
+            const owner_correction = formData.get('owner_correction');
+            if (owner_correction && owner_correction.trim()) {
+                requestData.owner_correction = owner_correction;
+            }
+            
+            const service_name = formData.get('service_name');
+            if (service_name && service_name.trim()) {
+                requestData.service_name = service_name;
+            }
+            
+            const service_description = formData.get('service_description');
+            if (service_description && service_description.trim()) {
+                requestData.service_description = service_description;
+            }
+            
+            const service_price = formData.get('service_price');
+            if (service_price && service_price.trim()) {
+                requestData.service_price = service_price;
+            }
+            
+            const policy_name = formData.get('policy_name');
+            if (policy_name && policy_name.trim()) {
+                requestData.policy_name = policy_name;
+            }
+            
+            console.log('Request data being sent:', requestData);
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            const spinner = submitBtn.querySelector('.loading-spinner');
+            if (spinner) spinner.style.display = 'inline';
+            
+            try {
+                // Call API
+                const response = await fetch('/api/kb/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const result = await response.json();
+                console.log('API Response:', result);
+                
+                if (response.ok && result.status === 'success') {
+                    // Redirect to success page directly
+                    window.location.href = '/kb/success';
+                } else if (response.status === 422) {
+                    // Validation error - show detailed message
+                    console.error('Validation error:', result);
+                    let errorDetail = 'Validation failed:';
+                    if (Array.isArray(result.detail)) {
+                        errorDetail = 'Validation failed:\n' + 
+                            result.detail.map(err => `- ${err.loc.join('.')}: ${err.msg}`).join('\n');
+                    }
+                    errorMsg.textContent = errorDetail;
+                    errorMsg.classList.add('show');
+                } else {
+                    errorMsg.textContent = `Error: ${result.message || 'Failed to update KB'}`;
+                    errorMsg.classList.add('show');
+                }
+            } catch (error) {
+                console.error('Error submitting KB update:', error);
+                errorMsg.textContent = `Network error: ${error.message}`;
+                errorMsg.classList.add('show');
+            } finally {
+                // Restore button state
+                submitBtn.disabled = false;
+                if (spinner) spinner.style.display = 'none';
+            }
+            
+            return false;
         }
 
         function updateServiceLabels(operation) {
@@ -241,8 +414,8 @@
 
             if (operation === 'update') {
                 nameLabel.textContent = 'Service Name *';
-                descLabel.textContent = 'Updated Description';  // No asterisk - optional
-                priceLabel.textContent = 'Updated Price';      // No asterisk - optional
+                descLabel.textContent = 'Updated Description';
+                priceLabel.textContent = 'Updated Price';
                 nameHint.textContent = 'Example: "emergency plumbing"';
                 descHint.textContent = 'Example: "24/7 urgent plumbing support with priority response" (Optional)';
                 priceHint.textContent = 'Example: "€120 per hour" (Optional)';
@@ -299,16 +472,20 @@
 
 <div class="container">
 
-    <h2>Knowledge Base Management</h2>
+    <div class="page-header">
+        <h2>Knowledge Base Management</h2>
+        <a href="/" class="btn-home">Home</a>
+    </div>
 
     <div class="info-box">
-        <strong>Insert</strong> new knowledge entries or <strong>update</strong> existing ones.
+        <strong>Insert</strong> new knowledge entries or <strong>update</strong>  existing ones.
         These changes will directly affect the RAG retrieval system and agent responses.
     </div>
 
-    <form method="post" action="/kb/submit" onsubmit="return validateAndSubmit(event)">
+    <form id="kb_form" onsubmit="validateAndSubmit(event)">
         
         <div id="error_message" class="error-message"></div>
+        <div id="success_message" class="success-message"></div>
         
         <label for="operation">Operation *</label>
         <select name="operation" id="operation" onchange="updateFormFields()" required> 
@@ -319,10 +496,7 @@
         <div class="form-group">
             <label for="kb_field">Knowledge Category *</label>
             <select name="kb_field" id="kb_field" onchange="updateFormFields()" required>
-                <option value="">-- Select Category --</option>
-                {% for field in kb_fields %}
-                    <option value="{{ field }}">{{ field|capitalize }}</option>
-                {% endfor %}
+                <option value="">-- Loading Categories --</option>
             </select>
         </div>
 
@@ -363,7 +537,10 @@
             <div class="field-hint" id="faq_field2_hint">Example: "Yes, we inspect and repair household water heaters."</div>
         </div>
 
-        <button type="submit" class="button">Apply Changes</button>
+        <button type="submit" id="submit_btn" class="button">
+            Apply Changes
+            <span class="loading-spinner">🔄 Processing...</span>
+        </button>
 
     </form>
 

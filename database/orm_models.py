@@ -6,9 +6,11 @@ Defines all persistent data models:
 2. Booking - Appointment reservations  
 3. KnowledgeBase - Knowledge base versions with tracking (merged from kb_version + kb_current)
 4. KBFeedback - Knowledge base update log
+5. Customer - Customer profiles for personalized service
+6. CalendarAccount - OAuth calendar integrations
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, Text, Index, JSON, Boolean, ForeignKey, TIMESTAMP, PrimaryKeyConstraint, ForeignKeyConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Text, Index, JSON, Boolean, ForeignKey, TIMESTAMP, PrimaryKeyConstraint, ForeignKeyConstraint, Date, Time
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
@@ -21,10 +23,11 @@ class EmailHistory(Base):
     
     id = Column(Integer, primary_key=True)
     customer_email = Column(String(255), nullable=False, index=True)
-    sender_category = Column(String(50))  # customer or support category
+    sender_category = Column(String(50))  # customer, support, or happy birthday category
     subject = Column(String(500))
     body = Column(Text, nullable=False)
-    our_reply = Column(Text)
+    thread_id = Column(String(255))  # Gmail thread ID for conversation grouping
+    message_id = Column(String(255))  # Gmail message ID for individual email reference
     intent = Column(String(100), index=True)
     channel = Column(String(50), default="email")
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)
@@ -42,7 +45,8 @@ class EmailHistory(Base):
             "sender_category": self.sender_category,
             "subject": self.subject,
             "body": self.body,
-            "our_reply": self.our_reply,
+            "thread_id": self.thread_id,
+            "message_id": self.message_id,
             "intent": self.intent,
             "channel": self.channel,
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
@@ -176,4 +180,93 @@ class KBFeedback(Base):
             "policy_name": self.policy_name,
             "kb_version_id": self.kb_version_id,
             "created_at": self.created_at.isoformat()
+        }
+
+class Customer(Base):
+    """Customer profile for personalized service and birthday reminders."""
+    __tablename__ = "customer"
+    
+    customer_id = Column(Integer, primary_key=True)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    email = Column(String(255), nullable=False, unique=True, index=True)
+    phone = Column(String(20))
+    date_of_birth = Column(Date, index=True)
+    home_address = Column(Text)
+    city = Column(String(100))
+    state_province = Column(String(100))
+    postal_code = Column(String(20))
+    country = Column(String(100))
+    preferred_contact_method = Column(String(50), default='email')
+    notification_opt_in = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_contacted_at = Column(DateTime)
+    
+    __table_args__ = (
+        Index('idx_customer_email', 'email'),
+        Index('idx_customer_dob', 'date_of_birth'),
+        Index('idx_customer_created', 'created_at'),
+        Index('idx_customer_contact_pref', 'preferred_contact_method'),
+    )
+    
+    def get_full_name(self):
+        """Return customer's full name."""
+        return f"{self.first_name} {self.last_name}".strip()
+    
+    def to_dict(self):
+        """Convert customer object to dictionary."""
+        return {
+            "customer_id": self.customer_id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "full_name": self.get_full_name(),
+            "email": self.email,
+            "phone": self.phone,
+            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None,
+            "home_address": self.home_address,
+            "city": self.city,
+            "state_province": self.state_province,
+            "postal_code": self.postal_code,
+            "country": self.country,
+            "preferred_contact_method": self.preferred_contact_method,
+            "notification_opt_in": self.notification_opt_in,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "last_contacted_at": self.last_contacted_at.isoformat() if self.last_contacted_at else None,
+        }
+
+
+class CalendarAccount(Base):
+    """OAuth calendar integration for staff (Google Calendar, Outlook, etc.)."""
+    __tablename__ = "calendar_account"
+    
+    account_id = Column(Integer, primary_key=True)
+    staff_id = Column(String(255), nullable=False, index=True)
+    provider = Column(String(50), nullable=False)  # 'google', 'outlook'
+    email = Column(String(255), nullable=False)
+    access_token = Column(Text, nullable=False)
+    refresh_token = Column(Text)
+    token_expires_at = Column(DateTime)
+    is_active = Column(Boolean, default=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_synced_at = Column(DateTime)
+    
+    __table_args__ = (
+        Index('idx_calendar_account_provider_email', 'provider', 'email'),
+        Index('idx_calendar_account_staff', 'staff_id', 'provider'),
+        Index('idx_calendar_account_active', 'is_active'),
+    )
+    
+    def to_dict(self):
+        return {
+            "account_id": self.account_id,
+            "staff_id": self.staff_id,
+            "provider": self.provider,
+            "email": self.email,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "last_synced_at": self.last_synced_at.isoformat() if self.last_synced_at else None,
         }

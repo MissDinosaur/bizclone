@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS email_history (
     sender_category VARCHAR(50),
     subject VARCHAR(500),
     body TEXT NOT NULL,
-    our_reply TEXT,
+    thread_id VARCHAR(255),
+    message_id VARCHAR(255),
     intent VARCHAR(100),
     channel VARCHAR(50) DEFAULT 'email',
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -127,6 +128,56 @@ CREATE INDEX IF NOT EXISTS idx_kb_feedback_kb_field ON kb_feedback(kb_field);
 CREATE INDEX IF NOT EXISTS idx_kb_feedback_timestamp ON kb_feedback(created_at);
 CREATE INDEX IF NOT EXISTS idx_kb_feedback_timestamp_operation ON kb_feedback(created_at, operation);
 CREATE INDEX IF NOT EXISTS idx_kb_feedback_version_key ON kb_feedback(kb_version_id, kb_field, item_key);
+
+-- ============================================================
+-- Table: customer
+-- Customer profile information for birthday reminders and personalized service
+-- ============================================================
+CREATE TABLE IF NOT EXISTS customer (
+    customer_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone VARCHAR(20),
+    date_of_birth DATE,
+    home_address TEXT,
+    city VARCHAR(100),
+    state_province VARCHAR(100),
+    postal_code VARCHAR(20),
+    country VARCHAR(100),
+    preferred_contact_method VARCHAR(50) DEFAULT 'email',
+    notification_opt_in BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_contacted_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_customer_email ON customer(email);
+CREATE INDEX IF NOT EXISTS idx_customer_dob ON customer(date_of_birth);
+CREATE INDEX IF NOT EXISTS idx_customer_created ON customer(created_at);
+CREATE INDEX IF NOT EXISTS idx_customer_contact_pref ON customer(preferred_contact_method);
+
+-- ============================================================
+-- Table: calendar_account
+-- Stores OAuth tokens and calendar integration configuration for staff/users
+-- ============================================================
+CREATE TABLE IF NOT EXISTS calendar_account (
+    account_id SERIAL PRIMARY KEY,
+    staff_id VARCHAR(255) NOT NULL,
+    provider VARCHAR(50) NOT NULL CHECK (provider IN ('google', 'outlook')),
+    email VARCHAR(255) NOT NULL,
+    access_token TEXT NOT NULL,
+    refresh_token TEXT,
+    token_expires_at TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_synced_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_calendar_account_provider_email ON calendar_account(provider, email);
+CREATE INDEX IF NOT EXISTS idx_calendar_account_staff ON calendar_account(staff_id, provider);
+CREATE INDEX IF NOT EXISTS idx_calendar_account_active ON calendar_account(is_active);
 
 -- ============================================================
 -- Grant table permissions to application user

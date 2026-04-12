@@ -22,9 +22,16 @@ from database.initialization import init_database
 
 # Email agent core
 from channels.channel_polling_manager import ChannelPollingManager
-from api.kb_learning_api import router as learning_router
-from ui.kb_feedback_ui import router as feedback_ui_router
-from ui.review_email_ui import router as review_router
+
+# API routers
+from api.kb_api import router as kb_api_router
+from api.review_api import router as review_api_router
+from api.calendar_data_api import router as calendar_data_api_router
+
+# UI routers
+from ui.home_ui import router as home_ui_router
+from ui.static_pages_ui import router as static_pages_router
+
 from config.config import APP_TITLE, HOST, PORT
 
 app = FastAPI(title=APP_TITLE)
@@ -66,6 +73,7 @@ def startup_event():
     - Initialize database tables and load initial KB data
     - Pre-initialize EmailAgent to trigger KB loading to vector store
     - Start all configured channel polling services in background threads
+    - Start birthday email scheduler
     """
     logger.info("Application startup initiated...")
     
@@ -85,15 +93,35 @@ def startup_event():
     polling_manager.start_all()
     active_channels = polling_manager.list_active_channels()
     logger.info(f"Application started | Active channels: {', '.join(active_channels) if active_channels else 'None'}")
+    
+    # Start birthday email scheduler
+    try:
+        from scheduling.birthday_scheduler import BirthdayEmailScheduler
+        schedule_hour=12  # Send birthday emails at 8 AM
+        schedule_minute=6
+        birthday_scheduler = BirthdayEmailScheduler(
+            schedule_hour=schedule_hour,  
+            schedule_minute=schedule_minute
+        )
+        birthday_scheduler.start()
+        logger.info(f"✓ Birthday email scheduler started, will send happy birthday email at {schedule_hour}:{schedule_minute}")
+        app.state.birthday_scheduler = birthday_scheduler
+    except Exception as e:
+        logger.warning(f"Failed to start birthday email scheduler: {e}")
 
 
 @app.on_event("shutdown")
 def shutdown_event():
     """
     When FastAPI shuts down:
-    gracefully stop all channel watchers.
+    gracefully stop all channel watchers and birthday scheduler.
     """
     polling_manager.stop_all()
+    
+    # Stop birthday scheduler
+    if hasattr(app.state, 'birthday_scheduler'):
+        app.state.birthday_scheduler.stop()
+    
     logger.info("Application shutdown complete")
 
 # =============================
@@ -108,9 +136,14 @@ def health_check():
 # =============================
 # Include routers
 # =============================
-app.include_router(learning_router)       # Core Learning API, updating KB
-app.include_router(feedback_ui_router)    # Owner Correct the KB via UI
-app.include_router(review_router)
+# Core API routers
+app.include_router(kb_api_router)             # KB Management API - returns JSON
+app.include_router(review_api_router)         # Email Review API - returns JSON
+app.include_router(calendar_data_api_router)  # Calendar Data API - returns JSON
+
+# UI routers
+app.include_router(home_ui_router)            # Home page UI - main landing page
+app.include_router(static_pages_router)       # Static HTML pages - KB, Review, Calendar (client-side rendering)
 
 
 if __name__ == "__main__":

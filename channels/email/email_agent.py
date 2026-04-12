@@ -1,9 +1,13 @@
 import logging
+import json
 from channels.email.parser import parse_email
 from channels.email.intent_classifier import IntentClassifier
+from channels.email.review_store import add_email_to_review
 from channels.email.urgency_detector import UrgencyDetector
 from rag.rag_pipeline import EmailRAGPipeline
 from scheduling.scheduler import check_availability, book_slot
+from scheduling.llm_booking_assistant import get_booking_assistant
+from channels.email.booking_email_sender import get_booking_email_sender
 from knowledge_base.email_history_store import EmailHistoryStore
 from channels.schemas import ChannelMessageResponseSchema, IntentType, MessageStatus, BookingResponseSchema
 import config.config as cfg
@@ -60,9 +64,6 @@ class EmailAgent:
     4. Retrieve relevant KB context (RAG)
     5. Generate final reply draft using LLM
     6. Optionally handle scheduling requests
-    
-    Note: Intent (what user wants) and Urgency (time-sensitivity) are
-    detected separately for better decision-making.
     """
 
     def __init__(self):
@@ -85,25 +86,32 @@ class EmailAgent:
         email_text = parsed["text"]
         customer_email = email_payload["from"]
         subject = email_payload.get("subject", "(no subject)")
+        thread_id = email_payload.get("thread_id")
+        message_id = email_payload.get("message_id")
+        references = email_payload.get("references", "")  # CRITICAL: Extract full conversation chain
+        in_reply_to = email_payload.get("in_reply_to", "")  # Extract reply context
+        
+        logger.info(f"[CONVERSATION_CHAIN] message_id='{message_id}', references='{references}')")
 
-        # Step 1: Save incoming email to history
+        # Step 2: Save incoming email to history
         self.email_store.save_email(
             customer_email=customer_email,
             sender_category="customer",
             subject=subject,
             body=email_text,
-            our_reply=None,  # Will add this later
+            thread_id=thread_id,
+            message_id=message_id,
             intent=None,  # Will set after detection
             channel="email"
         )
 
-        # Step 2: Intent Detection (NLP) - SEPARATE from urgency
+        # Step 3: Intent Detection (NLP) - SEPARATE from urgency
         intent_result = self.intent_model.predict_intent(email_text)
         intent = intent_result["intent"]
         intent_confidence = intent_result["confidence"]
         logger.info(f"email - intent: {intent} ({intent_confidence:.0%})", extra={"channel": "email"})
         
-        # Step 2b: Urgency Detection (keyword-based) - INDEPENDENT of intent
+        # Step 4: Urgency Detection (keyword-based) - INDEPENDENT of intent
         urgency_result = self.urgency_detector.detect_urgency(email_text, intent=intent)
         urgency_level = urgency_result["urgency_level"]
         urgency_confidence = urgency_result["confidence"]
@@ -114,111 +122,307 @@ class EmailAgent:
         if detected_keywords:
             logger.warning(f"email - escalation keywords: {detected_keywords}", extra={"channel": "email"})
         
-        # Step 3: Scheduling Logic (Optional)
+        # Step 5: Initialize response tracking variables
         booking_info = None
         booking_response = None
-        if intent == cfg.APPOINTMENT:
-            booking_info = self._handle_booking_request(customer_email, email_text)
-            if booking_info and booking_info.get("status") == "confirmed":
-                booking_response = BookingResponseSchema(
-                    id=booking_info["id"],
-                    slot=booking_info["slot"],
-                    customer_email=booking_info["customer_email"],
-                    channel=booking_info["channel"],
-                    status=booking_info["status"],
-                    booked_at=booking_info["booked_at"],
-                    notes=booking_info.get("notes")
+        booking_confirmation_sent = False
+        reply_text = None
+        retrieved_docs = None
+        selected_slot = None
+        llm_reasoning = None
+        booking_info_pending = None  # Store pending booking for review if escalated
+        
+        # Step 6: Generate reply based on intent (with slot selection for appointments)
+        if intent == "appointment":
+            # For appointment requests: select slot FIRST, then generate reply with slot context
+            logger.info("Processing appointment request - selecting best slot first")
+            
+            slot_selection_result = self._select_best_appointment_slot(
+                customer_email=customer_email,
+                email_text=email_text
+            )
+            
+            if slot_selection_result:
+                logger.warning("Select appointment slot, generating standard reply")
+                selected_slot = slot_selection_result["slot"]
+                llm_reasoning = slot_selection_result["reasoning"]
+                
+                # Now generate reply with the selected slot as context
+                reply_text, retrieved_docs = self.rag.generate_email_reply(
+                    customer_email=customer_email,
+                    body=email_text,
+                    intent=intent,
+                    booking={
+                        "slot": selected_slot,
+                        "reasoning": llm_reasoning
+                    }
                 )
+                
+                # Store booking context for later (will send email only if not escalated)
+                booking_info_pending = {
+                    "customer_email": customer_email,
+                    "message_text": email_text,
+                    "thread_id": thread_id,
+                    "message_id": message_id,
+                    "subject": subject,
+                    "selected_slot": selected_slot,
+                    "reply_text": reply_text
+                }
+        else:
+            # For non-appointment requests: use standard RAG + LLM pipeline
+            reply_text, retrieved_docs = self.rag.generate_email_reply(
+                customer_email=customer_email,
+                body=email_text,
+                intent=intent,
+                booking=None
+            )
 
-        # Step 4: RAG + LLM Email Draft
-        reply_text, retrieved_docs = self.rag.generate_email_reply(
-            customer_email=customer_email,
-            body=email_text,
-            intent=intent,
-            booking=booking_info
-        )
-        
-        # Step 5: Save the generated reply to history (for outgoing emails)
-        self.email_store.save_email(
-            customer_email=customer_email,
-            sender_category="support",
-            subject=f"Re: {subject}",
-            body=reply_text,
-            our_reply=reply_text,
-            intent=intent,
-            channel="email"
-        )
-        logger.debug(f"email - saved reply history for {customer_email}")
-        
-        # Step 6: DECISION LOGIC - Based on URGENCY
+        # Step 7: Handle escalation or send response
         # Urgency determines escalation, intent determines reply content
         should_escalate = self.urgency_detector.should_escalate_to_owner(urgency_level)
         
         if should_escalate:
-            logger.warning(f"email - [{urgency_level}] escalating to owner from {customer_email}", extra={"channel": "email"})
+            # ESCALATED: Add to review queue without saving draft reply yet
+            # Owner may modify reply and/or appointment time before approval
+            # Final reply will be saved AFTER owner approval (Step 7b in review_email_ui.py)
+            logger.warning(f"email - [{urgency_level}] escalating to owner from {customer_email} for review", extra={"channel": "email"})
             logger.warning(f"email - reason: {escalation_reason}", extra={"channel": "email"})
+            
+            # Save email to review queue for owner to approve
+            review_data = {
+                "customer_email": customer_email,
+                "subject": subject,
+                "agent_reply": reply_text,
+                "customer_question": email_text,
+                "thread_id": thread_id,
+                "message_id": message_id,
+                "references": references,  # CRITICAL: Store full conversation chain for proper threading
+                "in_reply_to": in_reply_to,  # Store original reply context
+                "urgency_level": urgency_level,
+                "escalation_reason": escalation_reason,
+                "intent": intent,
+                "booking_pending": json.dumps(booking_info_pending) if booking_info_pending else None,  # Convert dict to JSON string
+                "selected_slot": selected_slot  # For owner to modify if appointment
+            }
+            logger.debug(f"DEBUG: Adding to review queue - customer_email='{customer_email}' (type={type(customer_email).__name__})")
+            add_email_to_review(review_data)
+            logger.info(f"email - saved to review queue for owner approval")
+            
             return ChannelMessageResponseSchema(
                 channel="email",
                 status=MessageStatus.NEEDS_REVIEW,
+                intent=_intent_to_enum(intent),
+                reply=reply_text,
+                booking=None,  # No booking confirmation yet - pending owner review
+                retrieved_docs=retrieved_docs,
+                error_code=None,
+                error_message=None,
+                # Store booking context for owner to review
+                metadata={
+                    "urgency_level": urgency_level,
+                    "urgency_confidence": urgency_confidence,
+                    "escalation_reason": escalation_reason,
+                    "detected_keywords": detected_keywords,
+                    "intent_confidence": intent_confidence,
+                    "booking_pending": booking_info_pending,  # Store booking for owner to approve
+                    "selected_slot": selected_slot  # For owner to modify slot if needed
+                }
+            )
+        else:
+            # NOT ESCALATED: AUTO-SEND path
+            # Send reply immediately via Gmail (with .ics if appointment)
+            # Save the generated reply to history
+            self.email_store.save_email(
+                customer_email=customer_email,
+                sender_category="support",
+                subject=f"Re: {subject}",
+                body=reply_text,
+                thread_id=thread_id,
+                message_id=message_id,
+                intent=intent,
+                channel="email"
+            )
+            logger.debug(f"email - saved reply history for {customer_email}")
+            
+            # For appointment intents: generate and send booking confirmation with .ics
+            if intent == "appointment" and booking_info_pending:
+                booking_info = self._handle_booking_request(
+                    customer_email=booking_info_pending["customer_email"],
+                    message_text=booking_info_pending["message_text"],
+                    thread_id=booking_info_pending["thread_id"],
+                    message_id=booking_info_pending["message_id"],
+                    subject=booking_info_pending["subject"],
+                    selected_slot=booking_info_pending["selected_slot"],
+                    reply_text=booking_info_pending["reply_text"]
+                )
+                
+                if booking_info and booking_info.get("status") == "confirmed":
+                    booking_response = BookingResponseSchema(
+                        id=booking_info["id"],
+                        slot=booking_info["slot"],
+                        customer_email=booking_info["customer_email"],
+                        channel=booking_info["channel"],
+                        status=booking_info["status"],
+                        booked_at=booking_info["booked_at"],
+                        notes=booking_info.get("notes")
+                    )
+                    booking_confirmation_sent = booking_info.get("confirmation_sent", False)
+            
+            logger.info(f"email - auto-sending response (urgency: {urgency_level})", extra={"channel": "email"})
+            return ChannelMessageResponseSchema(
+                channel="email",
+                status=MessageStatus.AUTO_SEND,
                 intent=_intent_to_enum(intent),
                 reply=reply_text,
                 booking=booking_response,
                 retrieved_docs=retrieved_docs,
                 error_code=None,
                 error_message=None,
-                # NEW: Store urgency info for owner review context
                 metadata={
                     "urgency_level": urgency_level,
                     "urgency_confidence": urgency_confidence,
-                    "escalation_reason": escalation_reason,
-                    "detected_keywords": detected_keywords,
-                    "intent_confidence": intent_confidence
+                    "booking_confirmation_sent": booking_confirmation_sent
                 }
             )
-        
-        logger.info(f"email - auto-sending response (urgency: {urgency_level})", extra={"channel": "email"})
-        return ChannelMessageResponseSchema(
-            channel="email",
-            status=MessageStatus.AUTO_SEND,
-            intent=_intent_to_enum(intent),
-            reply=reply_text,
-            booking=booking_response,
-            retrieved_docs=retrieved_docs,
-            error_code=None,
-            error_message=None,
-            metadata={
-                "urgency_level": urgency_level,
-                "urgency_confidence": urgency_confidence
-            }
-        )
 
-    def _handle_booking_request(self, customer_email: str, message_text: str) -> dict:
+    def _select_best_appointment_slot(
+        self,
+        customer_email: str,
+        email_text: str
+    ) -> dict:
         """
-        Handle appointment booking request from email.
-        Uses the shared scheduling service so bookings are consistent
-        across all channels.
+        Select the best available appointment slot for a customer.
+        This is called BEFORE generating the LLM reply, so the reply
+        can be generated with knowledge of the selected slot.
+        
+        Args:
+            customer_email: Customer's email address
+            email_text: Content of customer's email
+            
+        Returns:
+            dict with 'slot' and 'reasoning', or None if no slot available
         """
-        available_slots = check_availability(days_ahead=5)
-        
-        if not available_slots:
-            logger.warning(f"email - no available slots for booking from {customer_email}")
+        try:
+            # Get available time slots
+            available_slots = check_availability(days_ahead=14)
+            
+            if not available_slots:
+                logger.warning(f"email - no available slots for {customer_email}")
+                return None
+            
+            # Use LLM to intelligently select the best slot
+            booking_assistant = get_booking_assistant()
+            selected_slot, llm_reasoning = booking_assistant.select_best_appointment_slot(
+                customer_email=customer_email,
+                email_content=email_text,
+                available_slots=available_slots
+            )
+            
+            if not selected_slot:
+                logger.warning(f"email - LLM failed to select slot for {customer_email}")
+                return None
+            
+            logger.info(f"email - selected slot: {selected_slot} - Reasoning: {llm_reasoning}")
+            
+            return {
+                "slot": selected_slot,
+                "reasoning": llm_reasoning
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in _select_best_appointment_slot: {e}", exc_info=True)
             return None
+
+    def _handle_booking_request(
+        self,
+        customer_email: str,
+        message_text: str,
+        thread_id: str,
+        message_id: str,
+        subject: str,
+        selected_slot: str,
+        reply_text: str
+    ) -> dict:
+        """
+        Complete the booking workflow with an already-selected slot.
+        This is called AFTER slot selection and reply generation.
         
-        # Try to book the first available slot and save the booking info to the database
-        selected_slot = available_slots[0]
-        booking = book_slot(
-            customer_email=customer_email,
-            slot=selected_slot,
-            channel="email",
-            notes=f"Requested via email: {message_text[:100]}"
-        )
+        Flow:
+        1. Create booking record with the selected slot
+        2. Generate iCalendar invitation
+        3. Send confirmation email with reply_text + .ics attachment in same thread
         
-        if booking.get("status") == "failed":
-            logger.warning(f"email - booking failed for {customer_email}: {booking.get('reason')}")
-            return None
-        else:
-            logger.info(f"email - booking confirmed: {booking.get('id')} for {customer_email}")
+        Args:
+            customer_email: Customer's email address
+            message_text: Original customer email content
+            thread_id: Gmail thread ID for threaded reply
+            message_id: Gmail message ID for reply-to reference
+            subject: Original email subject
+            selected_slot: Already-selected appointment slot
+            reply_text: LLM-generated reply (with slot context already included)
+            
+        Returns:
+            dict with booking info + confirmation_sent flag
+        """
+        
+        try:
+            # Step 1: Create booking record with the already-selected slot
+            booking = book_slot(
+                customer_email=customer_email,
+                slot=selected_slot,
+                channel="email",
+                notes=f"AI-selected booking from email: {message_text[:100]}",
+                days_ahead=14
+            )
+            
+            if booking.get("status") != "confirmed":
+                logger.warning(f"email - booking creation failed for {customer_email}: {booking.get('reason')}")
+                return None
+            
+            logger.info(f"email - booking confirmed: {booking.get('id')} for {customer_email} at {selected_slot}")
+            
+            # Step 2: Send confirmation email with iCalendar invitation AND LLM reply
+            email_sender = get_booking_email_sender()
+            customer_name = customer_email.split('@')[0]  # Extract customer name from email
+            
+            # Append booking details to the reply (which already includes slot context)
+            email_body = f"""{reply_text}
+
+---
+Appointment Details:
+Time: {selected_slot}
+Status: Confirmed
+
+To reschedule, please reply directly to this email."""
+            
+            # send_booking_confirmation_with_ics now receives:
+            # - reply_text with slot context already included
+            # - selected_slot for iCalendar generation
+            success, message_id = email_sender.send_booking_confirmation_with_ics(
+                customer_email=customer_email,
+                customer_name=customer_name,
+                appointment_slot=selected_slot,
+                thread_id=thread_id,
+                message_id=message_id,
+                service_description="Consultation Booking",
+                service_duration_minutes=60,
+                email_body=email_body,
+                subject=f"Re: {subject}"
+            )
+            
+            if success:
+                logger.info(f"email - booking confirmation sent to {customer_email}")
+                booking["message_id"] = message_id
+                booking["confirmation_sent"] = True
+            else:
+                logger.warning(f"email - failed to send booking confirmation: {message_id}")
+                booking["confirmation_sent"] = False
+            
             return booking
+            
+        except Exception as e:
+            logger.error(f"Error in _handle_booking_request: {e}", exc_info=True)
+            return None
 
 
 # Module-level convenience function for backward compatibility

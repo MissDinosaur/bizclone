@@ -9,6 +9,7 @@ from typing import List, Dict, Optional
 from datetime import datetime
 from scheduling.scheduling_config import SchedulingConfig
 from scheduling.booking_store_db import BookingStoreDB
+from scheduling.calendar_integration import sync_booking_to_calendar, sync_booking_cancellation
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,8 @@ class AppointmentScheduler:
         customer_email: str,
         slot: str,
         channel: str = "email",
-        notes: str = ""
+        notes: str = "",
+        days_ahead: int = 14
     ) -> Dict:
         """
         Book an appointment slot for a customer.
@@ -67,11 +69,12 @@ class AppointmentScheduler:
             slot: The slot to book (format: "YYYY-MM-DD HH:MM")
             channel: Channel through which booking was made
             notes: Additional booking notes
+            days_ahead: Number of days to check availability for (default: 14)
         Returns:
             Booking confirmation dictionary
         """
         # Check if slot is available
-        available_slots = self.check_availability(days_ahead=14)
+        available_slots = self.check_availability(days_ahead=days_ahead)
         
         if slot not in available_slots:
             logger.warning(f"Slot {slot} not available for {customer_email}")
@@ -92,6 +95,21 @@ class AppointmentScheduler:
                 notes=notes
             )
             logger.info(f"Booking created: {booking['id']} | Customer: {customer_email} | Slot: {slot}")
+            
+            # Sync booking to calendar provider if available
+            if booking.get("status") == "confirmed":
+                sync_success, event_id = sync_booking_to_calendar(
+                    booking,
+                    staff_id="default_staff",  # Default staff member
+                    default_duration=60  # Default appointment duration
+                )
+                if sync_success and event_id:
+                    booking['calendar_event_id'] = event_id
+                    logger.info(f"Booking {booking['id']} synced to calendar as event {event_id}")
+                else:
+                    logger.warning(f"Failed to sync booking {booking['id']} to calendar")
+                    # Booking is still successful, calendar sync is optional
+            
             return booking
         except Exception as e:
             logger.error(f"Failed to create booking: {str(e)}")
@@ -119,6 +137,17 @@ class AppointmentScheduler:
         success = self.booking_store.cancel_booking(booking_id, reason)
         if success:
             logger.info(f"Booking {booking_id} cancelled: {reason}")
+            
+            # Sync cancellation to calendar provider
+            cancel_success = sync_booking_cancellation(
+                booking_id,
+                staff_id="default_staff"
+            )
+            if cancel_success:
+                logger.info(f"Booking {booking_id} removed from calendar")
+            else:
+                logger.warning(f"Failed to remove booking {booking_id} from calendar")
+                # Cancellation is still successful even if calendar sync fails
         else:
             logger.warning(f"Failed to cancel booking {booking_id}")
         return success
@@ -143,12 +172,18 @@ def check_availability(days_ahead: int = 5) -> List[str]:
     return _scheduler.check_availability(days_ahead)
 
 
-def book_slot(customer_email: str, slot: str, channel: str = "email", notes: str = "") -> Dict:
+def book_slot(customer_email: str, slot: str, channel: str = "email", notes: str = "", days_ahead: int = 14) -> Dict:
     """
     Book an appointment slot.
     This is a convenience function that uses the global scheduler instance.
+    Args:
+        customer_email: Customer email address
+        slot: The slot to book (format: "YYYY-MM-DD HH:MM")
+        channel: Channel through which booking was made
+        notes: Additional booking notes
+        days_ahead: Number of days to check availability for (default: 14)
     """
-    return _scheduler.book_slot(customer_email, slot, channel, notes)
+    return _scheduler.book_slot(customer_email, slot, channel, notes, days_ahead)
 
 
 def get_customer_bookings(customer_email: str) -> List[Dict]:

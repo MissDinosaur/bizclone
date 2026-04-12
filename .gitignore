@@ -1,10 +1,9 @@
-config/gmail/
+config/google/
 data/
 venv310/
 logs/
 .env
-test_kb_init.py
-docs/INTEGRATION_COMPLETE.md
+tests/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

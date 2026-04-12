@@ -73,6 +73,10 @@ def init_database():
         logger.info("Checking if knowledge_base needs initialization...")
         _initialize_knowledge_base(engine)
         
+        # Initialize customer table with data from customer_initialization.json if empty
+        logger.info("Checking if customer table needs initialization...")
+        _initialize_customers(engine)
+        
     except Exception as e:
         error_msg = f"FATAL: Database initialization failed: {str(e)}"
         logger.error(error_msg, exc_info=True)
@@ -181,6 +185,104 @@ def _initialize_knowledge_base(engine):
         session.rollback()
     except Exception as e:
         logger.error(f"✗ KB initialization failed: {str(e)}", exc_info=True)
+        session.rollback()
+    finally:
+        session.close()
+
+
+def _initialize_customers(engine):
+    """
+    Load customer data from customer_initialization.json into customer table.
+    Uses ORM to properly handle datetime and other field types.
+    Skips initialization if customer table is already populated.
+    """
+    from database.orm_models import Customer
+    from datetime import datetime as dt
+    
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    
+    try:
+        # Check if customer table is already populated
+        customer_count = session.query(Customer).count()
+        
+        if customer_count > 0:
+            logger.info(f"✓ customer table already initialized with {customer_count} record(s)")
+            session.close()
+            return
+        
+        # Path to customer initialization file
+        customer_file_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "database",
+            "customer_initialization.json"
+        )
+        
+        if not os.path.exists(customer_file_path):
+            logger.warning(f"Customer file not found at {customer_file_path}, skipping customer initialization")
+            session.close()
+            return
+        
+        with open(customer_file_path, 'r', encoding='utf-8') as f:
+            customers_data = json.load(f)
+        
+        # Handle both single object and array of objects
+        if isinstance(customers_data, dict):
+            customers_data = [customers_data]
+        
+        # Add each customer record to database
+        for customer_info in customers_data:
+            # Parse date fields
+            def parse_datetime(date_str):
+                if date_str is None:
+                    return None
+                if isinstance(date_str, str):
+                    try:
+                        # Handle ISO format datetime
+                        return dt.fromisoformat(date_str.replace('Z', '+00:00'))
+                    except:
+                        return None
+                return date_str
+            
+            def parse_date(date_str):
+                if date_str is None:
+                    return None
+                if isinstance(date_str, str):
+                    try:
+                        # Parse date string (YYYY-MM-DD)
+                        date_obj = dt.strptime(date_str, "%Y-%m-%d").date()
+                        return date_obj
+                    except:
+                        return None
+                return date_str
+            
+            customer = Customer(
+                first_name=customer_info.get("first_name"),
+                last_name=customer_info.get("last_name"),
+                email=customer_info.get("email"),
+                phone=customer_info.get("phone"),
+                date_of_birth=parse_date(customer_info.get("date_of_birth")),
+                home_address=customer_info.get("home_address"),
+                city=customer_info.get("city"),
+                state_province=customer_info.get("state_province"),
+                postal_code=customer_info.get("postal_code"),
+                country=customer_info.get("country"),
+                preferred_contact_method=customer_info.get("preferred_contact_method", "email"),
+                notification_opt_in=customer_info.get("notification_opt_in", True),
+                last_contacted_at=parse_datetime(customer_info.get("last_contacted_at"))
+            )
+            session.add(customer)
+        
+        session.commit()
+        
+        logger.info(f"✓ customer table initialized with {len(customers_data)} record(s)")
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"✗ Failed to parse customer file: {str(e)}")
+        session.rollback()
+    except Exception as e:
+        logger.error(f"✗ Customer initialization failed: {str(e)}", exc_info=True)
         session.rollback()
     finally:
         session.close()

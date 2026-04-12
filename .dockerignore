@@ -1,6 +1,15 @@
 data/
+docs/
 venv310/
+venv/
+.venv/
+env/
 logs/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
 test_kb_init.py
 
 # Version control and CI/CD

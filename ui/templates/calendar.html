@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Calendar - Booking Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        
+        .header-content {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .header-btn {
+            position: absolute;
+            right: 30px;
+            top: 30px;
+        }
+        
+        .controls {
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .month-nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .month-nav button {
+            padding: 8px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .month-nav button:hover {
+            background: #764ba2;
+        }
+        
+        .btn-today {
+            background: #28a745 !important;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 2px solid #28a745;
+        }
+        
+        .btn-today:hover {
+            background: #218838 !important;
+            border-color: #1e7e34;
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+        
+        .filter-box {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-box input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .filter-box button {
+            padding: 8px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .filter-box button:hover {
+            background: #764ba2;
+        }
+        
+        .calendar {
+            padding: 20px;
+        }
+        
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+            padding: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .weekday {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+            padding: 1px;
+            min-height: 600px;
+        }
+        
+        .day {
+            background: white;
+            padding: 10px;
+            min-height: 100px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .day.other-month {
+            background: #f9f9f9;
+        }
+        
+        .day.has-booking {
+            background: #f0f4ff;
+            border-left: 3px solid #667eea;
+        }
+        
+        .day-number {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .day.other-month .day-number {
+            color: #ccc;
+        }
+        
+        .bookings {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        
+        .booking-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .booking-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .booking-item .time {
+            font-weight: bold;
+            display: block;
+        }
+        
+        .booking-item .customer {
+            display: block;
+            opacity: 0.9;
+        }
+        
+        .stats {
+            padding: 20px;
+            background: #f5f5f5;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 40px;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .calendar-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .calendar-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-google-calendar {
+            background: #4285F4;
+            color: white;
+        }
+        
+        .btn-google-calendar:hover {
+            background: #1f71e8;
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-outlook-calendar {
+            background: #0078D4;
+            color: white;
+        }
+        
+        .btn-outlook-calendar:hover {
+            background: #006ec7;
+            box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-home {
+            background: #1976d2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-home:hover {
+            background: #1565c0;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1>Company Calendar</h1>
+            </div>
+            <div class="header-btn">
+                <button class="btn-home" onclick="window.location.href = '/'">Home</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="month-nav">
+                <button onclick="previousMonth()">← Previous</button>
+                <span id="monthTitle">Loading...</span>
+                <button onclick="nextMonth()">Next →</button>
+                <button class="btn-today" onclick="goToToday()">📍 Today</button>
+            </div>
+            
+            <div class="filter-box">
+                <input type="text" id="customerFilter" placeholder="Search customer...">
+                <button onclick="filterBookings()">Filter</button>
+            </div>
+            
+            <div class="calendar-buttons">
+                <button class="btn-google-calendar" onclick="openGoogleCalendar()">
+                    <span>📅</span> Google Calendar
+                </button>
+                <button class="btn-outlook-calendar" onclick="openOutlookCalendar()">
+                    <span>📨</span> Outlook Calendar
+                </button>
+            </div>
+        </div>
+        
+        <div class="calendar">
+            <div class="weekdays">
+                <div class="weekday">Mon</div>
+                <div class="weekday">Tue</div>
+                <div class="weekday">Wed</div>
+                <div class="weekday">Thu</div>
+                <div class="weekday">Fri</div>
+                <div class="weekday">Sat</div>
+                <div class="weekday">Sun</div>
+            </div>
+            
+            <div class="days" id="calendarDays">
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">Loading calendar...</div>
+            </div>
+        </div>
+        
+        <div class="stats" id="statsContainer">
+            <div class="stat-item">
+                <div class="stat-number">--</div>
+                <div class="stat-label">Monthly Bookings</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">--</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Current month/year for navigation
+        let currentMonth = new Date().getMonth() + 1;
+        let currentYear = new Date().getFullYear();
+
+        // Load calendar data on page load
+        window.addEventListener('load', () => {
+            // Check URL parameters for month/year
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('month')) currentMonth = parseInt(params.get('month'));
+            if (params.has('year')) currentYear = parseInt(params.get('year'));
+            
+            loadCalendarData();
+        });
+
+        async function loadCalendarData() {
+            try {
+                const response = await fetch(`/api/calendar/data?month=${currentMonth}&year=${currentYear}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                renderCalendar(data);
+                updateStats(data);
+            } catch (error) {
+                console.error('Error loading calendar:', error);
+                document.getElementById('calendarDays').innerHTML = 
+                    `<div style="grid-column: 1 / -1; text-align: center; color: red; padding: 40px;">
+                        Error loading calendar. Please refresh the page.
+                    </div>`;
+            }
+        }
+
+        function renderCalendar(data) {
+            const calendarDaysEl = document.getElementById('calendarDays');
+            const monthTitle = document.getElementById('monthTitle');
+            
+            // Update month title
+            monthTitle.textContent = `${data.year} ${data.month_name}`;
+            
+            // Create calendar grid HTML
+            let html = '';
+            
+            data.calendar_days.forEach(dayInfo => {
+                if (dayInfo.day === 0) {
+                    // Empty cell for other months
+                    html += '<div class="day other-month"></div>';
+                } else {
+                    // Regular day cell
+                    const hasBooking = dayInfo.bookings && dayInfo.bookings.length > 0;
+                    const dayClass = hasBooking ? 'day has-booking' : 'day';
+                    const dataAttr = `data-date="${dayInfo.date}"`;
+                    
+                    html += `<div class="${dayClass}" ${dataAttr}>
+                        <div class="day-number">${dayInfo.day}</div>`;
+                    
+                    if (hasBooking) {
+                        html += '<div class="bookings">';
+                        dayInfo.bookings.forEach(booking => {
+                            // Extract customer name from email (not from the raw From header which may contain special chars)
+                            const emailMatch = booking.customer_email.match(/<(.+?)>/) || [, booking.customer_email];
+                            const cleanEmail = emailMatch[1] || booking.customer_email;
+                            const customerName = cleanEmail.split('@')[0] || 'Unknown';
+                            
+                            // Escape special characters in HTML attributes
+                            const emailEscaped = booking.customer_email
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/"/g, '&quot;')
+                                .replace(/'/g, '&#39;');
+                            
+                            html += `<div class="booking-item" data-booking-id="${booking.booking_id}" title="${emailEscaped}">
+                                <span class="time">${booking.time}</span>
+                                <span class="customer">${customerName}</span>
+                            </div>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    html += '</div>';
+                }
+            });
+            
+            calendarDaysEl.innerHTML = html;
+            
+            // Add event delegation for booking-item clicks (using data attribute to avoid HTML escaping issues)
+            document.querySelectorAll('.booking-item[data-booking-id]').forEach(item => {
+                item.style.cursor = 'pointer';
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const bookingId = this.getAttribute('data-booking-id');
+                    if (bookingId) {
+                        viewBookingDetail(bookingId);
+                    }
+                });
+            });
+        }
+
+        function updateStats(data) {
+            const statsContainer = document.getElementById('statsContainer');
+            statsContainer.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-number">${data.total_bookings}</div>
+                    <div class="stat-label">Monthly Bookings</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${data.total_customers}</div>
+                    <div class="stat-label">Total Customers</div>
+                </div>
+            `;
+        }
+
+        function previousMonth() {
+            currentMonth--;
+            if (currentMonth < 1) {
+                currentMonth = 12;
+                currentYear--;
+            }
+            window.location.href = `/calendar?month=${currentMonth}&year=${currentYear}`;
+        }
+
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 12) {
+                currentMonth = 1;
+                currentYear++;
+            }
+            window.location.href = `/calendar?month=${currentMonth}&year=${currentYear}`;
+        }
+
+        function filterBookings() {
+            const customer = document.getElementById('customerFilter').value;
+            if (customer) {
+                // Client-side filtering: highlight matching bookings
+                document.querySelectorAll('.booking-item').forEach(item => {
+                    const itemCustomer = item.textContent.toLowerCase();
+                    if (itemCustomer.includes(customer.toLowerCase())) {
+                        item.style.opacity = '1';
+                        item.style.fontWeight = 'bold';
+                    } else {
+                        item.style.opacity = '0.3';
+                    }
+                });
+            } else {
+                // Reset all bookings
+                document.querySelectorAll('.booking-item').forEach(item => {
+                    item.style.opacity = '1';
+                    item.style.fontWeight = 'normal';
+                });
+            }
+        }
+
+        function goToToday() {
+            const today = new Date();
+            const month = today.getMonth() + 1;
+            const year = today.getFullYear();
+            window.location.href = `/calendar?month=${month}&year=${year}`;
+        }
+
+        function viewBookingDetail(bookingId) {
+            // Fetch booking detail from API and display
+            fetch(`/api/calendar/booking/${bookingId}`)
+                .then(r => r.json())
+                .then(data => {
+                    // Extract customer email - handle both formats:
+                    // 1. Simple: customer@example.com
+                    // 2. With display name: "Name" <customer@example.com> or Name <customer@example.com>
+                    let emailMatch = data.customer_email.match(/<(.+?)>/);
+                    const cleanEmail = emailMatch ? emailMatch[1] : data.customer_email;
+                    const customerName = cleanEmail.split('@')[0] || 'Unknown';
+                    
+                    // Parse slot to get readable time format
+                    const slotDateTime = new Date(data.slot);
+                    const timeStr = slotDateTime.toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    alert(`Booking Details\n\nCustomer: ${customerName}\nTime: ${timeStr}\nEmail: ${cleanEmail}\nStatus: ${data.status}`);
+                })
+                .catch(err => {
+                    console.error('Error fetching booking:', err);
+                    alert('Error loading booking details');
+                });
+        }
+
+        function openGoogleCalendar() {
+            window.open('https://calendar.google.com/', '_blank');
+        }
+
+        function openOutlookCalendar() {
+            window.open('https://outlook.office.com/calendar/', '_blank');
+        }
+    </script>
+</body>
+</html>

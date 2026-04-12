@@ -108,7 +108,6 @@ class KnowledgeBaseUpdater:
         """
         kb_field = feedback_entry["kb_field"]
         logger.info(f"Inserting into KB field: {kb_field}")
-        logger.info(f"Feedback entry: {feedback_entry}")
 
         if kb_field == "service":
             service_name = feedback_entry.get("service_name")

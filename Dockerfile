@@ -9,13 +9,15 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
+# Copy ONLY requirements first for better caching
+# COPY requirements-prod.txt requirements.txt ./
+COPY requirements.txt ./
 
-# Install Python dependencies
+# Install Python dependencies from production-only file
+# This layer will be cached and reused unless requirements change
 RUN pip install --no-cache-dir -r requirements.txt psycopg2-binary
 
-# Copy application code
+# Copy application code (changes here won't invalidate pip cache above)
 COPY . .
 
 # Create data directory for logs and file storage

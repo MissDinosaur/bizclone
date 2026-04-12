@@ -77,7 +77,7 @@ class UrgencyDetector:
                 "urgency_level": "CRITICAL",
                 "confidence": 0.95,
                 "detected_keywords": list(set(detected_keywords)),
-                "escalation_reason": f"Critical keywords detected: {', '.join(set(detected_keywords)[:3])}"
+                "escalation_reason": f"Critical keywords detected: {', '.join(list(set(detected_keywords))[:3])}"
             }
 
         # Check HIGH keywords
@@ -91,7 +91,7 @@ class UrgencyDetector:
                 "urgency_level": "HIGH",
                 "confidence": 0.85,
                 "detected_keywords": list(set(detected_keywords)),
-                "escalation_reason": f"Multiple urgency indicators: {', '.join(set(detected_keywords)[:3])}"
+                "escalation_reason": f"Multiple urgency indicators: {', '.join(list(set(detected_keywords))[:3])}"
             }
 
         # Intent-based context rules
@@ -101,7 +101,7 @@ class UrgencyDetector:
                     "urgency_level": "HIGH",
                     "confidence": 0.80,
                     "detected_keywords": list(set(detected_keywords)),
-                    "escalation_reason": f"Intent '{intent}' + urgency keywords: {', '.join(set(detected_keywords)[:2])}"
+                    "escalation_reason": f"Intent '{intent}' + urgency keywords: {', '.join(list(set(detected_keywords))[:2])}"
                 }
 
         # Default: NORMAL urgency

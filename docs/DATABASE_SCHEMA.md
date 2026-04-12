@@ -1,388 +1,200 @@
-# Database Schema Documentation
+# Database Schema
 
 ## Overview
 
-BizClone uses a comprehensive PostgreSQL schema with 4 tables, optimized for:
-- Email conversation history with full context
-- KB version control with rollback capability
-- Appointment bookings across multiple channels
-- Audit trail for KB changes
+PostgreSQL database with 6 tables supporting email conversations, appointment bookings, KB versioning with audit trail, customer profiles, and calendar integrations.
 
-## Database Initialization
+**Tables:** EmailHistory | Booking | KnowledgeBase | KBFeedback | Customer | CalendarAccount
 
-### Automatic (Recommended) - Docker Deployment
+## Table Schemas
 
-When using Docker Compose, PostgreSQL automatically initializes:
+### 1. email_history
+Customer email conversations with LLM context and Gmail threading.
 
-```bash
-docker-compose up --build -d
-```
+| Column | Type | Index | Description |
+|--------|------|-------|-------------|
+| id | INTEGER | PK | Auto-increment |
+| customer_email | VARCHAR(255) | | Customer email address |
+| sender_category | VARCHAR(50) | | 'customer', 'support', 'birthday' |
+| subject | VARCHAR(500) | | Email subject |
+| body | TEXT | | Email body content |
+| thread_id | VARCHAR(255) | | Gmail thread ID (conversation grouping) |
+| message_id | VARCHAR(255) | | Gmail message ID (individual email ref) |
+| intent | VARCHAR(100) | | Classified intent (appointment, complaint, etc.) |
+| channel | VARCHAR(50) | | Source channel (email, teams, whatsapp) |
+| timestamp | DATETIME | | Email timestamp |
+| created_at | DATETIME | | Record creation time |
 
-**Process:**
-1. PostgreSQL container starts
-2. `init-db.sql` script runs on first startup
-3. Application container waits for database health check
-4. SQLAlchemy ORM creates any missing tables
-5. Initial KB data loads from `database/initial_email_kb.json`
+**Indexes:**
+- `idx_customer_timestamp` (customer_email, timestamp)
+- `idx_intent` (intent)
 
-**Key Configuration:**
-```yaml
-# docker-compose.yml
-services:
-  postgres_db:
-    image: postgres:16-alpine
-    volumes:
-      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
-```
-
-### Manual (Local Development)
-
-For local development without Docker:
-
-```bash
-# 1. Create PostgreSQL database
-createb bizclone_db -U your_user
-
-# 2. Set DATABASE_URL environment variable
-export DATABASE_URL="postgresql://your_user:password@localhost:5432/bizclone_db"
-
-# 3. Run application (tables create automatically on startup)
-python main.py
-```
-
-### Via SQLAlchemy ORM
-
-Tables are created when the application starts:
-
-```python
-# In database/initialization.py
-from database.orm_models import Base
-
-Base.metadata.create_all(engine)  # SQLAlchemy creates all tables
-```
-
-### Manual SQL Creation (Optional)
-
-If you need to create tables manually, use the SQL from `init-db.sql`:
-
-```sql
--- Create sequences for auto-increment
-CREATE SEQUENCE IF NOT EXISTS knowledge_base_version_number_seq START 1;
-
--- EmailHistory Table
-CREATE TABLE IF NOT EXISTS email_history (
-    id SERIAL PRIMARY KEY,
-    customer_email VARCHAR(255) NOT NULL,
-    sender_category VARCHAR(50),
-    subject VARCHAR(500),
-    body TEXT NOT NULL,
-    our_reply TEXT,
-    intent VARCHAR(100),
-    channel VARCHAR(50) DEFAULT 'email',
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_customer_email ON email_history(customer_email);
-CREATE INDEX idx_timestamp ON email_history(timestamp);
-CREATE INDEX idx_intent ON email_history(intent);
-CREATE INDEX idx_customer_timestamp ON email_history(customer_email, timestamp);
-
--- Booking Table
-CREATE TABLE IF NOT EXISTS booking (
-    id VARCHAR(50) PRIMARY KEY,
-    customer_email VARCHAR(255) NOT NULL,
-    slot TIMESTAMP NOT NULL,
-    channel VARCHAR(50),
-    notes TEXT,
-    status VARCHAR(50) DEFAULT 'confirmed',
-    booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    reminder_sent BOOLEAN DEFAULT FALSE,
-    cancellation_reason TEXT,
-    cancelled_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_customer_email_booking ON booking(customer_email);
-CREATE INDEX idx_slot ON booking(slot);
-CREATE INDEX idx_status ON booking(status);
-CREATE INDEX idx_customer_slot ON booking(customer_email, slot);
-CREATE INDEX idx_status_booked ON booking(status, booked_at);
-
--- KnowledgeBase Table (Consolidated from kb_version + kb_current)
-CREATE TABLE IF NOT EXISTS knowledge_base (
-    version_id SERIAL PRIMARY KEY,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    kb_data JSONB NOT NULL,
-    services JSONB,
-    policies JSONB,
-    faqs JSONB,
-    change_description TEXT,
-    updated_by VARCHAR(255),
-    is_active BOOLEAN DEFAULT FALSE,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_timestamp ON knowledge_base(timestamp);
-CREATE INDEX idx_is_active ON knowledge_base(is_active);
-CREATE INDEX idx_last_updated ON knowledge_base(last_updated);
-
--- KBFeedback Table (Audit trail)
-CREATE TABLE IF NOT EXISTS kb_feedback (
-    id SERIAL PRIMARY KEY,
-    operation VARCHAR(50),
-    kb_field VARCHAR(100),
-    customer_question TEXT,
-    owner_correction TEXT,
-    service_name VARCHAR(255),
-    service_description TEXT,
-    service_price VARCHAR(100),
-    kb_version_id INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (kb_version_id) REFERENCES knowledge_base(version_id) ON DELETE SET NULL
-);
-
-CREATE INDEX idx_kb_field ON kb_feedback(kb_field);
-CREATE INDEX idx_created_at ON kb_feedback(created_at);
-CREATE INDEX idx_created_at_operation ON kb_feedback(created_at, operation);
-```
-
-## Environment Configuration
-
-### Required Environment Variables
-
-PostgreSQL connection is configured via `DATABASE_URL` environment variable:
-
-```bash
-# .env file
-DATABASE_URL=postgresql://user:password@host:port/database_name
-```
-
-**Examples:**
-
-**Local Development (without Docker):**
-```bash
-DATABASE_URL=postgresql://postgres:password@localhost:5432/bizclone_db
-```
-
-**Docker Deployment (recommended):**
-```bash
-# In docker-compose.yml, PostgreSQL runs as service "postgres_db"
-DATABASE_URL=postgresql://postgres:password@postgres_db:5432/bizclone_db
-```
-
-**Cloud Database (AWS RDS):**
-```bash
-DATABASE_URL=postgresql://admin:password@my-rds-instance.region.rds.amazonaws.com:5432/bizclone
-```
-
-**Docker Compose Configuration:**
-```yaml
-# docker-compose.yml
-services:
-  postgres_db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-```
+**Purpose:** Full conversation history for LLM context in email generation
 
 ---
 
-## Table Descriptions
+### 2. booking
+Appointment reservations across all channels.
 
-### 1. **email_history**
-Stores all incoming and outgoing emails for context-aware LLM replies.
-
-| Column | Type | Purpose |
-|--------|------|---------|
-| id | SERIAL | Auto-increment primary key |
-| customer_email | VARCHAR(255) | Customer's email address (indexed for fast lookup) |
-| sender_category | VARCHAR(50) | "customer" or "our_reply" |
-| subject | VARCHAR(500) | Email subject line |
-| body | TEXT | Email body content |
-| our_reply | TEXT | Our response to the customer |
-| intent | VARCHAR(100) | Classified intent (booking, inquiry, complaint, etc.) |
-| channel | VARCHAR(50) | Channel source (email, teams, whatsapp, etc.) |
-| timestamp | TIMESTAMP | When email was received or sent |
-
-**Indexes:**
-- `idx_customer_email`: Fast lookup by customer
-- `idx_customer_timestamp`: Most common query (customer + time range)
-- `idx_timestamp`: Range queries for recent emails
-- `idx_intent`: Filter by conversation intent
-
-### 2. **booking**
-Stores all appointment bookings across channels with status tracking.
-
-| Column | Type | Purpose |
-|--------|------|---------|
-| id | VARCHAR(50) | Unique booking ID (BKyyyymmdd-hhmmss) |
-| customer_email | VARCHAR(255) | Customer's email |
-| slot | TIMESTAMP | Appointment date/time |
-| channel | VARCHAR(50) | Booking channel (email, teams, whatsapp) |
-| notes | TEXT | Additional booking notes |
-| status | VARCHAR(50) | confirmed/cancelled/completed/no-show |
-| booked_at | TIMESTAMP | When booking was created |
-| reminder_sent | BOOLEAN | Whether reminder was sent |
-| cancellation_reason | TEXT | Reason for cancellation |
-| cancelled_at | TIMESTAMP | When booking was cancelled |
+| Column | Type | Index | Description |
+|--------|------|-------|-------------|
+| id | VARCHAR(50) | PK | BKyyyymmdd-hhmmss format |
+| customer_email | VARCHAR(255) | | Customer booking |
+| slot | DATETIME | | Appointment date/time |
+| channel | VARCHAR(50) | | Booking source (email, teams, etc.) |
+| notes | TEXT | | Service type, customer notes |
+| status | VARCHAR(50) | | confirmed/cancelled/completed/no-show |
+| booked_at | DATETIME | | Booking creation time |
+| reminder_sent | BOOLEAN | | Whether reminder email was sent |
+| cancellation_reason | TEXT | | Reason if cancelled |
+| cancelled_at | DATETIME | | Cancellation time |
+| created_at | DATETIME | | Record creation |
 
 **Indexes:**
-- `idx_customer_slot`: Check for duplicate bookings
-- `idx_status_booked`: Find upcoming appointments
-- `idx_slot`: Availability checking
+- `idx_customer_slot` (customer_email, slot)
+- `idx_status_date` (status, booked_at)
 
-### 3. **knowledge_base** *(Consolidated from kb_version + kb_current)*
-Maintains complete KB with version history, rollback capability, and caching.
+**Purpose:** Track all appointments with status and reminder tracking
 
-| Column | Type | Purpose |
-|--------|------|---------|
-| version_id | SERIAL | Unique auto-incremented version identifier (PRIMARY KEY) |
-| timestamp | TIMESTAMP | When version was created |
-| kb_data | JSONB | Complete KB snapshot (services, policies, FAQs) |
-| services | JSONB | Cached services section for fast access |
-| policies | JSONB | Cached policies section for fast access |
-| faqs | JSONB | Cached FAQs section for fast access |
-| change_description | TEXT | What changed in this version |
-| updated_by | VARCHAR(255) | Who made the change (system/user) |
-| is_active | BOOLEAN | Whether this is the current active version |
-| last_updated | TIMESTAMP | When this version was last modified |
-| created_at | TIMESTAMP | When record was created |
+---
 
-**Key Features:**
-- **Single table design**: Eliminates redundancy between separate kb_version and kb_current tables
-- **Auto-incrementing version_id**: Simplifies version tracking and rollback
-- **Cached columns**: services/policies/faqs fields avoid JSON parsing on each retrieval
-- **is_active flag**: Direct indicator of active KB (no joins needed)
+### 3. knowledge_base
+Versioned KB with item-level versioning for rollback.
+
+| Column | Type | Index | Description |
+|--------|------|-------|-------------|
+| version_id | INTEGER | PK | Version number (auto-increment) |
+| kb_field | VARCHAR(50) | PK | 'faq', 'policy', or 'service' |
+| item_key | VARCHAR(255) | PK | Unique item identifier |
+| detail | JSON | | Full content (description, price, answer) |
+| change_description | TEXT | | What changed in this version |
+| updated_by | VARCHAR(255) | | Who made the update |
+| is_active | BOOLEAN | | Only active=True used for RAG retrieval |
+| timestamp | DATETIME | | Version creation |
+| last_updated | DATETIME | | Last modification |
+| created_at | DATETIME | | Record creation |
+
+**Composite PK:** (version_id, kb_field, item_key)
 
 **Indexes:**
-- `idx_is_active`: Quick lookup of current KB (WHERE is_active=TRUE)
-- `idx_timestamp`: Historical version queries
-- `idx_last_updated`: Track most recently updated versions
+- `idx_kb_field_active` (kb_field, is_active)
+- `idx_kb_item_active` (kb_field, item_key, is_active)
+- `idx_timestamp`, `idx_is_active`, `idx_last_updated`
 
-**Query Active KB:**
-```sql
--- Option 1: Direct flag lookup
-SELECT * FROM knowledge_base WHERE is_active = TRUE;
+**Purpose:** Versioned KB with rollback capability, RAG uses is_active=True records
 
--- Option 2: Latest version
-SELECT * FROM knowledge_base ORDER BY version_id DESC LIMIT 1;
-```
+---
 
-### 4. **kb_feedback**
-Complete audit trail of KB modifications.
+### 4. kb_feedback
+Audit trail of KB modifications (learning system).
 
-| Column | Type | Purpose |
-|--------|------|---------|
-| id | SERIAL | Auto-increment ID |
-| operation | VARCHAR(50) | "insert" or "update" |
-| kb_field | VARCHAR(100) | "service", "policy", or "faq" |
-| customer_question | TEXT | Original customer question |
-| owner_correction | TEXT | Owner's correction/clarification |
-| service_name | VARCHAR(255) | Service being modified (if applicable) |
-| service_description | TEXT | Service description |
-| service_price | VARCHAR(100) | Service price |
-| kb_version_id | INTEGER | Link to knowledge_base.version_id (FK) |
-| created_at | TIMESTAMP | When feedback was recorded |
+| Column | Type | Index | Description |
+|--------|------|-------|-------------|
+| id | INTEGER | PK | Auto-increment |
+| operation | VARCHAR(50) | | 'add', 'update', 'delete' |
+| kb_field | VARCHAR(100) | | KB field type |
+| item_key | VARCHAR(255) | | KB item identifier |
+| kb_version_id | INTEGER | | FK ref to knowledge_base.version_id |
+| customer_question | TEXT | | Original customer question |
+| owner_correction | TEXT | | Owner's correction/feedback |
+| service_name | VARCHAR(255) | | Service (if applicable) |
+| service_description | TEXT | | Service details |
+| service_price | VARCHAR(100) | | Service price |
+| policy_name | VARCHAR(255) | | Policy name (if applicable) |
+| created_at | DATETIME | | Feedback timestamp |
+
+**Foreign Key:**
+- Composite: (kb_version_id, kb_field, item_key) → knowledge_base
 
 **Indexes:**
-- `idx_kb_field`: Filter changes by KB field
-- `idx_created_at_operation`: Most recent changes
-- FK to knowledge_base: Maintains referential integrity
+- `idx_kb_field`, `idx_created_at`, `idx_created_at_operation`
+- `idx_kb_feedback_version_key` (kb_version_id, kb_field, item_key)
 
-## Key Design Features
+**Purpose:** Track KB changes for learning and audit trail
 
-### 1. **Consolidated KB Storage**
-**Before:** 2 separate tables (kb_version for history, kb_current for caching)
-```
-KBFeedback → KBVersion ← KBCurrent (1:1)
-```
+---
 
-**After:** 1 unified table (knowledge_base)
-```
-KBFeedback → KnowledgeBase
-```
+### 5. customer
+Customer profiles for personalized service and birthday reminders.
 
-**Benefits:**
-- Simpler schema (1 table instead of 2)
-- Faster queries (no JOIN needed to get active KB)
-- Single source of truth
-- Clearer intent with is_active flag
+| Column | Type | Index | Description |
+|--------|------|-------|-------------|
+| customer_id | INTEGER | PK | Auto-increment |
+| first_name | VARCHAR(100) | | Customer first name |
+| last_name | VARCHAR(100) | | Customer last name |
+| email | VARCHAR(255) | | Email (unique) |
+| phone | VARCHAR(20) | | Phone number |
+| date_of_birth | DATE | | For birthday email scheduler |
+| home_address | TEXT | | Street address |
+| city | VARCHAR(100) | | City |
+| state_province | VARCHAR(100) | | State/Province |
+| postal_code | VARCHAR(20) | | ZIP/Postal code |
+| country | VARCHAR(100) | | Country |
+| preferred_contact_method | VARCHAR(50) | | 'email', 'phone', 'sms' |
+| notification_opt_in | BOOLEAN | | Consent for notifications |
+| created_at | DATETIME | | Profile creation |
+| updated_at | DATETIME | | Last profile update |
+| last_contacted_at | DATETIME | | Timestamp of last contact |
 
-### 2. **Foreign Key Relationships**
-```
-KBFeedback.kb_version_id → KnowledgeBase.version_id (ON DELETE SET NULL)
-```
-Ensures data consistency and maintains audit trail even if versions are deleted.
+**Indexes:**
+- `idx_customer_email`, `idx_customer_dob`, `idx_customer_created`, `idx_customer_contact_pref`
 
-### 3. **JSONB Columns**
-- `knowledge_base.kb_data`: Stores complete KB state as JSON
-- `knowledge_base.services/policies/faqs`: Cached subsets for performance
-- Allows flexible schema changes without migrations
+**Purpose:** Customer data for personalization and birthday scheduler
 
-### 4. **Auto-increment Version Numbers**
-```sql
--- Version ID sequence
-CREATE SEQUENCE IF NOT EXISTS knowledge_base_version_number_seq START 1;
-```
-Ensures versions are numbered sequentially for easy rollback logic.
+---
 
-## Query Examples
+### 6. calendar_account
+OAuth integrations for staff calendar providers.
 
-### Get Customer Conversation History (Last 10 Emails)
-```sql
-SELECT * FROM email_history
-WHERE customer_email = 'client@example.com'
-ORDER BY timestamp DESC
-LIMIT 10;
-```
+| Column | Type | Index | Description |
+|--------|------|-------|-------------|
+| account_id | INTEGER | PK | Auto-increment |
+| staff_id | VARCHAR(255) | | Staff member identifier |
+| provider | VARCHAR(50) | | 'google' or 'outlook' |
+| email | VARCHAR(255) | | Provider email/account |
+| access_token | TEXT | | OAuth access token (encrypted) |
+| refresh_token | TEXT | | OAuth refresh token |
+| token_expires_at | DATETIME | | Token expiration time |
+| is_active | BOOLEAN | | Enable/disable calendar sync |
+| created_at | DATETIME | | Integration created |
+| updated_at | DATETIME | | Last update |
+| last_synced_at | DATETIME | | Last calendar sync |
 
-### Find Available Slots
-```sql
--- Query booked slots:
-SELECT slot FROM booking
-WHERE status = 'confirmed'
-AND slot >= CURRENT_DATE
-ORDER BY slot;
-```
+**Indexes:**
+- `idx_calendar_account_provider_email` (provider, email)
+- `idx_calendar_account_staff` (staff_id, provider)
+- `idx_calendar_account_active` (is_active)
 
-### Get Active KB (Single Table, No Joins)
-```sql
--- Fast lookup
-SELECT * FROM knowledge_base WHERE is_active = TRUE;
+**Purpose:** Multi-account calendar integrations for booking sync
 
--- Or get latest version
-SELECT * FROM knowledge_base ORDER BY version_id DESC LIMIT 1;
-```
+---
 
-### KB Version History
-```sql
-SELECT version_id, timestamp, change_description, updated_by
-FROM knowledge_base
-ORDER BY version_id DESC
-LIMIT 20;
+## Initialization
+
+**Docker (Recommended):**
+```bash
+docker-compose up --build -d
+# Automatically creates tables and loads initial KB
 ```
 
-### Rollback KB to Previous Version
-```sql
--- Restore version 5 (Simplified - single table update)
-BEGIN;
-UPDATE knowledge_base SET is_active = FALSE;
-UPDATE knowledge_base SET is_active = TRUE WHERE version_id = 5;
-COMMIT;
+**Local Development:**
+```bash
+export DATABASE_URL="postgresql://user:password@localhost:5432/bizclone_db"
+python main.py  # Creates tables on startup
 ```
 
-### Recent KB Changes (Audit Trail)
-```sql
-SELECT created_at, operation, kb_field, customer_question, owner_correction
-FROM kb_feedback
-WHERE created_at > CURRENT_DATE - INTERVAL '7 days'
-ORDER BY created_at DESC;
-```
+## Key Constraints
+
+1. **EmailHistory.thread_id/message_id** - Gmail conversation threading
+2. **Booking.status** - Tracks appointment lifecycle (confirmed → completed)
+3. **KnowledgeBase.is_active** - Only active records used for RAG retrieval
+4. **KBFeedback.FK** - Composite FK to knowledge_base for audit trail
+5. **Customer.email** - Unique, used for birthday reminders
+6. **CalendarAccount.is_active** - Controls booking sync to calendar
+
+## Performance Optimization
+
+- **RAG Queries:** Use `WHERE is_active=TRUE` on knowledge_base
+- **Recent Emails:** Index on `(customer_email, timestamp)`
+- **Booking Lookups:** Index on `(customer_email, slot)` and `(status, booked_at)`
+- **Birthday Scheduler:** Uses `Customer.date_of_birth` index for daily query

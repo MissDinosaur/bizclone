@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Review Email - Approve & Send</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .container-header {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            padding: 30px;
+        }
+
+        .container-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .urgency-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #667eea;
+        }
+
+        .form-section input[type="text"],
+        .form-section textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .form-section textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .readonly {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+            color: #666;
+        }
+
+        .form-section input[type="text"]:focus,
+        .form-section textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .form-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .comparison-item h4 {
+            color: #667eea;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .comparison-item .text {
+            color: #333;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #333;
+        }
+
+        .btn-cancel:hover {
+            background: #cbd5e0;
+        }
+
+        .info-box {
+            background: #eef2ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #667eea;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner p {
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            border-left: 4px solid #f56565;
+            padding: 20px;
+            border-radius: 6px;
+            color: #c62828;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            border-left: 4px solid #2e7d32;
+            padding: 20px;
+            border-radius: 6px;
+            color: #1b5e20;
+            margin-bottom: 20px;
+        }
+    </style>
+    <script>
+        let currentEmailId = null;
+        let emailData = null;
+
+        async function loadEmailDetail() {
+            currentEmailId = new URLSearchParams(window.location.search).get('id') || 
+                           window.location.pathname.split('/').pop();
+            
+            try {
+                const response = await fetch(`/api/review/detail/${currentEmailId}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to load email detail');
+                }
+                
+                emailData = data;
+                renderEmailDetail(data);
+            } catch (error) {
+                console.error('Error loading email:', error);
+                document.getElementById('content').innerHTML = `
+                    <div class="error-message">
+                        <strong>❌ Error Loading Email</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function renderEmailDetail(data) {
+            const appointmentSection = data.has_appointment ? `
+                <div class="form-section" style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 3px solid #667eea;">
+                    <label>📅 Appointment Time (Edit if needed)</label>
+                    <p style="margin: 0 0 15px 0; color: #666; font-size: 13px;">AI suggested: <strong id="ai_suggested_slot">${data.selected_slot || 'N/A'}</strong></p>
+                    <input type="text" id="selected_slot" value="${data.selected_slot || ''}" 
+                           placeholder="e.g., 2026-04-10 14:00"
+                           style="font-family: monospace; font-size: 13px;">
+                    <p style="margin: 10px 0 0 0; color: #999; font-size: 12px;">
+                        💡 Tip: You can modify the appointment time if needed. Format: YYYY-MM-DD HH:MM
+                    </p>
+                </div>
+            ` : '';
+
+            const html = `
+                <div class="info-box">
+                    <strong>💡 Review Instructions</strong>
+                    Read the customer's message and the AI-generated draft. 
+                    If you need to modify the response, edit it in the "Your Correction" field below. 
+                    Then click "Approve & Send" to send it to the customer.
+                </div>
+
+                <div class="form-section">
+                    <label>From</label>
+                    <input type="text" id="customer_email_input" class="readonly" readonly>
+                </div>
+
+                <div class="form-section">
+                    <label>Subject</label>
+                    <input type="text" id="subject_input" class="readonly" readonly>
+                </div>
+
+                <!-- Original Message and Draft Side by Side -->
+                <div class="form-comparison">
+                    <div class="comparison-item">
+                        <h4>📨 Customer Message</h4>
+                        <div class="text">${data.customer_question}</div>
+                    </div>
+
+                    <div class="comparison-item">
+                        <h4>🤖 AI Draft</h4>
+                        <div class="text">${data.agent_reply}</div>
+                    </div>
+                </div>
+
+                <!-- Owner correction Section -->
+                <div class="form-section">
+                    <label>Your Correction (Optional - Leave empty to use AI draft)</label>
+                    <textarea id="owner_correction" placeholder="If you want to modify the AI draft, type your version here..."></textarea>
+                </div>
+
+                ${appointmentSection}
+
+                <div id="error_message" class="error-message" style="display:none;"></div>
+                <div id="success_message" class="success-message" style="display:none;"></div>
+
+                <!-- Action Buttons -->
+                <div class="button-group">
+                    <button type="button" class="button btn-cancel" onclick="window.history.back()">Cancel</button>
+                    <button type="button" class="button btn-submit" id="submit_btn" onclick="submitReview()">✓ Approve & Send</button>
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = html;
+            
+            // Set form fields using direct property assignment to avoid HTML attribute escaping issues
+            // This safely handles values with special characters like quotes (e.g., "Name" <email@example.com>)
+            const emailInput = document.getElementById('customer_email_input');
+            if (emailInput && data.customer_email) {
+                emailInput.value = data.customer_email;
+            }
+            
+            const subjectInput = document.getElementById('subject_input');
+            if (subjectInput && data.subject) {
+                subjectInput.value = data.subject;
+            }
+            
+            // Validate appointment time consistency if this is an appointment email
+            if (data.has_appointment && data.selected_slot) {
+                setTimeout(() => {
+                    validateAppointmentTimeConsistency(data);
+                }, 100);
+            }
+        }
+        
+        function validateAppointmentTimeConsistency(data) {
+            /**
+             * Verify that the appointment time in AI Draft matches the selected_slot.
+             * If they don't match, show a warning to the owner.
+             */
+            const aiDraftElement = document.querySelector('.comparison-item:nth-child(2) .text');
+            if (!aiDraftElement) return;
+            
+            const aiDraftText = aiDraftElement.textContent || '';
+            const selectedSlot = data.selected_slot || '';
+            
+            // Extract time from selected_slot (e.g., "2026-04-13 10:00" -> "10:00" and "04-13")
+            const slotMatch = selectedSlot.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+            if (slotMatch) {
+                const slotMonth = parseInt(slotMatch[2]);
+                const slotDay = parseInt(slotMatch[3]);
+                const slotHour = parseInt(slotMatch[4]);
+                const slotMin = slotMatch[5];
+                
+                // Check if AI Draft mentions the correct month/day/time
+                // This is a simple check - look for month name, day, and time
+                const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+                const monthName = months[slotMonth - 1];
+                
+                // Warn if the AI Draft doesn't seem to mention the slot time
+                if (!aiDraftText.toLowerCase().includes(monthName.toLowerCase()) ||
+                    !aiDraftText.includes(slotDay.toString()) ||
+                    !aiDraftText.includes(`${slotHour}:${slotMin}`)) {
+                    
+                    // Show a subtle warning
+                    const suggestedSlotEl = document.getElementById('ai_suggested_slot');
+                    if (suggestedSlotEl) {
+                        suggestedSlotEl.style.backgroundColor = '#fff3cd';
+                        suggestedSlotEl.style.padding = '4px 8px';
+                        suggestedSlotEl.style.borderRadius = '4px';
+                        suggestedSlotEl.title = 'Note: Please verify this time matches the appointment mentioned in the AI Draft above';
+                    }
+                }
+            }
+        }
+
+        async function submitReview() {
+            const submitBtn = document.getElementById('submit_btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Processing...';
+
+            const errorDiv = document.getElementById('error_message');
+            errorDiv.style.display = 'none';
+
+            try {
+                const requestData = {
+                    email_id: emailData.email_id,
+                    customer_email: emailData.customer_email,
+                    customer_question: emailData.customer_question,
+                    agent_reply: emailData.agent_reply,
+                    owner_correction: document.getElementById('owner_correction').value,
+                    subject: emailData.subject,
+                    thread_id: emailData.thread_id,
+                    message_id: emailData.message_id,
+                    selected_slot: emailData.has_appointment ? document.getElementById('selected_slot').value : '',
+                    booking_pending: emailData.booking_pending || ''
+                };
+
+                const response = await fetch('/api/review/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    const successDiv = document.getElementById('success_message');
+                    successDiv.textContent = '✓ Email approved and sent successfully!';
+                    successDiv.style.display = 'block';
+                    
+                    // Redirect after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = '/review';
+                    }, 2000);
+                } else {
+                    throw new Error(result.message || 'Failed to submit review');
+                }
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                errorDiv.innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✓ Approve & Send';
+            }
+        }
+
+        // Load email detail when page loads
+        document.addEventListener('DOMContentLoaded', loadEmailDetail);
+    </script>
+</head>
+<body>
+
+    <div>
+        <div class="header">
+            <a href="/review" class="back-button">← Back to Review Queue</a>
+        </div>
+
+        <div class="container">
+            <!-- Header with Urgency Info -->
+            <div class="container-header">
+                <h1>Review Emergency Email</h1>
+            </div>
+
+            <!-- Form Content -->
+            <div class="content">
+                <div id="content">
+                    <!-- Content will be loaded here by JavaScript -->
+                    <div class="loading-spinner">
+                        <p>Loading email detail... 🔄</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -88,12 +88,12 @@ class GmailClient:
 
         # If no valid cached token, try OAuth login only if credentials.json exists
         if not creds or not creds.valid:
-            if not os.path.exists(cfg.GMAIL_CREDENTIALS_FILE):
+            if not os.path.exists(cfg.GOOGLE_CREDENTIALS_FILE):
                 logger.warning(
-                    f"Gmail credentials.json not found at {cfg.GMAIL_CREDENTIALS_FILE}\n"
+                    f"Gmail credentials.json not found at {cfg.GOOGLE_CREDENTIALS_FILE}\n"
                     f"Email features will be unavailable. To enable:\n"
                     f"1. Download OAuth credentials from Google Cloud Console\n"
-                    f"2. Save as {cfg.GMAIL_CREDENTIALS_FILE}\n"
+                    f"2. Save as {cfg.GOOGLE_CREDENTIALS_FILE}\n"
                     f"3. Run authentication locally first, then copy token.json to container"
                 )
                 self.service = None
@@ -101,7 +101,7 @@ class GmailClient:
             
             try:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    cfg.GMAIL_CREDENTIALS_FILE, self.SCOPES
+                    cfg.GOOGLE_CREDENTIALS_FILE, self.SCOPES
                 )
                 # Try OAuth, but fail gracefully if no browser available (Docker)
                 creds = flow.run_local_server(port=0)
@@ -175,11 +175,22 @@ class GmailClient:
 
         headers = message["payload"]["headers"]
 
+        # Debug: Log all header names to diagnose case-sensitivity issues
+        header_names = [h["name"] for h in headers]
+        logger.debug(f"DEBUG: Gmail API headers: {header_names}")
+
         sender = self._extract_header(headers, "From")
         subject = self._extract_header(headers, "Subject")
         message_id_header = self._extract_header(headers, "Message-ID")
+        references = self._extract_header(headers, "References")  # CRITICAL: Extract full References chain
+        in_reply_to = self._extract_header(headers, "In-Reply-To")  # Extract In-Reply-To for conversation context
 
         body = self._extract_body(message["payload"])
+        
+        if not sender:
+            logger.warning(f"WARNING: Empty sender extracted from email msg_id={msg_id}")
+            logger.warning(f"WARNING: Raw headers list: {headers}")
+        
 
         return {
             "id": msg_id,
@@ -188,6 +199,8 @@ class GmailClient:
             "from": sender,
             "subject": subject,
             "body": body,
+            "references": references,  # Store complete conversation chain
+            "in_reply_to": in_reply_to,  # Store reply context
         }
 
 
@@ -197,9 +210,11 @@ class GmailClient:
     def _extract_header(self, headers, name):
         """
         Extract specific header field.
+        Uses case-insensitive matching to handle different email providers.
+        Gmail may return headers with different casing for Outlook vs Gmail senders.
         """
         for h in headers:
-            if h["name"] == name:
+            if h["name"].lower() == name.lower():
                 return h["value"]
         return ""
 
@@ -254,8 +269,19 @@ class GmailClient:
 
         message["To"] = to_email
         message["Subject"] = "Re: " + subject
-        message["In-Reply-To"] = message_id
-        message["References"] = message_id
+        
+        # Ensure message_id has proper RFC 5322 format with angle brackets
+        # Required format: <id@domain>
+        if message_id:
+            # Remove any existing angle brackets first
+            message_id_formatted = message_id.strip('<>')
+            # Add angle brackets in correct RFC format
+            message_id_formatted = f"<{message_id_formatted}>"
+        else:
+            message_id_formatted = ""
+        
+        message["In-Reply-To"] = message_id_formatted
+        message["References"] = message_id_formatted
 
         message.set_content(body)
 
@@ -263,6 +289,8 @@ class GmailClient:
             message.as_bytes()
         ).decode()
 
+        logger.debug(f"DEBUG: Sending email reply - thread_id='{thread_id}', message_id='{message_id}'")
+        
         self.service.users().messages().send(
             userId="me",
             body={
@@ -272,3 +300,121 @@ class GmailClient:
         ).execute()
 
         return message
+
+    # -------------------------------
+    # Send Email (New Message)
+    # -------------------------------
+    def send_email(self, to_email, subject, message):
+        """
+        Send a new email message (not a reply).
+        Args:
+            to_email: Recipient email address
+            subject: Email subject
+            message: Email message (string body or MIME object with headers)
+            
+        Returns:
+            message_id: Gmail message ID
+        """
+        if not self.service:
+            logger.error("Gmail service not initialized. Cannot send email.")
+            raise RuntimeError("Gmail service not configured. Please set up Gmail credentials.")
+        
+        # Handle both string and MIME message types
+        if isinstance(message, str):
+            # Create EmailMessage from string
+            email_msg = EmailMessage()
+            email_msg["To"] = to_email
+            email_msg["Subject"] = subject
+            email_msg["From"] = cfg.COMPANY_EMAIL
+            email_msg.set_content(message)
+            message_bytes = email_msg.as_bytes()
+        else:
+            # Message is already a MIME object (MIMEMultipart, etc.)
+            # Ensure it has proper headers if not already set
+            if "To" not in message:
+                message["To"] = to_email
+            if "Subject" not in message:
+                message["Subject"] = subject
+            if "From" not in message:
+                message["From"] = cfg.COMPANY_EMAIL
+            message_bytes = message.as_bytes()
+        
+        # Encode and send
+        raw_message = base64.urlsafe_b64encode(message_bytes).decode()
+        
+        result = self.service.users().messages().send(
+            userId="me",
+            body={"raw": raw_message}
+        ).execute()
+        
+        message_id = result.get("id")
+        logger.info(f"Email sent to {to_email} (ID: {message_id})")
+        
+        return message_id
+
+    # -------------------------------
+    # Send Email Reply with MIME (Supports Attachments)
+    # -------------------------------
+    def send_email_reply_with_mime(self, to_email, subject, mime_message, thread_id, message_id, original_references=""):
+        """
+        Send a threaded reply with MIME message (supports attachments like .ics files).
+        
+        Args:
+            to_email: Recipient email address
+            subject: Email subject
+            mime_message: MIME message object (MIMEMultipart) with all headers and attachments
+            thread_id: Gmail thread ID (for keeping conversation in same thread)
+            message_id: Gmail message ID (for threading reference)
+            original_references: Complete original References header chain (required for Gmail threading)
+            
+        Returns:
+            sent_message_id: Gmail message ID of sent reply
+        """
+        if not self.service:
+            logger.error("Gmail service not initialized. Cannot send email reply.")
+            raise RuntimeError("Gmail service not configured. Please set up Gmail credentials.")
+        
+        # Ensure message_id has proper RFC 5322 format with angle brackets
+        # Required format: <id@domain>
+        if message_id:
+            # Remove any existing angle brackets first
+            message_id_clean = message_id.strip('<>')
+            # Add angle brackets in correct RFC format
+            message_id_formatted = f"<{message_id_clean}>"
+        else:
+            message_id_formatted = None
+            logger.warning("[THREADING] message_id is empty or None!")
+        
+        # Add threading headers to the existing MIME message
+        # These are critical for Gmail to recognize this as a reply
+        if message_id_formatted:
+            mime_message["In-Reply-To"] = message_id_formatted
+            
+            # Gmail requires full conversation history, not just current message
+            if original_references:
+                full_references = f"{original_references} {message_id_formatted}"
+            else:
+                full_references = message_id_formatted
+            
+            mime_message["References"] = full_references
+        else:
+            logger.warning("[THREADING] Skipped setting threading headers - message_id_formatted is None")
+        
+        # Encode the complete MIME message with all attachments
+        mime_bytes = mime_message.as_bytes()
+        
+        raw_message = base64.urlsafe_b64encode(mime_bytes).decode()
+        
+        # Send via Gmail API with thread reference
+        result = self.service.users().messages().send(
+            userId="me",
+            body={
+                "raw": raw_message,
+                "threadId": thread_id
+            }
+        ).execute()
+        
+        sent_message_id = result.get("id")
+        logger.info(f"Threaded reply sent to {to_email} (thread: {thread_id}, ID: {sent_message_id})")
+        
+        return sent_message_id

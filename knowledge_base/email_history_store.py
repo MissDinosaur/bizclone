@@ -51,16 +51,17 @@ class EmailHistoryStore:
         logger.info("EmailHistoryStore initialized with PostgreSQL database")
     
     def save_email(self, customer_email: str, sender_category: str, subject: str,
-                   body: str, our_reply: str = None, intent: str = None,
-                   channel: str = "email") -> bool:
+                   body: str, thread_id: str = None, message_id: str = None,
+                   intent: str = None, channel: str = "email") -> bool:
         """
         Save an email to history.
         Args:
             customer_email: Customer's email address (for grouping)
-            sender_category: "customer" or "support"
+            sender_category: "customer", "support", or "happy birthday"
             subject: Email subject line
             body: Email body text
-            our_reply: Our generated/sent reply (optional, for outgoing emails)
+            thread_id: Gmail thread ID for conversation grouping (optional)
+            message_id: Gmail message ID for individual email reference (optional)
             intent: Detected intent (optional, e.g., "pricing_inquiry")
             channel: Channel name (default: "email")
         Returns:
@@ -73,7 +74,8 @@ class EmailHistoryStore:
                 sender_category=sender_category,
                 subject=subject,
                 body=body,
-                our_reply=our_reply,
+                thread_id=thread_id,
+                message_id=message_id,
                 intent=intent,
                 channel=channel,
                 timestamp=datetime.utcnow()
@@ -94,52 +96,6 @@ class EmailHistoryStore:
             return False
         except Exception as e:
             logger.error(f"Unexpected error saving email: {str(e)}")
-            session.rollback()
-            return False
-        finally:
-            session.close()
-    
-    def update_email_reply(self, customer_email: str, subject: str, updated_reply: str) -> bool:
-        """
-        Update the reply for a specific email conversation.
-        Used when owner modifies the AI-generated reply before sending.
-        
-        Args:
-            customer_email: Customer's email address
-            subject: Email subject (to identify the conversation)
-            our_reply: Updated reply text
-        
-        Returns:
-            True if updated successfully, False otherwise
-        """
-        session = self.Session()
-        try:
-            # Find the most recent email with this subject and customer
-            email = session.query(EmailHistory)\
-                .filter(EmailHistory.customer_email == customer_email)\
-                .filter(EmailHistory.subject == subject)\
-                .order_by(desc(EmailHistory.timestamp))\
-                .first()
-            
-            if not email:
-                logger.warning(
-                    f"Email not found for {customer_email} with subject '{subject}'"
-                )
-                return False
-            
-            # Update the reply
-            email.our_reply = updated_reply
-            session.commit()
-            
-            logger.debug(f"Updated reply for email from {customer_email}")
-            return True
-            
-        except SQLAlchemyError as e:
-            logger.error(f"Database error updating email reply: {str(e)}")
-            session.rollback()
-            return False
-        except Exception as e:
-            logger.error(f"Unexpected error updating email reply: {str(e)}")
             session.rollback()
             return False
         finally:
@@ -205,16 +161,11 @@ class EmailHistoryStore:
             sender = email.get("sender_category", "Unknown").upper()
             subject = email.get("subject", "(no subject)")
             body = email.get("body", "")
-            reply = email.get("our_reply", "")
             intent = email.get("intent", "unknown")
             
             formatted_lines.append(f"\n[{timestamp}] {sender}")
             formatted_lines.append(f"Subject: {subject}")
             formatted_lines.append(f"Message: {body}")
-            
-            if reply:
-                formatted_lines.append(f"Our Reply: {reply}")
-            
             formatted_lines.append(f"(Intent: {intent})")
             formatted_lines.append("-" * 60)
         

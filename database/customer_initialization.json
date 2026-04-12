@@ -1,0 +1,20 @@
+[
+  {
+    "customer_id": 789456,
+    "first_name": "Maria",
+    "last_name": "SCHMIDT",
+    "email": "maria.schmidt@example.de",
+    "phone": "098-765-4321",
+    "date_of_birth": "1995-05-12",
+    "home_address": "456 Oak Street",
+    "city": "Berlin",
+    "state_province": "Berlin",
+    "postal_code": "10115",
+    "country": "Germany",
+    "preferred_contact_method": "email",
+    "notification_opt_in": true,
+    "created_at": "2024-01-02T00:00:00",
+    "updated_at": "2024-01-02T00:00:00",
+    "last_contacted_at": null
+  }
+]

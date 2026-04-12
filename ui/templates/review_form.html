@@ -1,130 +1,330 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Emergency Email Review</title>
+    <title>Email Review Queue</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
+        * {
             margin: 0;
-            padding: 40px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: auto;
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        }
-
-        h2 {
-            margin-top: 0;
-            color: #d32f2f;
-        }
-
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 25px;
-            margin-bottom: 8px;
-        }
-
-        input[type="text"],
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 14px;
+            padding: 0;
             box-sizing: border-box;
         }
 
-        textarea {
-            min-height: 150px;
-            resize: vertical;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
         }
 
-        .readonly {
-            background-color: #f2f2f2;
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
         }
 
-        .section {
-            margin-bottom: 25px;
-        }
-
-        .button {
-            margin-top: 30px;
-            padding: 12px 24px;
-            background-color: #1976d2;
+        .header h1 {
             color: white;
-            border: none;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
             border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 15px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .empty-state h2 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            color: #999;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .empty-state a {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .empty-state a:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .email-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .email-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            border-left: 5px solid #f56565;
             cursor: pointer;
-            font-size: 15px;
         }
 
-        .button:hover {
-            background-color: #1565c0;
+        .email-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         }
 
-        .warning-box {
-            background: #fff3e0;
-            border-left: 5px solid #ff9800;
-            padding: 15px;
-            margin-bottom: 25px;
+        .email-card .urgency {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .urgency.critical {
+            background: #fee;
+            color: #c00;
+        }
+
+        .urgency.high {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .urgency.normal {
+            background: #dfe6e9;
+            color: #636e72;
+        }
+
+        .email-card .customer {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .email-card .subject {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .email-card .preview {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            max-height: 60px;
+            overflow: hidden;
+        }
+
+        .email-card .action-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            text-align: center;
+            text-decoration: none;
             border-radius: 6px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
         }
 
+        .email-card .action-button:hover {
+            background: #5568d3;
+        }
+
+        .queue-info {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .queue-info h3 {
+            margin: 0 0 5px 0;
+            color: #667eea;
+        }
+
+        .queue-info p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 60px 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-spinner p {
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .error-message {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-left: 5px solid #f56565;
+        }
+
+        .error-message h2 {
+            color: #f56565;
+            margin-bottom: 15px;
+        }
+
+        .error-message p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .error-message a {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .error-message a:hover {
+            background: #5568d3;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-button">← Back to Home</a>
+            <h1>⚠️ Email Review Queue</h1>
+        </div>
 
-    <h2>Emergency Email Review Required</h2>
-
-    <div class="warning-box">
-        This email has been classified as an <strong>Emergency Service Request</strong>.
-        Owner review is required before sending.
+        <div id="content">
+            <!-- Content will be loaded here by JavaScript -->
+            <div class="loading-spinner">
+                <p>Loading review queue... 🔄</p>
+            </div>
+        </div>
     </div>
 
-    <form method="post" action="/review/submit">
-
-        <div class="section">
-            <label>Customer Email</label>
-            <input type="text" name="customer_email" value="{{ data.customer_email }}" class="readonly" readonly>
-        </div>
-
-        <div class="section">
-            <label>Subject</label>
-            <input type="text" name="subject" value="{{ data.subject }}" class="readonly" readonly>
-        </div>
-
-        <div class="section">
-            <label>Customer Message</label>
-            <textarea name="customer_question" class="readonly" readonly>{{ data.customer_question }}</textarea>
-        </div>
-
-        <div class="section">
-            <label>AI Draft Response</label>
-            <textarea name="agent_reply">{{ data.agent_reply }}</textarea>
-        </div>
-
-        <div class="section">
-            <label>Owner Correction (Optional)</label>
-            <textarea name="owner_correction" placeholder="Modify the response if needed..."></textarea>
-        </div>
-
-        <input type="hidden" name="thread_id" value="{{ data.thread_id }}">
-        <input type="hidden" name="message_id" value="{{ data.message_id }}">
-
-        <button type="submit" class="button">Approve & Send</button>
-
-    </form>
-
-</div>
+    <script>
+        async function loadReviewQueue() {
+            try {
+                const response = await fetch('/api/review/queue');
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to load review queue');
+                }
+                
+                const contentDiv = document.getElementById('content');
+                
+                if (data.queue.length === 0) {
+                    contentDiv.innerHTML = `
+                        <div class="empty-state">
+                            <h2>✅ All Clear!</h2>
+                            <p>No emails pending review at the moment. All urgent emails have been handled.</p>
+                            <a href="/">Return to Home</a>
+                        </div>
+                    `;
+                } else {
+                    let html = `
+                        <div class="queue-info">
+                            <h3>Pending Reviews: ${data.queue.length}</h3>
+                            <p>Review and approve the following emails to send them to customers</p>
+                        </div>
+                        <div class="email-list">
+                    `;
+                    
+                    data.queue.forEach(email => {
+                        const urgencyClass = email.urgency ? email.urgency.toLowerCase() : 'normal';
+                        const urgencyText = email.urgency || 'NORMAL';
+                        const preview = (email.preview || '').substring(0, 150);
+                        
+                        html += `
+                            <div class="email-card">
+                                <div class="urgency ${urgencyClass}">${urgencyText}</div>
+                                <div class="customer">${email.customer_email}</div>
+                                <div class="subject">Subject: ${email.subject}</div>
+                                <div class="preview">${preview}...</div>
+                                <button class="action-button" onclick="viewEmailDetail(${email.id})">Review & Reply</button>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    contentDiv.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading review queue:', error);
+                document.getElementById('content').innerHTML = `
+                    <div class="error-message">
+                        <h2>❌ Error Loading Queue</h2>
+                        <p>${error.message}</p>
+                        <a href="/">Return to Home</a>
+                    </div>
+                `;
+            }
+        }
+        
+        function viewEmailDetail(emailId) {
+            window.location.href = `/review/${emailId}`;
+        }
+        
+        // Load review queue when page loads
+        document.addEventListener('DOMContentLoaded', loadReviewQueue);
+    </script>
 
 </body>
 </html>

@@ -13,6 +13,11 @@ PORT = int(os.getenv("PORT", 8000))
 # Logging Configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
+# Timezone Configuration
+# Used by: appointment scheduling, birthday email scheduler, ICS calendar invitations
+# All time-based services should use this timezone for consistency
+TIMEZONE = os.getenv("TIMEZONE", "Europe/Berlin")
+
 # Intent Labels (must match IntentType enum in channels/schemas.py)
 PRICE_INQUERY = "pricing_inquiry"
 APPOINTMENT = "appointment_booking_request"
@@ -36,10 +41,15 @@ INITIAL_KB_JSON_PATH = "database/initial_email_kb.json"
 # Business Configuration (loaded from .env)
 BUSINESS_DOMAIN = os.getenv("BUSINESS_DOMAIN", "plumbing")
 COMPANY_SIGNATURE = os.getenv("COMPANY_SIGNATURE", "").replace("\\n", "\n")
+COMPANY_EMAIL = os.getenv("COMPANY_EMAIL", "support@bizclone.com")
 
 # Gmail API (loaded from .env)
-GMAIL_CREDENTIALS_FILE = os.getenv("GMAIL_CREDENTIALS_PATH", "config/gmail/credentials.json")
-GMAIL_TOKEN_FILE = os.getenv("GMAIL_TOKEN_PATH", "config/gmail/token.json")
+GOOGLE_CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_PATH", "config/google/credentials.json")
+GOOGLE_TOKEN_FILE = os.getenv("GOOGLE_TOKEN_PATH", "config/google/token.json")
+
+# Backward compatibility aliases for Gmail client
+GMAIL_CREDENTIALS_FILE = GOOGLE_CREDENTIALS_FILE
+GMAIL_TOKEN_FILE = GOOGLE_TOKEN_FILE
 
 # Scheduler
 BOOKING_SLOTS_FILE = "data/scheduling/booking_slots.json"
@@ -48,7 +58,7 @@ BOOKINGS_DIR = os.getenv("BOOKINGS_DIR", "data/scheduling")
 
 # Database
 DATABASE_URL = os.getenv("DATABASE_URL")
-REQUIRED_TABLES = ['email_history', 'booking', 'knowledge_base', 'kb_feedback']
+REQUIRED_TABLES = ['email_history', 'booking', 'knowledge_base', 'kb_feedback', 'customer', 'calendar_account']
 
 # Urgency Detection Configuration
 # Defines how emails are escalated based on urgency level (not intent)
