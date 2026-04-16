@@ -60,7 +60,7 @@ class AppointmentScheduler:
         slot: str,
         channel: str = "email",
         notes: str = "",
-        days_ahead: int = 14
+        days_ahead: Optional[int] = None
     ) -> Dict:
         """
         Book an appointment slot for a customer.
@@ -73,6 +73,9 @@ class AppointmentScheduler:
         Returns:
             Booking confirmation dictionary
         """
+        if days_ahead is None:
+            days_ahead = self.config.advance_booking_days
+
         # Check if slot is available
         available_slots = self.check_availability(days_ahead=days_ahead)
         
@@ -172,7 +175,13 @@ def check_availability(days_ahead: int = 5) -> List[str]:
     return _scheduler.check_availability(days_ahead)
 
 
-def book_slot(customer_email: str, slot: str, channel: str = "email", notes: str = "", days_ahead: int = 14) -> Dict:
+def book_slot(
+    customer_email: str,
+    slot: str,
+    channel: str = "email",
+    notes: str = "",
+    days_ahead: Optional[int] = None,
+) -> Dict:
     """
     Book an appointment slot.
     This is a convenience function that uses the global scheduler instance.

@@ -120,10 +120,17 @@ class BookingStoreDB:
             session.close()
     
     def get_booked_slots(self, status: str = "confirmed") -> list:
-        """Get all booked slots."""
+        """Get all booked slots that are still active.
+
+        Filtering by is_active=True ensures that old bookings deactivated
+        during rescheduling or cancellation never block new slot creation.
+        """
         session = self.Session()
         try:
-            bookings = session.query(Booking).filter(Booking.status == status).all()
+            bookings = session.query(Booking).filter(
+                Booking.status == status,
+                Booking.is_active == True
+            ).all()
             return [b.slot for b in bookings]
         finally:
             session.close()

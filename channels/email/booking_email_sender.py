@@ -33,7 +33,7 @@ class BookingEmailSender:
     def __init__(self):
         self.gmail_client = GmailClient()
     
-    def send_booking_confirmation_with_ics(
+    def send_email_reply_with_ics(
         self,
         customer_email: str,
         customer_name: str,
@@ -246,6 +246,167 @@ END:VCALENDAR"""
         msg.attach(ics_attachment)
         
         return msg
+
+    def send_cancellation_confirmation(
+        self,
+        customer_email: str,
+        customer_name: str,
+        original_slot: str,
+        thread_id: str,
+        message_id: str,
+        original_subject: str = "",
+        original_references: str = "",
+        email_body: str = "",
+        subject: str = "Your Appointment Has Been Cancelled"
+    ) -> Tuple[bool, str]:
+        """
+        Send cancellation confirmation email with iCalendar cancellation notice
+        
+        Args:
+            customer_email: Recipient email address
+            customer_name: Recipient name
+            original_slot: Original appointment time
+            thread_id: Gmail thread ID (for keeping conversation in same thread)
+            message_id: Gmail message ID (for threading reference)
+            email_body: Email body
+            subject: Email subject
+            
+        Returns:
+            (success: bool, message_id: str | error_msg: str)
+        """
+        
+        try:
+            # Use the original subject for threading consistency.
+            if original_subject:
+                if original_subject.startswith("Re:"):
+                    subject_with_prefix = original_subject
+                else:
+                    subject_with_prefix = f"Re: {original_subject}"
+            else:
+                if not subject.startswith("Re:"):
+                    subject_with_prefix = f"Re: {subject}"
+                else:
+                    subject_with_prefix = subject
+            
+            # Step 1: Generate iCalendar cancellation notice
+            ics_content = self._generate_cancellation_ics(
+                customer_email=customer_email,
+                customer_name=customer_name,
+                original_slot=original_slot
+            )
+            
+            # Step 2: Build email with attachment
+            message = self._build_email_with_ics_attachment(
+                to_email=customer_email,
+                to_name=customer_name,
+                subject=subject_with_prefix,
+                body=email_body,
+                ics_content=ics_content
+            )
+            
+            # Step 3: Send as threaded reply
+            sent_message_id = self.gmail_client.send_email_reply_with_mime(
+                to_email=customer_email,
+                subject=subject_with_prefix,
+                mime_message=message,
+                thread_id=thread_id,
+                message_id=message_id,
+                original_references=original_references
+            )
+            
+            logger.info(f"Cancellation confirmation email sent to {customer_email} (thread: {thread_id})")
+            return True, sent_message_id
+            
+        except Exception as e:
+            logger.error(f"Failed to send cancellation confirmation email: {e}", exc_info=True)
+            return False, str(e)
+
+    def _generate_cancellation_ics(
+        self,
+        customer_email: str,
+        customer_name: str,
+        original_slot: str
+    ) -> str:
+        """
+        Generate iCalendar format for appointment cancellation.
+        Uses METHOD:CANCEL to indicate this is a cancellation notice.
+        """
+        
+        try:
+            # Parse appointment time from either legacy format ("YYYY-MM-DD HH:MM")
+            # or ISO format ("YYYY-MM-DDTHH:MM:SS").
+            if isinstance(original_slot, datetime):
+                start_dt = original_slot
+            else:
+                slot_text = str(original_slot).strip()
+                try:
+                    start_dt = datetime.fromisoformat(slot_text)
+                except ValueError:
+                    start_dt = datetime.strptime(slot_text, "%Y-%m-%d %H:%M")
+
+            # Normalize timezone-aware values to naive local representation
+            # used by the ICS fields below.
+            if start_dt.tzinfo is not None:
+                start_dt = start_dt.replace(tzinfo=None)
+
+            end_dt = start_dt + timedelta(hours=1)  # Default 1 hour
+            
+            # Generate unique UID (must match the original booking)
+            company_domain = 'bizclone.com'
+            uid = f"booking-{start_dt.timestamp()}-{customer_email}@{company_domain}"
+            
+            # Generate DTSTAMP (current UTC time)
+            dtstamp = datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
+            
+            # Timezone identifier
+            timezone_id = cfg.TIMEZONE
+            
+            # Build iCalendar cancellation content
+            ics_content = f"""BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//BizClone//Booking System//EN
+CALSCALE:GREGORIAN
+METHOD:CANCEL
+BEGIN:VTIMEZONE
+TZID:{timezone_id}
+BEGIN:STANDARD
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:{uid}
+DTSTAMP:{dtstamp}
+DTSTART;TZID={timezone_id}:{start_dt.strftime('%Y%m%dT%H%M%S')}
+DTEND;TZID={timezone_id}:{end_dt.strftime('%Y%m%dT%H%M%S')}
+SUMMARY:CANCELLED: Appointment Cancelled
+DESCRIPTION:Your appointment previously scheduled for {original_slot} has been cancelled.\\n\\nTo reschedule, please send us a new appointment request.\\nBooking Name: {customer_name}
+LOCATION:Online
+ORGANIZER;CN=BizClone Support:mailto:{cfg.COMPANY_EMAIL}
+ATTENDEE;CN={customer_name};ROLE=REQ-PARTICIPANT;PARTSTAT=DECLINED;RSVP=FALSE:mailto:{customer_email}
+STATUS:CANCELLED
+SEQUENCE:1
+CREATED:{dtstamp}
+LAST-MODIFIED:{dtstamp}
+RECURRENCE-ID;TZID={timezone_id}:{start_dt.strftime('%Y%m%dT%H%M%S')}
+END:VEVENT
+END:VCALENDAR"""
+            
+            return ics_content
+            
+        except Exception as e:
+            logger.error(f"Failed to generate cancellation ICS: {e}", exc_info=True)
+            return ""
 
 
 # Utility functions

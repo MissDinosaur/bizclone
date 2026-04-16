@@ -15,11 +15,11 @@ from datetime import datetime
 class IntentType(str, Enum):
     """
     Standardized intent classification across all channels.
-    15 intent categories (EMERGENCY removed - now handled by UrgencyDetector as urgency level).
+    16 intent categories based on common customer interactions
     
     Categories:
     - Query intents (4): pricing, payment, working hours, upgrade inquiries
-    - Action intents (4): appointment, cancellation, service request, bulk inquiry
+    - Action intents (5): appointment, cancellation, rescheduling, service request, bulk inquiry
     - Feedback intents (4): complaint, feedback, warranty claim, replacement request
     - Financial intents (1): refund request
     - Fallback (2): FAQ, other
@@ -30,9 +30,10 @@ class IntentType(str, Enum):
     WORKING_HOURS = "working_hours_inquiry"
     UPGRADE_INQUIRY = "upgrade_inquiry"
     
-    # Action intents (4)
+    # Action intents (5)
     APPOINTMENT = "appointment_booking_request"
     CANCELLATION = "cancellation_request"
+    RESCHEDULING = "rescheduling_request"
     SERVICE_REQUEST = "service_request"
     BULK_INQUIRY = "bulk_inquiry"
     
@@ -48,6 +49,39 @@ class IntentType(str, Enum):
     # Fallback (2)
     FAQ = "general_faq_question"
     OTHER = "other"
+
+
+def intent_to_enum(intent_str: str) -> IntentType:
+    """Convert internal intent string labels to IntentType enum values."""
+    intent_mapping = {
+        # Query intents
+        "price_inquiry": IntentType.PRICING_INQUIRY,
+        "payment_inquiry": IntentType.PAYMENT_INQUIRY,
+        "working_hours": IntentType.WORKING_HOURS,
+        "upgrade_inquiry": IntentType.UPGRADE_INQUIRY,
+
+        # Action intents
+        "appointment": IntentType.APPOINTMENT,
+        "cancellation": IntentType.CANCELLATION,
+        "rescheduling": IntentType.RESCHEDULING,
+        "service_request": IntentType.SERVICE_REQUEST,
+        "bulk_inquiry": IntentType.BULK_INQUIRY,
+
+        # Feedback intents
+        "complaint": IntentType.COMPLAINT,
+        "feedback": IntentType.FEEDBACK,
+        "warranty_claim": IntentType.WARRANTY_CLAIM,
+        "replacement_request": IntentType.REPLACEMENT_REQUEST,
+
+        # Financial intents
+        "refund_request": IntentType.REFUND_REQUEST,
+
+        # Fallback
+        "faq": IntentType.FAQ,
+        "other": IntentType.OTHER,
+    }
+
+    return intent_mapping.get(intent_str, IntentType.FAQ)
 
 
 class BookingResponseSchema(BaseModel):

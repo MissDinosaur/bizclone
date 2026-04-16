@@ -85,9 +85,6 @@ bizclone/
 │   └── config.py
 │
 ├── tests/
-│   ├── test_email_agent.py
-│   ├── test_gmail.py
-│   └── test_intent.py
 │
 ├── main.py                         # FastAPI application entrance
 ├── requirements.txt
@@ -178,6 +175,32 @@ Step 7-8: Decision Logic Based on Urgency
           └─ Send booking confirmation with .ics
 ```
 
+```
+Customer Email (Cancellation Request)
+                    ↓
+        Intent Classification
+        "cancel" → cancellation
+                    ↓
+        Urgency Detection
+        NORMAL (auto-send)
+                    ↓
+        LLM Reply Generation
+        (via RAG pipeline)
+                    ↓
+        _handle_cancellation_request()
+        ├─ Validate BookingManager
+        ├─ Cancel appointment
+        ├─ Generate .ics cancellation
+        └─ Send confirmation
+                    ↓
+        Email Confirmation Sent
+        ├─ With .ics attachment
+        ├─ Maintains threading
+        └─ Calendar app updates
+                    ↓
+        CANCELLATION COMPLETE ✓
+```
+
 ### Key Features
 
 | Feature | Description |
@@ -188,6 +211,22 @@ Step 7-8: Decision Logic Based on Urgency
 | **Owner Review System** | Escalated emails queue at `/review`, owner can edit reply and/or appointment time before approval |
 | **Booking Integration** | Owner-approved appointment emails automatically create calendar bookings with .ics attachments |
 | **Gmail Threading** | All replies maintain conversation thread using Gmail's `thread_id` and `message_id` |
+
+### Calendar Cancellation Behavior (Outlook vs Gmail)
+
+When BizClone sends appointment cancellations, it uses standard iCalendar cancellation semantics:
+
+- `METHOD:CANCEL`
+- Stable event identity (`UID`) based on booking slot + customer
+- `SEQUENCE: 1` (incremented cancellation update)
+- Consistent `ORGANIZER` and `ATTENDEE`
+- Threading headers (`In-Reply-To`, `References`) + original subject for email continuity
+
+Even with correct threading headers, **Microsoft Outlook may display cancellation notices as a separate system message** instead of nesting them directly under the original customer email thread. This is expected Outlook behavior because Outlook prioritizes calendar protocol semantics for `METHOD:CANCEL` messages.
+
+By contrast, Gmail is often more permissive and may still display the cancellation inside the original email conversation.
+
+This difference is **client behavior, not a booking/cancellation logic error** in BizClone.
 
 ---
 

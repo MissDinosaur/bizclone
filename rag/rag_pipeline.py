@@ -38,7 +38,7 @@ class EmailRAGPipeline:
 
         # -----------------------------
         # Step 2: Retrieve email history
-        #Include previous conversations for context
+        # Include previous conversations for context
         # -----------------------------
         history_context = self.email_store.get_conversation_for_prompt(
             customer_email,
@@ -48,38 +48,68 @@ class EmailRAGPipeline:
 
         # -----------------------------
         # Step 3: Add scheduling context
+        # CRITICAL: Ensure exact appointment time is used in reply
+        # Prevent LLM from hallucinating wrong dates/times
         # -----------------------------
         booking_text = ""
+        appointed_time_instruction = ""
         if booking and booking.get('slot'):
-            # CRITICAL: Include the exact appointment time that LLM MUST use in the reply
             appointment_slot = booking.get('slot')
+            reasoning = booking.get('reasoning', '')
+            
             # Parse slot to human-readable format for LLM
             from datetime import datetime
             try:
                 slot_dt = datetime.fromisoformat(appointment_slot)
-                readable_time = slot_dt.strftime("%B %d at %I:%M %p")  # e.g., "April 10 at 2:00 PM"
+                readable_time = slot_dt.strftime("%A, %B %d, %Y at %I:%M %p")
+                date_short = slot_dt.strftime("%B %d")
+                time_short = slot_dt.strftime("%I:%M %p")
             except:
                 readable_time = appointment_slot
+                date_short = appointment_slot
+                time_short = appointment_slot
             
             booking_text = f"""
-CRITICAL - Appointment Time:
-The customer's appointment has been scheduled for: {appointment_slot}
-You MUST include this EXACT appointment time in your email reply.
-Use this format in the email: "{readable_time}" (or "{appointment_slot}")
-DO NOT use any other date/time in the reply - this is the ONLY confirmed appointment date/time."""
+------------ CONFIRMED APPOINTMENT INFORMATION -----------
+APPOINTMENT CONFIRMED FOR: {readable_time}
+Alternative formats you can use:
+  - "{date_short} at {time_short}"
+  - "{appointment_slot}"
+
+CRITICAL - DO NOT DEVIATE FROM THIS TIME:
+✗ DO NOT mention any other dates or times
+✗ DO NOT suggest alternative times (this is the CONFIRMED time)
+✗ DO NOT include uncertain language about this time
+✓ DO mention this exact appointment in your reply
+✓ DO confirm the customer will receive a calendar invitation
+✓ DO include instructions if customer needs to reschedule
+
+Selection reasoning: {reasoning}
+"""
+
+            appointed_time_instruction = f"""
+**STRICT INSTRUCTION FOR APPOINTMENT BOOKING:**
+The appointment is CONFIRMED for {readable_time}.
+Your reply MUST confirm this exact date and time using one of these formats ONLY:
+  - {readable_time}
+  - {date_short} at {time_short}
+Do not generate, suggest, or mention any other dates or times."""
 
         # -----------------------------
         # Step 4: Build LLM prompt with history context
+        # Appointment information is placed at the top with high priority
         # -----------------------------
         prompt = f"""
 You are BizClone, an AI email assistant for a {cfg.BUSINESS_DOMAIN} business.
+
+{booking_text}
 
 CONVERSATION HISTORY:
 {history_context}
 
 ---
 
-CURRENT EMAIL:
+CURRENT EMAIL FROM CUSTOMER:
 \"\"\"{customer_email}\"\"\"
 
 Detected intent: {intent}
@@ -87,21 +117,24 @@ Detected intent: {intent}
 RELEVANT BUSINESS KNOWLEDGE:
 {context}
 
-{booking_text}
+{appointed_time_instruction}
 
 TASK:
-Write a professional, friendly email reply.
-IMPORTANT INSTRUCTIONS:
+Write a professional, friendly email reply that confirms the appointment and addresses customer's needs.
+
+CRITICAL REQUIREMENTS FOR APPOINTMENT BOOKINGS:
+1. Always explicitly state the appointment date and time
+2. Use ONLY the exact date/time provided above
+3. Confirm customer will receive calendar invitation (ICS file)
+4. Keep reply concise (3-5 sentences)
+
+OUTPUT REQUIREMENTS:
 - Only write the email body (plain text, no HTML)
-- Do NOT include "Subject:" line or any subject text in your reply
-- Do NOT include signature
-- Do NOT include company name
-- Do NOT include placeholders or template variables
+- Do NOT include "Subject:" line
+- Do NOT include signature (will be added automatically)
+- Do NOT include company name or sender information
+- Do NOT include placeholders or {{variables}}
 - Do NOT include any headers like From, To, Date
-- Use the business owner's tone and style from previous interactions if applicable
-- Reference previous conversations if relevant to provide continuity
-- Be concise and accurate
-- Address the customer's current concern
 """
 
         # -----------------------------

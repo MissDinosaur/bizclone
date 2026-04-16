@@ -55,6 +55,11 @@ CREATE TABLE IF NOT EXISTS booking (
     reminder_sent BOOLEAN DEFAULT FALSE,
     cancellation_reason TEXT,
     cancelled_at TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    modification_type VARCHAR(50),
+    parent_booking_id VARCHAR(50),
+    reschedule_reason TEXT,
+    modified_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -63,6 +68,9 @@ CREATE INDEX IF NOT EXISTS idx_booking_slot ON booking(slot);
 CREATE INDEX IF NOT EXISTS idx_booking_status ON booking(status);
 CREATE INDEX IF NOT EXISTS idx_booking_customer_slot ON booking(customer_email, slot);
 CREATE INDEX IF NOT EXISTS idx_booking_status_booked ON booking(status, booked_at);
+CREATE INDEX IF NOT EXISTS idx_booking_is_active ON booking(is_active);
+CREATE INDEX IF NOT EXISTS idx_booking_parent_booking_id ON booking(parent_booking_id);
+CREATE INDEX IF NOT EXISTS idx_booking_customer_active ON booking(customer_email, is_active);
 
 -- ============================================================
 -- Sequence: knowledge_base_version_number

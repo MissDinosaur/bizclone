@@ -68,11 +68,19 @@ class Booking(Base):
     reminder_sent = Column(Boolean, default=False)
     cancellation_reason = Column(Text)
     cancelled_at = Column(DateTime)
+    is_active = Column(Boolean, default=True, index=True)
+    modification_type = Column(String(50), default=None)
+    parent_booking_id = Column(String(50), default=None, index=True)
+    reschedule_reason = Column(Text)
+    modified_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     __table_args__ = (
         Index('idx_customer_slot', 'customer_email', 'slot'),
         Index('idx_status_date', 'status', 'booked_at'),
+        Index('idx_is_active', 'is_active'),
+        Index('idx_parent_booking', 'parent_booking_id'),
+        Index('idx_customer_active', 'customer_email', 'is_active'),
     )
     
     def to_dict(self):
@@ -87,6 +95,11 @@ class Booking(Base):
             "reminder_sent": self.reminder_sent,
             "cancellation_reason": self.cancellation_reason,
             "cancelled_at": self.cancelled_at.isoformat() if self.cancelled_at else None,
+            "is_active": self.is_active,
+            "modification_type": self.modification_type,
+            "parent_booking_id": self.parent_booking_id,
+            "reschedule_reason": self.reschedule_reason,
+            "modified_at": self.modified_at.isoformat() if self.modified_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None
         }
 

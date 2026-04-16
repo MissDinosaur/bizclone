@@ -43,7 +43,7 @@ app = FastAPI(title=APP_TITLE)
 CHANNEL_CONFIG = {
     "email": {
         "enabled": os.getenv("CHANNEL_EMAIL_ENABLED", "True").lower() == "true",
-        "poll_interval": int(os.getenv("CHANNEL_EMAIL_POLL_INTERVAL", 60))
+        "poll_interval": int(os.getenv("CHANNEL_EMAIL_POLL_INTERVAL", 30))
     },
     "call": {
         "enabled": os.getenv("CHANNEL_CALL_ENABLED", "False").lower() == "true",
@@ -97,8 +97,9 @@ def startup_event():
     # Start birthday email scheduler
     try:
         from scheduling.birthday_scheduler import BirthdayEmailScheduler
-        schedule_hour=12  # Send birthday emails at 8 AM
-        schedule_minute=6
+        # Send birthday emails at specific time
+        schedule_hour=21
+        schedule_minute=10
         birthday_scheduler = BirthdayEmailScheduler(
             schedule_hour=schedule_hour,  
             schedule_minute=schedule_minute

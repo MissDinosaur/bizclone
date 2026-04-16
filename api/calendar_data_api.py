@@ -103,12 +103,15 @@ def get_calendar_data(
         else:
             last_day_of_month = datetime(year, month + 1, 1) - timedelta(days=1)
         
-        # Query bookings for current month
+        # Query bookings for current month.
+        # Filter by is_active=True so that cancelled and rescheduled
+        # (deactivated) bookings never appear on the calendar.
         bookings = db.query(Booking).filter(
             and_(
                 Booking.slot >= first_day_of_month,
                 Booking.slot <= last_day_of_month.replace(hour=23, minute=59, second=59),
-                Booking.status == "confirmed"
+                Booking.status == "confirmed",
+                Booking.is_active == True
             )
         ).order_by(Booking.slot).all()
         

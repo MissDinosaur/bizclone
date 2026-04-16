@@ -21,8 +21,8 @@ class SchedulingConfig:
         
         # Slot Configuration
         self.slot_duration_minutes = 60  # 1-hour slots
-        self.advance_booking_days = 14  # Can book up to 14 days in advance
-        self.min_booking_notice_hours = 24  # Must book at least 24 hours in advance
+        self.advance_booking_days = 60  # Can book up to 60 days in advance
+        self.min_booking_notice_hours = 12  # Must book at least 12 hours in advance
         
         # Break Times (12 PM - 1 PM every day)
         self.break_times = [{"start": 12, "end": 13}]  # 12 PM - 1 PM

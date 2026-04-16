@@ -15,10 +15,13 @@ from channels.email.review_store import (
 )
 from channels.email.gmail_client import GmailClient
 from channels.email.booking_email_sender import get_booking_email_sender
+from scheduling.scheduling_config import SchedulingConfig
 from scheduling.scheduler import book_slot
 from knowledge_base.email_history_store import EmailHistoryStore
 
 logger = logging.getLogger(__name__)
+
+SCHEDULING_CONFIG = SchedulingConfig()
 
 router = APIRouter(prefix="/api/review", tags=["review"])
 
@@ -163,7 +166,7 @@ def get_review_email_detail(email_id: int):
             subject=subject,
             agent_reply=agent_reply,
             selected_slot=email_data.get("selected_slot"),
-            has_appointment=email_data.get("intent") == "appointment",  # Match the actual intent value
+            has_appointment=email_data.get("intent") in ["appointment", "rescheduling"],
             thread_id=email_data.get("thread_id", ""),
             message_id=email_data.get("message_id", ""),
             booking_pending=booking_pending,
@@ -245,7 +248,7 @@ def submit_review_api(request: ReviewSubmitRequest):
                     slot=booking_slot,
                     channel="email",
                     notes=f"Booking approved by owner from email: {request.customer_question[:100]}",
-                    days_ahead=14
+                    days_ahead=SCHEDULING_CONFIG.advance_booking_days
                 )
                 
                 if booking.get("status") == "confirmed":
@@ -269,7 +272,7 @@ Status: Confirmed
 
 To reschedule, please reply directly to this email."""
                     
-                    success, result = email_sender.send_booking_confirmation_with_ics(
+                    success, result = email_sender.send_email_reply_with_ics(
                         customer_email=request.customer_email,  # Use original format for Gmail threading
                         customer_name=customer_name,
                         appointment_slot=booking_slot,

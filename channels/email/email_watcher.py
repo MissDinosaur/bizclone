@@ -32,7 +32,7 @@ class EmailWatcher(BaseChannelWatcher):
         """
         Process a single email through the Email Agent pipeline.
         
-        Decision Logic (based on urgency, not intent):
+        Decision Logic (based on urgency):
         - CRITICAL urgency → always escalate to owner
         - HIGH urgency → escalate to owner
         - NORMAL urgency → auto-send with LLM response
@@ -61,7 +61,6 @@ class EmailWatcher(BaseChannelWatcher):
                 logger.warning(f"email - Keywords: {detected_keywords}", extra={"channel": "email"})
 
             # NOTE: Email already added to review queue by process_email() in email_agent.py
-            # No need to add again here - just log and return
             logger.info(f"email - Owner action required: http://localhost:8000/review")
             return
 
@@ -70,14 +69,26 @@ class EmailWatcher(BaseChannelWatcher):
             # Check if booking confirmation was already sent with .ics attachment
             booking_confirmation_sent = result.metadata.get("booking_confirmation_sent", False) if result.metadata else False
             
+            # If related to booking
             if booking_confirmation_sent:
                 logger.info(
                     f"email - Booking confirmation with .ics already sent in thread (urgency: {urgency_level})",
                     extra={"channel": "email"}
                 )
-                logger.info(f"email - ✓ Booking created: {result.booking.id}", extra={"channel": "email"})
-                return  # Don't send a separate reply
+                if result.booking:
+                    logger.info(
+                        f"email - ✓ Booking created: {result.booking.id}",
+                        extra={"channel": "email"}
+                    )
+                else:
+                    intent_name = result.intent.value if result.intent else "unknown"
+                    logger.info(
+                        f"email - ✓ Workflow completed for intent '{intent_name}' (no booking payload)",
+                        extra={"channel": "email"}
+                    )
+                return
             
+            # If not related to booking or booking confirmation not sent, proceed with auto-reply
             logger.info(f"email - Auto-sending reply (urgency: {urgency_level})", extra={"channel": "email"})
             try:
                 self.gmail.send_email_reply(
