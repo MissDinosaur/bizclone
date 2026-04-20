@@ -20,12 +20,12 @@ This project combines cutting-edge NLP, speech processing, multi-agent AI system
 ```text
 bizclone/
 │
-├── api/                              # FastAPI endpoints (JSON responses)
+├── api/                          # FastAPI endpoints (JSON responses)
 │   ├── kb_api.py                    # GET /api/kb/manage, POST /api/kb/submit
 │   ├── review_api.py                # GET /api/review/queue, /api/review/detail/{id}
 │   └── calendar_data_api.py         # GET /api/calendar/data, /api/calendar/booking/{id}
 |
-├── ui/                                 # Frontend routing + static pages
+├── ui/                              # Frontend routing + static pages
 │   ├── home_ui.py                      # Main landing page
 │   ├── static_pages_ui.py              # Static HTML serving (client-side rendering)
 │   └── templates/                      # Client-rendered HTML pages
@@ -37,18 +37,24 @@ bizclone/
 │       └── calendar.html               # Calendar view (fetch /api/calendar/data)
 |
 ├── database/
-│   ├── orm_models.py               # SQLAlchemy models (6 tables)
-│   ├── initialization.py           # DB initialization
-│   └── init-db.sql                 # SQL schema
-|
-├── channels/
+│   ├── initial_email_kb.json           # Knowledage base entries for DB initialization
+│   ├── customer_initialization.json    # Customer records for DB initialization
+│   ├── orm_models.py                   # SQLAlchemy models (6 tables)
+│   ├── initialization.py               # DB initialization
+│   └── init-db.sql                     # SQL schema
+|     
+├── channels/     
 │   ├── email/
-│   │   ├── email_agent.py          # End-to-end email orchestrator
-│   │   ├── email_watcher.py        # Gmail polling
-│   │   ├── gmail_client.py         # Gmail API wrapper
-│   │   ├── intent_classifier.py    # Intent detection (mixed strategy)
-│   │   ├── parser.py               # Email parsing
-│   │   └── review_store.py         # Escalation queue
+│   │   ├── appointment_workflow.py     # Appointment operations including slot selection, booking confirmation, cancellation handling, and rescheduling updates 
+│   │   ├── birthday_email_service.py   # Automated birthday greetings service
+│   │   ├── booking_email_sender.py     # Email sending with iCalendar attachments
+│   │   ├── email_agent.py              # End-to-end email orchestrator
+│   │   ├── email_watcher.py            # Gmail polling
+│   │   ├── gmail_client.py             # Gmail API wrapper
+│   │   ├── intent_classifier.py        # Intent detection (mixed strategy)
+│   │   ├── parser.py                   # Email parsing
+│   │   ├── review_store.py             # Escalation queue
+│   │   └── urgency_detector.py         # Urgency detector (by emergency keywords) 
 │   ├── teams/
 │   ├── call/
 │   ├── whatsapp/
