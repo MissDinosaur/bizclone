@@ -1,7 +1,7 @@
 import logging
 from rag.retriever import KnowledgeRetriever
 from llm_engine.llm_client import LLMClient
-from knowledge_base.email_history_store import EmailHistoryStore
+from channels.email.email_history_store import EmailHistoryStore
 import config.config as cfg
 
 logger = logging.getLogger(__name__)

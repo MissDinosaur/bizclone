@@ -125,9 +125,9 @@ class TestUrgencyDetection:
 class TestReschedulingConsistency:
     """Test that rescheduling uses one consistent slot across reply and booking updates."""
 
-    @patch("channels.email.appointment_workflow.get_booking_email_sender")
-    @patch("channels.email.appointment_workflow.get_booking_assistant")
-    @patch("channels.email.appointment_workflow.check_availability")
+    @patch("scheduling.appointment_workflow.get_booking_email_sender")
+    @patch("scheduling.appointment_workflow.get_booking_assistant")
+    @patch("scheduling.appointment_workflow.check_availability")
     @patch("channels.email.email_agent.BookingManager")
     @patch("channels.email.email_agent.EmailHistoryStore")
     @patch("channels.email.email_agent.UrgencyDetector")
@@ -231,7 +231,7 @@ class TestReschedulingConsistency:
 class TestCancellationThreading:
     """Test that cancellation flow preserves original threading metadata."""
 
-    @patch("channels.email.appointment_workflow.get_booking_email_sender")
+    @patch("scheduling.appointment_workflow.get_booking_email_sender")
     @patch("channels.email.email_agent.EmailHistoryStore")
     @patch("channels.email.email_agent.BookingManager")
     @patch("channels.email.email_agent.UrgencyDetector")

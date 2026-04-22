@@ -45,10 +45,10 @@ bizclone/
 |     
 ├── channels/     
 │   ├── email/
-│   │   ├── appointment_workflow.py     # Appointment operations including slot selection, booking confirmation, cancellation handling, and rescheduling updates 
 │   │   ├── birthday_email_service.py   # Automated birthday greetings service
 │   │   ├── booking_email_sender.py     # Email sending with iCalendar attachments
 │   │   ├── email_agent.py              # End-to-end email orchestrator
+│   │   ├── email_history_store.py
 │   │   ├── email_watcher.py            # Gmail polling
 │   │   ├── gmail_client.py             # Gmail API wrapper
 │   │   ├── intent_classifier.py        # Intent detection (mixed strategy)
@@ -63,12 +63,10 @@ bizclone/
 |
 ├── knowledge_base/
 │   ├── learning/                   # KB update + re-index
+│   │   ├── feedback_entry.py
 │   │   ├── kb_updater.py
-│   │   ├── feedback_store.py
 │   │   └── learning_mode.py
-│   ├── ingestion.py
-│   ├── kb_manager.py
-│   ├── schema.py
+│   ├── kb_store.py
 │   └── vector_index.py
 |
 ├── rag/
@@ -80,15 +78,18 @@ bizclone/
 │   └── llm_client.py
 │
 ├── scheduling/                     # Birthday/Event scheduler
-│   ├── calendar_providers
-│   ├── birthday_scheduler.py                     
-│   ├── booking_store_db.py
-│   ├── llm_booking_assistant
+│   ├── calendar_providers/
+│   ├── appointment_workflow.py     # Appointment operations like booking, cancellation, and rescheduling
+│   ├── birthday_scheduler.py       # Birthday scheduler  
+│   ├── booking_manager.py                     
+│   ├── booking_store.py
+│   ├── llm_booking_assistant.py
 │   ├── scheduler.py
 │   └── scheduling_config.py
 │
 ├── config/                         # Configuration
-│   └── config.py
+│   ├── google/                     # Goggle account credential files
+│   └── config.py                   # Get the global varaibles
 │
 ├── tests/
 │

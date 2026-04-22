@@ -14,7 +14,7 @@ from scheduling.scheduler import (
 )
 
 from scheduling.scheduling_config import SchedulingConfig
-from scheduling.booking_store_db import BookingStoreDB
+from scheduling.booking_store import BookingStoreDB
 
 __all__ = [
     "AppointmentScheduler",

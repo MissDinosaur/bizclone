@@ -17,7 +17,7 @@ from channels.email.gmail_client import GmailClient
 from channels.email.booking_email_sender import get_booking_email_sender
 from scheduling.scheduling_config import SchedulingConfig
 from scheduling.scheduler import book_slot
-from knowledge_base.email_history_store import EmailHistoryStore
+from channels.email.email_history_store import EmailHistoryStore
 
 logger = logging.getLogger(__name__)
 
@@ -242,19 +242,46 @@ def submit_review_api(request: ReviewSubmitRequest):
                 # Log threading info for debugging
                 logger.debug(f"DEBUG: Sending booking confirmation - thread_id='{request.thread_id}', message_id='{request.message_id}'")
                 
-                # Create booking with (potentially modified) slot
-                booking = book_slot(
-                    customer_email=request.customer_email,
-                    slot=booking_slot,
-                    channel="email",
-                    notes=f"Booking approved by owner from email: {request.customer_question[:100]}",
-                    days_ahead=SCHEDULING_CONFIG.advance_booking_days
-                )
+                # Check if this is a rescheduling request (not a new appointment request)
+                is_rescheduling = booking_info.get("is_rescheduling", False)
                 
+                if is_rescheduling:
+                    # For rescheduling: use BookingManager to reschedule existing appointment
+                    from scheduling.booking_manager import BookingManager
+                    booking_manager = BookingManager()
+                    
+                    reschedule_result = booking_manager.reschedule_appointment(
+                        customer_email=request.customer_email,
+                        new_slot=booking_slot,
+                        reason="Rescheduling approved by owner",
+                        channel="email"
+                    )
+                    
+                    booking = reschedule_result
+                else:
+                    # For new appointment: create booking with (potentially modified) slot
+                    booking = book_slot(
+                        customer_email=request.customer_email,
+                        slot=booking_slot,
+                        channel="email",
+                        notes=f"Booking approved by owner from email: {request.customer_question[:100]}",
+                        days_ahead=SCHEDULING_CONFIG.advance_booking_days
+                    )
+                
+                # Handle both booking (status="confirmed") and rescheduling (status="success")
                 if booking.get("status") == "confirmed":
+                    # New appointment booking
                     booking_id = booking.get("id")
                     logger.info(f"Booking confirmed: {booking_id} for {request.customer_email} at {booking_slot}")
-                    
+                elif booking.get("status") == "success" and is_rescheduling:
+                    # Successful rescheduling
+                    booking_id = booking.get("new_booking_id")
+                    logger.info(f"Rescheduling confirmed: {booking.get('old_booking_id')} -> {booking_id} for {request.customer_email} at {booking_slot}")
+                else:
+                    logger.warning(f"Booking/Rescheduling failed: {booking.get('message', 'unknown error')}")
+                    booking_id = None
+                
+                if booking_id:
                     # Send booking confirmation email with .ics
                     email_sender = get_booking_email_sender()
                     
@@ -263,12 +290,13 @@ def submit_review_api(request: ReviewSubmitRequest):
                     customer_name = request.customer_email.split('@')[0] if '@' in request.customer_email else request.customer_email.split('<')[-1].rstrip('>')
                     
                     # Enhanced body with booking details
+                    status_text = "Rescheduled" if is_rescheduling else "Confirmed"
                     email_body = f"""{final_reply}
 
 ---
 Appointment Details:
 Time: {booking_slot}
-Status: Confirmed
+Status: {status_text}
 
 To reschedule, please reply directly to this email."""
                     
@@ -278,18 +306,16 @@ To reschedule, please reply directly to this email."""
                         appointment_slot=booking_slot,
                         thread_id=request.thread_id,
                         message_id=request.message_id,
-                        original_subject=request.subject,  # OpenAI Fix: Use original subject from incoming email
-                        original_references=request.references,  # OpenAI Fix: Pass complete conversation chain
+                        original_subject=request.subject,  # Use original subject from incoming email
+                        original_references=request.references,  # Pass complete conversation chain
                         email_body=email_body,
-                        subject=f"Appointment Confirmed - {request.subject}"
+                        subject=f"Re: {request.subject}"
                     )
                     
                     if success:
-                        logger.info(f"Booking confirmation email sent to {request.customer_email}")
+                        logger.info(f"Booking confirmation email with .ics sent to {request.customer_email}")
                     else:
                         logger.warning(f"Failed to send booking confirmation email to {request.customer_email}: {result}")
-                else:
-                    logger.warning(f"Booking failed: {booking.get('reason', 'unknown error')}")
                     
             except json.JSONDecodeError:
                 logger.error(f"Invalid booking_pending JSON: {request.booking_pending}")

@@ -60,7 +60,17 @@ class TestDataValidationAndErrors:
         
         # All should be detected as invalid
         for email in invalid_emails:
-            assert "@" not in email or " " in email or email.startswith("@")
+            local, sep, domain = email.partition("@")
+            is_valid = bool(
+                sep
+                and local
+                and domain
+                and " " not in email
+                and "." in domain
+                and not domain.startswith(".")
+                and not domain.endswith(".")
+            )
+            assert not is_valid
     
     def test_missing_required_fields(self):
         """Test validation of required fields"""

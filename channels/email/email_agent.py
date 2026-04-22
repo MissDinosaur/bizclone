@@ -4,11 +4,11 @@ from channels.email.parser import parse_email
 from channels.email.intent_classifier import IntentClassifier
 from channels.email.review_store import add_email_to_review
 from channels.email.urgency_detector import UrgencyDetector
-from channels.email.appointment_workflow import EmailAppointmentWorkflow
+from scheduling.appointment_workflow import EmailAppointmentWorkflow
 from rag.rag_pipeline import EmailRAGPipeline
 from scheduling.booking_manager import BookingManager
 from scheduling.scheduling_config import SchedulingConfig
-from knowledge_base.email_history_store import EmailHistoryStore
+from channels.email.email_history_store import EmailHistoryStore
 from channels.schemas import (
     ChannelMessageResponseSchema,
     IntentType,
@@ -118,7 +118,7 @@ class EmailAgent:
             # For appointment requests: select slot FIRST, then generate reply with slot context
             logger.info("Processing appointment request - selecting best slot first")
             
-            slot_selection_result = self.appointment_workflow.select_best_appointment_slot(
+            slot_selection_result = self.appointment_workflow.select_appointment_slot(
                 customer_email=customer_email,
                 email_text=email_text
             )
@@ -177,7 +177,7 @@ class EmailAgent:
             # so email text, database, and ICS stay consistent.
             logger.info("Processing rescheduling request - selecting new appointment slot first")
 
-            slot_selection_result = self.appointment_workflow.select_best_reschedule_slot(
+            slot_selection_result = self.appointment_workflow.select_appointment_slot(
                 customer_email=customer_email,
                 email_text=email_text
             )
@@ -338,6 +338,32 @@ class EmailAgent:
                     logger.info(f"email - rescheduling processed successfully for {booking_info_pending['customer_email']}")
                     # Mark that confirmation email with .ics was already sent
                     booking_confirmation_sent = True
+                elif rescheduling_result and rescheduling_result.get("message") == "No active appointment found to reschedule":
+                    # Fallback: if rescheduling intent was misclassified and no active booking exists,
+                    # treat it as a new appointment request and create booking
+                    logger.warning(f"email - rescheduling failed (no active booking), falling back to create new appointment for {booking_info_pending['customer_email']}")
+                    
+                    booking_info = self.appointment_workflow.handle_booking_request(
+                        customer_email=booking_info_pending["customer_email"],
+                        message_text=booking_info_pending["message_text"],
+                        thread_id=booking_info_pending["thread_id"],
+                        message_id=booking_info_pending["message_id"],
+                        subject=booking_info_pending["subject"],
+                        selected_slot=booking_info_pending["selected_slot"],
+                        reply_text=booking_info_pending["reply_text"]
+                    )
+                    
+                    if booking_info and booking_info.get("status") == "confirmed":
+                        booking_response = BookingResponseSchema(
+                            id=booking_info["id"],
+                            slot=booking_info["slot"],
+                            customer_email=booking_info["customer_email"],
+                            channel=booking_info["channel"],
+                            status=booking_info["status"],
+                            booked_at=booking_info["booked_at"],
+                            notes=booking_info.get("notes")
+                        )
+                        booking_confirmation_sent = booking_info.get("confirmation_sent", False)
             
             logger.info(f"email - auto-sending response (urgency: {urgency_level})", extra={"channel": "email"})
             return ChannelMessageResponseSchema(

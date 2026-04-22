@@ -29,13 +29,13 @@ class EmailAppointmentWorkflow:
         self.scheduling_config = scheduling_config
         self.booking_manager = booking_manager
 
-    def select_best_appointment_slot(
+    def select_appointment_slot(
         self,
         customer_email: str,
         email_text: str
     ) -> Optional[Dict[str, Any]]:
         """
-        Select the best appointment slot for a new booking request.
+        Select the best appropriate appointment slot for a new booking request.
 
         Flow:
         1. Query open slots within configured booking horizon.

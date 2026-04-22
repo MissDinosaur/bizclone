@@ -8,7 +8,7 @@ import logging
 from typing import List, Dict, Optional
 from datetime import datetime
 from scheduling.scheduling_config import SchedulingConfig
-from scheduling.booking_store_db import BookingStoreDB
+from scheduling.booking_store import BookingStoreDB
 from scheduling.calendar_integration import sync_booking_to_calendar, sync_booking_cancellation
 
 logger = logging.getLogger(__name__)

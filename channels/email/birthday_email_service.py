@@ -178,7 +178,7 @@ No reply needed
                     )
                     
                     # Save birthday email to history
-                    from knowledge_base.email_history_store import EmailHistoryStore
+                    from channels.email.email_history_store import EmailHistoryStore
                     email_store = EmailHistoryStore()
                     email_store.save_email(
                         customer_email=customer.email,

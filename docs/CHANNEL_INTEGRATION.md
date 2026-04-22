@@ -295,7 +295,7 @@ Each processed message is stored in the `email_history` table:
 
 ```python
 # channels/email/email_watcher.py (example)
-from knowledge_base.email_history_store import EmailHistoryStore
+from channels.email.email_history_store import EmailHistoryStore
 
 store = EmailHistoryStore()
 

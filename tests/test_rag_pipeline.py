@@ -115,11 +115,16 @@ class TestRAGPipeline:
             pipeline.retriever.retrieve.assert_called_once()
             pipeline.llm.generate.assert_called_once()
     
-    def test_generate_reply_returns_string(self, pipeline):
-        """Test that generate_email_reply returns a string"""
-        reply = pipeline.generate_email_reply("test@example.com", "Test", "faq")
-        
-        assert isinstance(reply, str) or isinstance(reply, type(None))
+    def test_generate_reply_returns_reply_and_docs(self, pipeline):
+        """Test that generate_email_reply returns (reply_text, retrieved_docs)."""
+        reply_text, retrieved_docs = pipeline.generate_email_reply(
+            "test@example.com",
+            "Test",
+            "faq",
+        )
+
+        assert isinstance(reply_text, (str, type(None)))
+        assert isinstance(retrieved_docs, list)
     
     def test_llm_prompt_construction(self, pipeline):
         """Test that LLM receives properly constructed prompt"""

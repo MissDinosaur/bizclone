@@ -3,10 +3,9 @@ Tests for AppointmentScheduler
 Tests the main appointment scheduling service.
 """
 import pytest
-import tempfile
-import shutil
 import os
-from unittest.mock import patch, MagicMock
+from datetime import datetime
+from unittest.mock import patch
 
 # Try to import scheduler, but skip tests if database isn't available
 try:
@@ -25,16 +24,70 @@ class TestAppointmentScheduler:
     """Test AppointmentScheduler functionality."""
 
     def setup_method(self):
-        """Initialize scheduler with temporary bookings directory."""
-        self.test_dir = tempfile.mkdtemp()
+        """Initialize scheduler with in-memory store and mocked calendar sync."""
         self.scheduler = AppointmentScheduler()
-        # Override with test directory
-        self.scheduler.booking_store.bookings_dir = self.test_dir
-        self.scheduler.booking_store.bookings_file = f"{self.test_dir}/bookings.jsonl"
+
+        class _InMemoryBookingStore:
+            def __init__(self):
+                self._bookings = []
+
+            def get_booked_slots(self, status="confirmed"):
+                return [
+                    datetime.strptime(b["slot"], "%Y-%m-%d %H:%M")
+                    for b in self._bookings
+                    if b.get("status") == status
+                ]
+
+            def create_booking(self, booking_id, customer_email, slot, channel, notes=""):
+                booking = {
+                    "id": booking_id or f"BK-{len(self._bookings) + 1}",
+                    "customer_email": customer_email,
+                    "slot": slot,
+                    "channel": channel,
+                    "notes": notes,
+                    "status": "confirmed",
+                }
+                self._bookings.append(booking)
+                return booking
+
+            def cancel_booking(self, booking_id, reason=""):
+                for booking in self._bookings:
+                    if booking["id"] == booking_id and booking.get("status") == "confirmed":
+                        booking["status"] = "cancelled"
+                        booking["cancel_reason"] = reason
+                        return True
+                return False
+
+            def get_customer_bookings(self, customer_email, status="confirmed"):
+                return [
+                    b for b in self._bookings
+                    if b.get("customer_email") == customer_email and b.get("status") == status
+                ]
+
+            def mark_reminder_sent(self, booking_id):
+                for booking in self._bookings:
+                    if booking["id"] == booking_id:
+                        booking["reminder_sent"] = True
+                        return True
+                return False
+
+        self.scheduler.booking_store = _InMemoryBookingStore()
+
+        self._sync_booking_patch = patch(
+            "scheduling.scheduler.sync_booking_to_calendar",
+            return_value=(False, None),
+        )
+        self._sync_cancel_patch = patch(
+            "scheduling.scheduler.sync_booking_cancellation",
+            return_value=True,
+        )
+        self._sync_booking_patch.start()
+        self._sync_cancel_patch.start()
 
     def teardown_method(self):
-        """Clean up temporary directory."""
-        shutil.rmtree(self.test_dir, ignore_errors=True)
+        """Clean up patches."""
+        self._sync_booking_patch.stop()
+        self._sync_cancel_patch.stop()
 
     def test_scheduler_initialization(self):
         """Test that scheduler initializes with config and store."""

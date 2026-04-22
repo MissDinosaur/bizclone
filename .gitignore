@@ -2,6 +2,7 @@ config/google/
 data/
 venv310/
 logs/
+legacy_scripts/
 .env
 .github/
 

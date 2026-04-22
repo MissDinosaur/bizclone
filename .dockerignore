@@ -1,5 +1,7 @@
 data/
 docs/
+legacy_scripts/
+tests/
 venv310/
 venv/
 .venv/

@@ -83,7 +83,7 @@ Display on /calendar
 | **AppointmentScheduler** | `scheduling/scheduler.py` | Availability check, booking creation, cancellation |
 | **SchedulingConfig** | `scheduling/scheduling_config.py` | Business hours, break times, booking rules |
 | **CalendarIntegrationService** | `scheduling/calendar_integration.py` | Sync to Google Calendar / Outlook |
-| **BookingStoreDB** | `scheduling/booking_store_db.py` | PostgreSQL persistence |
+| **BookingStoreDB** | `scheduling/booking_store.py` | PostgreSQL persistence |
 
 ---
 
