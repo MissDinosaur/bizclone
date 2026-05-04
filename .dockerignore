@@ -1,0 +1,37 @@
+data/
+venv310/
+logs/
+test_kb_init.py
+
+# Version control and CI/CD
+.git
+.github
+.gitignore
+.gitattributes
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+*.code-workspace
+
+# Development and testing
+.pytest_cache
+.coverage
+htmlcov/
+tests/
+.tox
+
+# Documentation
+docs/
+*.md
+
+# Configuration templates (not needed in production)
+.env.example
+
+# OS-specific
+Thumbs.db
+ehthumbs.db
