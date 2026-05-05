@@ -1,0 +1,1730 @@
+[
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "lucas.hoffman@gmail.com",
+   "subject": "Emergency plumbing service - major leak under sink",
+   "body": "Hi,\n\nI’m dealing with a serious leak under my kitchen sink. Water has been dripping steadily for the past hour and it’s starting to soak into the cabinet wood.\n\nI’m worried it may cause damage if it isn’t fixed quickly. Do you have someone available to come out today?\n\nThank you,\nLucas Hoffman"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "emily.jones88@gmail.com",
+   "subject": "Pricing inquiry for drain cleaning service",
+   "body": "Hello,\n\nI wanted to ask about your pricing for a bathroom sink drain cleaning. The sink has been draining very slowly and I suspect there is a clog.\n\nCould you let me know the typical cost range and whether there is a call-out fee?\n\nBest regards,\nEmily Jones"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "michael.chen.home@gmail.com",
+   "subject": "Request to schedule a plumbing inspection next week",
+   "body": "Hi,\n\nI’d like to schedule a general plumbing inspection for our apartment. We recently moved in and want to ensure everything is in good condition.\n\nAre you available Tuesday or Wednesday afternoon next week?\n\nThanks,\nMichael Chen"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "sarah.mitchell22@gmail.com",
+   "subject": "Emergency - toilet overflowing urgently",
+   "body": "Hi,\n\nOur toilet has started overflowing and we cannot get the water to stop rising. We tried shutting off the valve but it doesn’t seem to work.\n\nThis is quite urgent. Can someone come as soon as possible today?\n\nThank you,\nSarah Mitchell"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "david.wilson.service@gmail.com",
+   "subject": "do you offer weekend appointments?",
+   "body": "Hello,\n\nI work during the week and wanted to know if your company provides plumbing appointments on weekends.\n\nIf so, is there an additional fee for Saturday or Sunday service?\n\nThanks,\nDavid Wilson"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "olivia.brown93@gmail.com",
+   "subject": "Pricing question for emergency after-hours service",
+   "body": "Hi,\n\nI’d like to understand your pricing for emergency plumbing services outside normal business hours.\n\nIf something happens late at night, do you provide after-hours visits, and what does it typically cost?\n\nKind regards,\nOlivia Brown"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "james.roberts.mail@gmail.com",
+   "subject": "Scheduling request for annual home plumbing check",
+   "body": "Hello,\n\nI’m interested in booking an annual plumbing inspection for my house. Everything seems fine, but I want to make sure there are no hidden leaks.\n\nDo you have availability early next month?\n\nThanks,\nJames Roberts"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "anna.keller.home@gmail.com",
+   "subject": "do you install new water heaters?",
+   "body": "Hi,\n\nI’m considering replacing my old water heater since it’s over 10 years old.\n\nDo you offer installation services, and do you help recommend the right model for a household?\n\nBest,\nAnna Keller"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "daniel.moore77@gmail.com",
+   "subject": "Emergency - no hot water since this morning",
+   "body": "Hi,\n\nWe suddenly lost hot water this morning. The heater seems to be running, but only cold water comes from all taps.\n\nCan someone come today to take a look? We have children at home so it’s urgent.\n\nThank you,\nDaniel Moore"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "chloe.anderson.qa@gmail.com",
+   "subject": "Pricing inquiry for fixing a leaking shower faucet",
+   "body": "Hello,\n\nMy shower faucet has been leaking constantly for a few days. It’s not flooding, but it’s wasting water.\n\nCould you give me an estimate of the cost to repair or replace the valve?\n\nThanks,\nChloe Anderson"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "ethan.parker.home@gmail.com",
+   "subject": "Scheduling request for pipe replacement consultation",
+   "body": "Hi,\n\nWe have an older home and are concerned some of the pipes may need replacement.\n\nCould we schedule a consultation sometime next week to discuss options and pricing?\n\nRegards,\nEthan Parker"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "mia.thompson88@gmail.com",
+   "subject": "Emergency - burst pipe in basement",
+   "body": "Hi,\n\nWe have a burst pipe in the basement and water is spreading quickly across the floor.\n\nWe turned off the main valve but need professional help immediately. Are you able to send someone right away?\n\nThank you,\nMia Thompson"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "noah.green.mail@gmail.com",
+   "subject": "do you provide free estimates?",
+   "body": "Hello,\n\nBefore booking, I wanted to ask if you provide free estimates for plumbing repairs.\n\nDo you charge for an initial visit or consultation?\n\nThanks,\nNoah Green"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "isabella.martin@gmail.com",
+   "subject": "Pricing inquiry for installing a new toilet",
+   "body": "Hi,\n\nI’m planning to replace an old toilet in my home.\n\nCould you tell me what the typical installation cost would be, and whether disposal of the old unit is included?\n\nBest,\nIsabella Martin"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "liam.scott.home@gmail.com",
+   "subject": "Scheduling request for kitchen faucet installation",
+   "body": "Hello,\n\nI recently bought a new kitchen faucet and would like professional installation.\n\nDo you have availability this Friday or early next week?\n\nThank you,\nLiam Scott"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "sophia.hall99@gmail.com",
+   "subject": "Emergency - sewer smell coming from drains",
+   "body": "Hi,\n\nWe noticed a strong sewer smell coming from our bathroom drains. It started yesterday and is getting worse.\n\nCould this indicate a serious issue? Can someone come out soon to inspect?\n\nThanks,\nSophia Hall"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "jackson.adams@gmail.com",
+   "subject": "do you service commercial buildings?",
+   "body": "Hello,\n\nI manage a small office building and wanted to know if your plumbing services also cover commercial properties.\n\nPlease let me know.\n\nBest regards,\nJackson Adams"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "amelia.baker.home@gmail.com",
+   "subject": "Pricing inquiry for water softener installation",
+   "body": "Hi,\n\nWe are considering installing a water softener system due to hard water issues.\n\nCould you share pricing information and whether you provide installation?\n\nThank you,\nAmelia Baker"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "henry.evans@gmail.com",
+   "subject": "Scheduling request for drain inspection with camera",
+   "body": "Hi,\n\nI’ve heard about camera inspections for drains and pipes.\n\nDo you offer this service, and can I schedule an appointment next week?\n\nRegards,\nHenry Evans"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "grace.turner.mail@gmail.com",
+   "subject": "Emergency - water heater leaking",
+   "body": "Hi,\n\nOur water heater appears to be leaking from the bottom and water is pooling around it.\n\nI’m concerned it may fail completely. Can someone come today?\n\nThank you,\nGrace Turner"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "leo.phillips@gmail.com",
+   "subject": "what areas do you service?",
+   "body": "Hello,\n\nBefore booking, I wanted to confirm what service areas you cover.\n\nDo you provide plumbing services outside the city center?\n\nThanks,\nLeo Phillips"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "victoria.campbell@gmail.com",
+   "subject": "Pricing inquiry for unclogging main sewer line",
+   "body": "Hi,\n\nWe suspect our main sewer line may be clogged because multiple drains are backing up.\n\nCould you provide a general cost estimate for clearing a main line blockage?\n\nBest,\nVictoria Campbell"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "samuel.morris@gmail.com",
+   "subject": "Scheduling request for bathroom renovation plumbing work",
+   "body": "Hello,\n\nWe are planning a bathroom renovation and will need plumbing adjustments.\n\nCould we schedule a visit to discuss the project and timeline?\n\nThank you,\nSamuel Morris"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "lily.rogers88@gmail.com",
+   "subject": "Emergency - dishwasher water backing up into sink",
+   "body": "Hi,\n\nWhenever we run the dishwasher, dirty water backs up into the kitchen sink.\n\nThis seems urgent as we can’t use the sink properly. Can someone come soon?\n\nThanks,\nLily Rogers"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "owen.reed@gmail.com",
+   "subject": "do you offer maintenance plans?",
+   "body": "Hello,\n\nDo you provide any ongoing maintenance plans for homeowners, such as annual inspections or discounted services?\n\nI’d love to learn more.\n\nRegards,\nOwen Reed"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "zoe.cook.home@gmail.com",
+   "subject": "Pricing inquiry for fixing low water pressure",
+   "body": "Hi,\n\nWe’ve been experiencing low water pressure in our shower and kitchen faucet.\n\nCould you let me know what the cost might be to diagnose and fix this issue?\n\nThank you,\nZoe Cook"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "carter.bailey@gmail.com",
+   "subject": "Scheduling request for replacing outdoor spigot",
+   "body": "Hi,\n\nOur outdoor spigot is leaking and needs replacement.\n\nDo you have availability this week for a quick repair?\n\nThanks,\nCarter Bailey"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "hannah.bell@gmail.com",
+   "subject": "Emergency - frozen pipes concern",
+   "body": "Hi,\n\nWith the cold weather, we are worried our pipes may have frozen. Some faucets have stopped running completely.\n\nCan someone come urgently to check before pipes burst?\n\nThank you,\nHannah Bell"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "sebastian.kim@gmail.com",
+   "subject": "do you provide same-day service?",
+   "body": "Hello,\n\nI wanted to ask if you provide same-day plumbing service for urgent but non-emergency issues.\n\nPlease let me know your typical response time.\n\nBest,\nSebastian Kim"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "nora.hughes@gmail.com",
+   "subject": "Pricing inquiry for garbage disposal repair",
+   "body": "Hi,\n\nOur garbage disposal stopped working and makes a humming noise.\n\nCould you share an estimate for repair or replacement?\n\nThank you,\nNora Hughes"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "wyatt.foster@gmail.com",
+   "subject": "Scheduling request for installing a new bathtub faucet",
+   "body": "Hi,\n\nI purchased a new bathtub faucet set and would like it installed professionally.\n\nAre you available early next week?\n\nRegards,\nWyatt Foster"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "ella.gray@gmail.com",
+   "subject": "Emergency - water backing up in shower drain",
+   "body": "Hi,\n\nWhenever we flush the toilet, water backs up into the shower drain.\n\nI believe this could be a serious blockage. Can you send someone as soon as possible?\n\nThank you,\nElla Gray"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "gabriel.price@gmail.com",
+   "subject": "FAQ - do you guarantee your repair work?",
+   "body": "Hello,\n\nBefore hiring a plumber, I wanted to ask whether you provide any warranty or guarantee on repair work.\n\nThanks,\nGabriel Price"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "scarlett.long@gmail.com",
+   "subject": "Inquiry for installing a new shower system",
+   "body": "Hi,\n\nWe are considering upgrading to a new shower system with multiple heads.\n\nCould you give an idea of installation pricing?\n\nBest,\nScarlett Long"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "julian.patterson@gmail.com",
+   "subject": "Scheduling request for fixing running toilet",
+   "body": "Hi,\n\nOne of our toilets runs constantly after flushing.\n\nCould I schedule an appointment sometime this week to repair it?\n\nThank you,\nJulian Patterson"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "penelope.ward@gmail.com",
+   "subject": "Emergency - gas smell near water heater",
+   "body": "Hi,\n\nWe noticed a gas-like smell near our water heater area.\n\nThis feels urgent and potentially dangerous. Can someone come immediately or advise what we should do?\n\nThank you,\nPenelope Ward"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "dylan.brooks@gmail.com",
+   "subject": "do you handle insurance-related repairs?",
+   "body": "Hello,\n\nIf plumbing damage is covered by home insurance, do you provide documentation or invoices needed for claims?\n\nThanks,\nDylan Brooks"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "layla.bennett@gmail.com",
+   "subject": "Pricing inquiry for repiping an older home",
+   "body": "Hi,\n\nWe live in an older house and are considering repiping due to frequent leaks.\n\nCould you provide general pricing guidance for a full repipe project?\n\nRegards,\nLayla Bennett"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "isaac.henderson@gmail.com",
+   "subject": "Scheduling request for emergency preparedness inspection",
+   "body": "Hi,\n\nWe want to ensure our plumbing system is ready for winter.\n\nCould we schedule an inspection appointment sometime in the next two weeks?\n\nThanks,\nIsaac Henderson"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "madison.cole@gmail.com",
+   "subject": "Emergency - washing machine drain overflowing",
+   "body": "Hi,\n\nWhen we run the washing machine, water overflows from the drain pipe.\n\nWe need help urgently to prevent flooding. Are you available today?\n\nThank you,\nMadison Cole"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "asher.ramirez@gmail.com",
+   "subject": "do you provide eco-friendly plumbing solutions?",
+   "body": "Hello,\n\nDo you offer eco-friendly plumbing upgrades such as water-saving fixtures?\n\nI’m interested in reducing water usage at home.\n\nBest,\nAsher Ramirez"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "aubrey.james@gmail.com",
+   "subject": "Pricing inquiry for fixing a cracked pipe",
+   "body": "Hi,\n\nWe discovered a small crack in a visible pipe in our utility room.\n\nCould you provide an estimate for repair before it becomes a bigger issue?\n\nThank you,\nAubrey James"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "logan.morgan@gmail.com",
+   "subject": "Scheduling request for installing bidet attachment",
+   "body": "Hello,\n\nI recently purchased a bidet attachment and would like help installing it properly.\n\nCan I book an appointment next week?\n\nThanks,\nLogan Morgan"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "stella.howard@gmail.com",
+   "subject": "Emergency - flooded bathroom floor",
+   "body": "Hi,\n\nOur bathroom floor is flooded due to a pipe leak behind the toilet.\n\nWe need urgent assistance before water spreads further. Please let me know if you can come today.\n\nThank you,\nStella Howard"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "colton.wright@gmail.com",
+   "subject": "what payment methods do you accept?",
+   "body": "Hello,\n\nDo you accept credit cards or online payments, or only cash/check?\n\nThanks,\nColton Wright"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "paisley.flores@gmail.com",
+   "subject": "Pricing inquiry for installing under-sink filter",
+   "body": "Hi,\n\nI’m interested in installing an under-sink water filtration system.\n\nCould you provide a pricing estimate for installation service?\n\nBest,\nPaisley Flores"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "jace.simmons@gmail.com",
+   "subject": "Scheduling request for replacing shower drain",
+   "body": "Hi,\n\nOur shower drain cover is damaged and may need replacement.\n\nCan we schedule a repair appointment sometime this week?\n\nThanks,\nJace Simmons"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "everly.pierce@gmail.com",
+   "subject": "Emergency - no water pressure in entire house",
+   "body": "Hi,\n\nWe suddenly lost water pressure throughout the entire house.\n\nNothing is coming from faucets. This seems urgent. Can you assist today?\n\nThank you,\nEverly Pierce"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "xavier.hayes@gmail.com",
+   "subject": "Do you offer senior discounts?",
+   "body": "Hello,\n\nDo you provide any discounts for seniors or repeat customers?\n\nThank you,\nXavier Hayes"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "leah.fisher@gmail.com",
+   "subject": "Pricing inquiry for repairing a running faucet",
+   "body": "Hi,\n\nOur kitchen faucet keeps running even when turned off fully.\n\nCould you share an estimate for repairing this issue?\n\nBest,\nLeah Fisher"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "jeremiah.hudson@gmail.com",
+   "subject": "Scheduling request for pipe insulation service",
+   "body": "Hi,\n\nI want to insulate exposed pipes in the basement before winter.\n\nDo you offer this service and can I schedule a visit soon?\n\nThanks,\nJeremiah Hudson"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "violet.kennedy@gmail.com",
+   "subject": "Emergency - sump pump stopped working",
+   "body": "Hi,\n\nOur sump pump has stopped working and water is starting to collect in the basement.\n\nThis is urgent. Can someone come out as soon as possible?\n\nThank you,\nViolet Kennedy"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "kingston.owens@gmail.com",
+   "subject": "FAQ - do you provide 24/7 emergency support?",
+   "body": "Hello,\n\nDo you offer 24/7 emergency plumbing services, including holidays?\n\nI’d like to know in case of future emergencies.\n\nBest,\nKingston Owens"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "hazel.reynolds@gmail.com",
+   "subject": "Pricing inquiry for fixing cracked toilet tank",
+   "body": "Hi,\n\nWe noticed a crack forming in the toilet tank and are concerned it may leak.\n\nCould you provide pricing guidance for repair or replacement?\n\nThank you,\nHazel Reynolds"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "ryan.palmer@gmail.com",
+   "subject": "Scheduling request for installing new sink",
+   "body": "Hello,\n\nWe are remodeling our kitchen and purchased a new sink.\n\nCould we schedule installation sometime next week?\n\nRegards,\nRyan Palmer"
+  }
+ },
+ {
+  "intent": "payment_inquiry",
+  "email": {
+   "from": "clara.webb@gmail.com",
+   "subject": "Question about invoice and card payment options",
+   "body": "Hello,\n\nI received an invoice for the recent faucet repair and wanted to confirm which payment methods you accept.\n\nCan I pay by credit card online, or do you only accept bank transfer?\n\nThank you,\nClara Webb"
+  }
+ },
+ {
+  "intent": "payment_inquiry",
+  "email": {
+   "from": "mason.powell@gmail.com",
+   "subject": "Billing question about deposit and final payment",
+   "body": "Hi,\n\nBefore confirming the repiping work, I wanted to ask how your billing works.\n\nDo you require a deposit up front, and when is the remaining balance due?\n\nBest regards,\nMason Powell"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "zoey.russell@gmail.com",
+   "subject": "Please cancel my appointment for Friday",
+   "body": "Hi,\n\nSomething has come up and I will not be able to make the plumbing appointment we scheduled for Friday morning.\n\nPlease cancel it completely.\n\nThank you,\nZoey Russell"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "caleb.ford@gmail.com",
+   "subject": "No longer need the scheduled inspection",
+   "body": "Hello,\n\nI no longer need the inspection appointment that was booked for next week.\n\nPlease go ahead and cancel the booking.\n\nThanks,\nCaleb Ford"
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "natalie.stone@gmail.com",
+   "subject": "Can we reschedule my appointment to a later time?",
+   "body": "Hi,\n\nI have a plumbing appointment booked for Tuesday afternoon, but that time no longer works for me.\n\nCould we move it to Wednesday morning instead?\n\nThank you,\nNatalie Stone"
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "aaron.bishop@gmail.com",
+   "subject": "Need to change existing booking",
+   "body": "Hello,\n\nThe current appointment slot for the water heater inspection is too early for us.\n\nWould it be possible to change the booking to a later time this week?\n\nBest,\nAaron Bishop"
+  }
+ },
+ {
+  "intent": "working_hours",
+  "email": {
+   "from": "ruby.hunt@gmail.com",
+   "subject": "What time are you open on weekdays?",
+   "body": "Hello,\n\nBefore I book anything, I wanted to know your business hours during the week.\n\nWhat time do you open and close from Monday to Friday?\n\nThanks,\nRuby Hunt"
+  }
+ },
+ {
+  "intent": "working_hours",
+  "email": {
+   "from": "cooper.graham@gmail.com",
+   "subject": "Are you open on public holidays?",
+   "body": "Hi,\n\nDo you work on public holidays or are you closed on those days?\n\nI am trying to plan ahead and wanted to confirm your availability.\n\nRegards,\nCooper Graham"
+  }
+ },
+ {
+  "intent": "service_request",
+  "email": {
+   "from": "bella.ross@gmail.com",
+   "subject": "Need help repairing cracked outdoor pipe",
+   "body": "Hi,\n\nA visible outdoor pipe near our garden tap has cracked and is leaking steadily.\n\nWe need professional help to repair it before the damage spreads.\n\nThank you,\nBella Ross"
+  }
+ },
+ {
+  "intent": "service_request",
+  "email": {
+   "from": "hudson.perry@gmail.com",
+   "subject": "Service needed for leaking boiler connection",
+   "body": "Hello,\n\nThere is water dripping from the connection under our boiler, and we would like a technician to fix the issue.\n\nPlease let me know if you can help with this repair.\n\nThanks,\nHudson Perry"
+  }
+ },
+ {
+  "intent": "complaint",
+  "email": {
+   "from": "savannah.price@gmail.com",
+   "subject": "Very unhappy with the recent repair work",
+   "body": "Hello,\n\nI am very disappointed with the service from your technician last week.\n\nThe leak started again the day after the repair, and the overall experience was poor.\n\nI would like someone to address this issue.\n\nRegards,\nSavannah Price"
+  }
+ },
+ {
+  "intent": "complaint",
+  "email": {
+   "from": "roman.sanders@gmail.com",
+   "subject": "Complaint about poor quality service",
+   "body": "Hi,\n\nI need to complain about the plumbing work completed at my house yesterday.\n\nThe technician left without fixing the problem properly, and I am frustrated with the bad service.\n\nThank you,\nRoman Sanders"
+  }
+ },
+ {
+  "intent": "feedback",
+  "email": {
+   "from": "luna.barnes@gmail.com",
+   "subject": "Great service from your plumber",
+   "body": "Hello,\n\nI just wanted to say thank you for the excellent service yesterday.\n\nYour plumber was professional, friendly, and fixed the issue quickly.\n\nBest regards,\nLuna Barnes"
+  }
+ },
+ {
+  "intent": "feedback",
+  "email": {
+   "from": "eli.gibson@gmail.com",
+   "subject": "Positive feedback on today's appointment",
+   "body": "Hi,\n\nI was really happy with the repair visit this morning.\n\nEverything was explained clearly, and the work was completed neatly. Please pass on my thanks to the technician.\n\nThanks,\nEli Gibson"
+  }
+ },
+ {
+  "intent": "warranty_claim",
+  "email": {
+   "from": "hazel.warren@gmail.com",
+   "subject": "Warranty claim for recent water heater repair",
+   "body": "Hello,\n\nYou repaired our water heater about three weeks ago, but the same fault has returned.\n\nSince the repair should still be under warranty, I would like to make a warranty claim and have it checked again.\n\nRegards,\nHazel Warren"
+  }
+ },
+ {
+  "intent": "warranty_claim",
+  "email": {
+   "from": "declan.hamilton@gmail.com",
+   "subject": "Guarantee issue with previous pipe repair",
+   "body": "Hi,\n\nThe pipe joint your team repaired last month has started leaking again.\n\nI believe this should be covered under your guarantee, so please advise on the next step for the warranty claim.\n\nThank you,\nDeclan Hamilton"
+  }
+ },
+ {
+  "intent": "replacement_request",
+  "email": {
+   "from": "aurora.mitchell@gmail.com",
+   "subject": "Request to replace faulty faucet you installed",
+   "body": "Hello,\n\nThe faucet your team installed recently is already malfunctioning and keeps dripping even when turned off.\n\nCould you arrange a replacement unit instead of another repair?\n\nBest,\nAurora Mitchell"
+  }
+ },
+ {
+  "intent": "replacement_request",
+  "email": {
+   "from": "micah.coleman@gmail.com",
+   "subject": "Need replacement for failed shower valve",
+   "body": "Hi,\n\nThe replacement shower valve fitted during the last visit has failed again.\n\nI would like to request a full replacement rather than another temporary fix.\n\nThanks,\nMicah Coleman"
+  }
+ },
+ {
+  "intent": "refund_request",
+  "email": {
+   "from": "aria.reed@gmail.com",
+   "subject": "Requesting refund for unresolved repair",
+   "body": "Hello,\n\nI paid for a drain repair last week, but the problem was never resolved.\n\nI would like a refund for the service because the issue remains exactly the same.\n\nRegards,\nAria Reed"
+  }
+ },
+ {
+  "intent": "refund_request",
+  "email": {
+   "from": "carson.fleming@gmail.com",
+   "subject": "Can I get my money back for the cancelled job?",
+   "body": "Hi,\n\nYour team was unable to complete the scheduled work, but I was still charged a deposit.\n\nPlease let me know how I can get the money back.\n\nThank you,\nCarson Fleming"
+  }
+ },
+ {
+  "intent": "upgrade_inquiry",
+  "email": {
+   "from": "serenity.walsh@gmail.com",
+   "subject": "Interested in upgrading to a better water filtration system",
+   "body": "Hello,\n\nWe currently have a basic filtration unit installed, but we are thinking about upgrading to a more advanced system.\n\nCould you explain the upgrade options and the differences between packages?\n\nBest regards,\nSerenity Walsh"
+  }
+ },
+ {
+  "intent": "upgrade_inquiry",
+  "email": {
+   "from": "jason.bradley@gmail.com",
+   "subject": "Can we upgrade our existing maintenance plan?",
+   "body": "Hi,\n\nWe already use your annual plumbing maintenance service and wanted to ask if there is a higher-tier package available.\n\nI am interested in upgrading if it includes priority support and more inspections.\n\nThanks,\nJason Bradley"
+  }
+ },
+ {
+  "intent": "bulk_inquiry",
+  "email": {
+   "from": "admin@harborviewapartments.com",
+   "subject": "Bulk service inquiry for apartment complex",
+   "body": "Hello,\n\nI manage a 24-unit apartment complex and need a plumbing company that can handle routine maintenance across multiple units.\n\nCould you provide information about bulk service pricing or a corporate maintenance arrangement?\n\nRegards,\nMegan Foster"
+  }
+ },
+ {
+  "intent": "bulk_inquiry",
+  "email": {
+   "from": "operations@oakridgeoffices.com",
+   "subject": "Corporate inquiry for servicing several buildings",
+   "body": "Hi,\n\nOur company oversees plumbing maintenance for several office buildings in the area.\n\nWe would like to discuss a bulk service agreement covering regular inspections and on-call support.\n\nThank you,\nDaniel Cross"
+  }
+ },
+ {
+  "intent": "other",
+  "email": {
+   "from": "ivy.murphy@gmail.com",
+   "subject": "Following up after our phone call",
+   "body": "Hello,\n\nThank you for speaking with me earlier.\n\nI just wanted to confirm that I received your message and will review everything this evening.\n\nBest,\nIvy Murphy"
+  }
+ },
+ {
+  "intent": "other",
+  "email": {
+   "from": "theo.carter@gmail.com",
+   "subject": "Just checking in",
+   "body": "Hi,\n\nI am writing to follow up on our previous conversation and to say I appreciate the update.\n\nNo action is needed from your side right now.\n\nThanks,\nTheo Carter"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "theo.carter@gmail.com",
+   "subject": "Just checking in",
+   "body": "Hi,\n\nSorry, could you please cancel this appointment? Because I have booked the appointment with another company.\n\nThanks."
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "theo.carter@gmail.com",
+   "subject": "Scheduling request for annual home plumbing check",
+   "body": "Hi,\n\ncould you please change the appointment time?\n\nTomorrow 11:00 is better for me.\n\nThanks."
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "theo.carter@gmail.com",
+   "subject": "Request to schedule a plumbing inspection next month",
+   "body": "Hi,\n\nSorry, I'm busy on that appointment date. Therefore, could you please cancel this appointment?\n\nThanks."
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "theo.carter@gmail.com",
+   "subject": "Scheduling request for annual home plumbing check",
+   "body": "Hi,\n\nI have to work on April 21. So, could you please cancel this appointment?\n\nThank you very much."
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "theo.carter@gmail.com",
+   "subject": "Need urgent appointment - burst pipe in bathroom",
+   "body": "Hi,\n\nSorry, I have to cancel this appointment as I have made an appointment with another company.\n\nThanks."
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "theo.carter@gmail.com",
+   "subject": "Rescheduling request",
+   "body": "Hi,\n\nSorry, I will be on holiday on the appointment date. Can I reschedule this appointment?.\n\nThanks."
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "theo.carter@gmail.com",
+   "subject": "Move appointment to next Monday",
+   "body": "Hi,\n\nThat day is not OK for me. Could you move this appoinment to next Monday morning?\n\nThanks."
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "tom.harrison@gmail.com",
+   "subject": "Booking a plumber for a dripping tap this Thursday",
+   "body": "Hi,\n\nI have a dripping tap in the kitchen that has been getting worse over the past week.\n\nCould I book a plumber to come out this Thursday afternoon?\n\nMany thanks,\nTom Harrison"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "claire.newton@gmail.com",
+   "subject": "Schedule a consultation for bathroom renovation",
+   "body": "Hello,\n\nWe are planning a full bathroom renovation and would like a plumber to consult on the pipe layout.\n\nCould we arrange a visit sometime next week at your earliest convenience?\n\nBest regards,\nClaire Newton"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "patrick.walsh@gmail.com",
+   "subject": "Appointment needed for blocked outside drain",
+   "body": "Hi,\n\nOur outside drain is completely blocked and water is pooling in the garden whenever it rains.\n\nCould I book someone to come and clear it this week?\n\nThanks,\nPatrick Walsh"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "diana.foster@gmail.com",
+   "subject": "Book a visit to fix toilet cistern not filling",
+   "body": "Hello,\n\nThe cistern on our upstairs toilet is not refilling after flushing. It has been like this for two days.\n\nCan I schedule a repair appointment for later this week?\n\nKind regards,\nDiana Foster"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "neil.graham@gmail.com",
+   "subject": "Schedule visit for annual boiler service",
+   "body": "Hi,\n\nOur boiler is due for its annual service and I would like to book this in as soon as possible.\n\nDo you have any slots available next Monday or Tuesday?\n\nThank you,\nNeil Graham"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "janet.cooper@gmail.com",
+   "subject": "Request to arrange plumber for new radiator valve fitting",
+   "body": "Hello,\n\nSeveral radiator valves in our house need replacing as they are old and stiff.\n\nCould we schedule a morning appointment next week for the work?\n\nBest,\nJanet Cooper"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "victor.price@gmail.com",
+   "subject": "Scheduling request for water softener installation",
+   "body": "Hi,\n\nI have purchased a water softener and need a qualified plumber to install it properly.\n\nAre you available this Friday or the following Monday?\n\nRegards,\nVictor Price"
+  }
+ },
+ {
+  "intent": "appointment",
+  "email": {
+   "from": "sandra.norris@gmail.com",
+   "subject": "Can we book a plumber for Monday to check water pressure?",
+   "body": "Hi,\n\nThe water pressure in our house has dropped noticeably over the past week.\n\nCould someone come on Monday morning to investigate?\n\nThank you,\nSandra Norris"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "ben.hartley@gmail.com",
+   "subject": "How much does it cost to fit a new bathroom suite?",
+   "body": "Hello,\n\nWe are looking to have a full new bathroom suite fitted including bath, toilet, and basin.\n\nCould you provide a ballpark cost for labour and installation?\n\nBest regards,\nBen Hartley"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "fiona.nash@gmail.com",
+   "subject": "Quote for replacing all radiators in a three-bed house",
+   "body": "Hi,\n\nWe have seven radiators in our home that are very old and would like to replace all of them.\n\nCould you provide a quote or a cost range for this work?\n\nThank you,\nFiona Nash"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "derek.james@gmail.com",
+   "subject": "What is the price for a CCTV drain survey?",
+   "body": "Hi,\n\nWe have had recurring drain blockages and a neighbour suggested a CCTV drain survey.\n\nCould you tell me how much this service typically costs?\n\nKind regards,\nDerek James"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "melissa.hunt@gmail.com",
+   "subject": "Cost for dishwasher plumbing installation",
+   "body": "Hello,\n\nI have bought a new dishwasher and need the kitchen plumbing adjusted for connection.\n\nWhat would you typically charge for this type of work?\n\nBest,\nMelissa Hunt"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "stuart.mason@gmail.com",
+   "subject": "Pricing for fixing a noisy boiler",
+   "body": "Hi,\n\nOur boiler has been making loud banging and gurgling sounds.\n\nCould you give me an estimate for diagnosing and resolving the noise issue?\n\nThanks,\nStuart Mason"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "wendy.cox@gmail.com",
+   "subject": "How much to fix a blocked outdoor drain?",
+   "body": "Hello,\n\nOur outdoor gully drain is blocked and flooding the path.\n\nCould you let me know the approximate cost to clear and inspect it?\n\nRegards,\nWendy Cox"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "alan.shaw@gmail.com",
+   "subject": "Price inquiry for fixing a burst pipe in the loft",
+   "body": "Hi,\n\nWe have a burst pipe in the loft space that is causing damage to the ceiling below.\n\nCould you provide a rough cost estimate for the repair?\n\nThank you,\nAlan Shaw"
+  }
+ },
+ {
+  "intent": "price_inquiry",
+  "email": {
+   "from": "caroline.weir@gmail.com",
+   "subject": "What is your emergency call-out charge at night?",
+   "body": "Hello,\n\nI wanted to find out what your emergency call-out fee is for late-night or weekend plumbing issues.\n\nIs there a fixed rate or does it vary?\n\nBest regards,\nCaroline Weir"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "peter.banks@gmail.com",
+   "subject": "Do you offer a referral discount?",
+   "body": "Hello,\n\nI recommended your service to a friend who has already booked with you.\n\nDo you offer any referral discount or credit for existing customers who refer new ones?\n\nBest,\nPeter Banks"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "helen.ford@gmail.com",
+   "subject": "How long does a typical bathroom installation take?",
+   "body": "Hi,\n\nWe are planning a bathroom renovation and wanted to understand the timescale.\n\nHow many days does a full bathroom installation usually take?\n\nThank you,\nHelen Ford"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "matt.day@gmail.com",
+   "subject": "Do you provide written quotes before starting work?",
+   "body": "Hello,\n\nBefore agreeing to any work, I would like to receive a written quote.\n\nIs it standard practice for you to provide a detailed written estimate first?\n\nKind regards,\nMatt Day"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "alice.cross@gmail.com",
+   "subject": "Is there a minimum charge for a call-out?",
+   "body": "Hi,\n\nI have a small plumbing issue and wanted to know if there is a minimum charge for a call-out visit.\n\nDoes the charge change depending on the time of day?\n\nThanks,\nAlice Cross"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "frank.hunt@gmail.com",
+   "subject": "Do you keep spare parts in the van to avoid return visits?",
+   "body": "Hello,\n\nI've had issues with other plumbers needing to come back twice because they didn't have the part.\n\nDo your engineers carry common spare parts with them?\n\nBest regards,\nFrank Hunt"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "grace.leigh@gmail.com",
+   "subject": "Do you work with letting agents and landlords?",
+   "body": "Hi,\n\nI am a private landlord and need a reliable plumber for my rental properties.\n\nDo you work with landlords or letting agents and offer any kind of regular arrangement?\n\nThank you,\nGrace Leigh"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "ian.butler@gmail.com",
+   "subject": "Do you offer flexible payment plans?",
+   "body": "Hello,\n\nI need some significant plumbing work done but may not be able to pay in full upfront.\n\nDo you offer any form of flexible or deferred payment arrangement?\n\nBest,\nIan Butler"
+  }
+ },
+ {
+  "intent": "faq",
+  "email": {
+   "from": "kate.dixon@gmail.com",
+   "subject": "Do you carry out work for housing associations?",
+   "body": "Hi,\n\nI work for a small housing association and am looking for a reliable plumbing contractor.\n\nDo you take on work for housing associations or social landlords?\n\nThanks,\nKate Dixon"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "gary.knight@gmail.com",
+   "subject": "Please cancel my appointment for Tuesday",
+   "body": "Hi,\n\nSomething has come up at work and I will not be able to make Tuesday's appointment.\n\nCould you please cancel it? I may rebook at a later date.\n\nSorry for any inconvenience,\nGary Knight"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "rachel.bond@gmail.com",
+   "subject": "Need to cancel - going on holiday",
+   "body": "Hello,\n\nI completely forgot I am going away on the same day as my appointment.\n\nPlease cancel the booking. I will get back in touch when I return.\n\nThank you,\nRachel Bond"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "mike.summers@gmail.com",
+   "subject": "Cancel drain inspection - house has been sold",
+   "body": "Hi,\n\nWe have sold the property and so no longer need the drain inspection that was scheduled.\n\nPlease cancel the appointment entirely.\n\nBest regards,\nMike Summers"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "lucy.mann@gmail.com",
+   "subject": "Cancel appointment - I fixed it myself",
+   "body": "Hi,\n\nThe issue turned out to be a simple blockage that I managed to clear myself.\n\nPlease cancel the booked appointment as it is no longer needed.\n\nThanks,\nLucy Mann"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "joe.byrne@gmail.com",
+   "subject": "Cancel the service call - moved to a different provider",
+   "body": "Hello,\n\nI have decided to go with a different company for this repair.\n\nCould you please cancel the appointment we had scheduled for next week?\n\nThank you,\nJoe Byrne"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "paula.holt@gmail.com",
+   "subject": "Cancel booking - can't afford the repair this month",
+   "body": "Hi,\n\nUnfortunately I am unable to proceed with the work at this time due to financial reasons.\n\nPlease cancel my appointment and I will get back to you when I am ready to proceed.\n\nKind regards,\nPaula Holt"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "dave.mclean@gmail.com",
+   "subject": "Cancel tomorrow's visit - family emergency",
+   "body": "Hi,\n\nI have had a family emergency and I am unable to be home tomorrow.\n\nPlease cancel the appointment for now. I will call to reschedule when things settle down.\n\nSorry for the last-minute notice,\nDave McLean"
+  }
+ },
+ {
+  "intent": "cancellation",
+  "email": {
+   "from": "tina.burns@gmail.com",
+   "subject": "Cancel my plumbing appointment - tenant not cooperating",
+   "body": "Hello,\n\nMy tenant is refusing access to the property for the scheduled visit.\n\nI will need to cancel the appointment for now until I can arrange access.\n\nThank you,\nTina Burns"
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "mark.oliver@gmail.com",
+   "subject": "Can we move Thursday's appointment to Friday afternoon?",
+   "body": "Hi,\n\nI have a work commitment that has come up on Thursday so I won't be able to make the appointment.\n\nCould we move it to Friday afternoon instead?\n\nThank you,\nMark Oliver"
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "donna.white@gmail.com",
+   "subject": "Need to push the inspection back by one week",
+   "body": "Hello,\n\nDue to a family matter, I need to delay the boiler inspection.\n\nCould we reschedule to the same time but one week later?\n\nBest regards,\nDonna White"
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "charlie.west@gmail.com",
+   "subject": "Can you reschedule my slot to a morning time?",
+   "body": "Hi,\n\nThe afternoon slot no longer works for me as I have school pick-up.\n\nIs it possible to change the appointment to a morning time instead?\n\nThanks,\nCharlie West"
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "amy.rice@gmail.com",
+   "subject": "Move my booking to the following week please",
+   "body": "Hello,\n\nThe current week no longer works for me and I need to push the appointment out.\n\nCould you move it to the same day and time the following week?\n\nKind regards,\nAmy Rice"
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "rob.blake@gmail.com",
+   "subject": "Something came up - can we do it the day after?",
+   "body": "Hi,\n\nI have an unexpected meeting on the day of my appointment.\n\nWould it be possible to shift it to the following day at the same time?\n\nThanks,\nRob Blake"
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "kerry.fox@gmail.com",
+   "subject": "I forgot about a doctor's appointment - need to reschedule",
+   "body": "Hello,\n\nI just realised I have a doctor's appointment at the same time as my plumbing booking.\n\nCould we reschedule to a different day this week?\n\nApologies for the inconvenience,\nKerry Fox"
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "ben.cox@gmail.com",
+   "subject": "Reschedule visit - building work is being done that day",
+   "body": "Hi,\n\nWe are having other building work done on the day of our appointment and it would cause too much disruption.\n\nCould we move the plumbing visit to a day next week instead?\n\nThanks,\nBen Cox"
+  }
+ },
+ {
+  "intent": "rescheduling",
+  "email": {
+   "from": "sue.hart@gmail.com",
+   "subject": "Can we shift the appointment to Saturday?",
+   "body": "Hello,\n\nI am unable to take time off work during the week.\n\nWould it be possible to reschedule my appointment to Saturday?\n\nBest regards,\nSue Hart"
+  }
+ },
+ {
+  "intent": "working_hours",
+  "email": {
+   "from": "jim.taylor@gmail.com",
+   "subject": "What are your Saturday opening hours?",
+   "body": "Hi,\n\nI work during the week and would prefer a Saturday appointment.\n\nCould you tell me what hours you are available on Saturdays?\n\nThank you,\nJim Taylor"
+  }
+ },
+ {
+  "intent": "working_hours",
+  "email": {
+   "from": "ann.chambers@gmail.com",
+   "subject": "Are you available on bank holidays?",
+   "body": "Hello,\n\nI am trying to plan ahead for an upcoming bank holiday weekend.\n\nDo you provide services on bank holidays and is there a higher rate?\n\nBest,\nAnn Chambers"
+  }
+ },
+ {
+  "intent": "working_hours",
+  "email": {
+   "from": "dan.cook@gmail.com",
+   "subject": "Do you offer early morning appointments?",
+   "body": "Hi,\n\nI need to have work done before I leave for the office at 8am.\n\nDo you offer early morning appointments starting at 7am or earlier?\n\nThanks,\nDan Cook"
+  }
+ },
+ {
+  "intent": "working_hours",
+  "email": {
+   "from": "lisa.doyle@gmail.com",
+   "subject": "What is the latest time you accept call-outs?",
+   "body": "Hello,\n\nI often have plumbing issues that are only noticed in the evening.\n\nWhat is the latest time of day you will accept a call-out booking?\n\nKind regards,\nLisa Doyle"
+  }
+ },
+ {
+  "intent": "working_hours",
+  "email": {
+   "from": "paul.ryan@gmail.com",
+   "subject": "Are you open on Sundays?",
+   "body": "Hi,\n\nI wanted to know if you carry out plumbing work on Sundays at all.\n\nIf so, are Sunday rates the same as weekdays?\n\nThanks,\nPaul Ryan"
+  }
+ },
+ {
+  "intent": "working_hours",
+  "email": {
+   "from": "emma.sage@gmail.com",
+   "subject": "Do you work on Christmas Day or New Year?",
+   "body": "Hello,\n\nI know it is unusual but we had a plumbing emergency over Christmas last year.\n\nDo you provide cover on Christmas Day or New Year's Day?\n\nBest regards,\nEmma Sage"
+  }
+ },
+ {
+  "intent": "working_hours",
+  "email": {
+   "from": "tom.birch@gmail.com",
+   "subject": "What time does your last appointment start?",
+   "body": "Hi,\n\nI need a late afternoon appointment and wanted to know when your last slot of the day is.\n\nCould you let me know your booking cut-off time?\n\nThank you,\nTom Birch"
+  }
+ },
+ {
+  "intent": "working_hours",
+  "email": {
+   "from": "nina.stone@gmail.com",
+   "subject": "Is there a late evening service available?",
+   "body": "Hello,\n\nMy partner and I both work until 6pm and struggle to get home for daytime appointments.\n\nDo you have any evening slots available after 6pm?\n\nBest,\nNina Stone"
+  }
+ },
+ {
+  "intent": "service_request",
+  "email": {
+   "from": "frank.porter@gmail.com",
+   "subject": "Need someone to unblock a heavily blocked toilet",
+   "body": "Hi,\n\nOur upstairs toilet is completely blocked and won't flush at all.\n\nWe need a plumber to come and clear the blockage as soon as possible.\n\nThank you,\nFrank Porter"
+  }
+ },
+ {
+  "intent": "service_request",
+  "email": {
+   "from": "rita.warren@gmail.com",
+   "subject": "Radiator in living room not heating up",
+   "body": "Hello,\n\nThe radiator in our living room is cold even when the heating is on.\n\nAll other radiators are working fine. Could you send someone to investigate?\n\nBest regards,\nRita Warren"
+  }
+ },
+ {
+  "intent": "service_request",
+  "email": {
+   "from": "steve.hunt@gmail.com",
+   "subject": "Leaking pipe behind the washing machine needs fixing",
+   "body": "Hi,\n\nThere is a slow leak coming from the pipe connection behind our washing machine.\n\nWe need a plumber to fix this before it causes damage to the floor.\n\nThank you,\nSteve Hunt"
+  }
+ },
+ {
+  "intent": "service_request",
+  "email": {
+   "from": "jenny.walsh@gmail.com",
+   "subject": "Dripping tap in the bathroom needs repair",
+   "body": "Hello,\n\nThe hot tap in our bathroom has been dripping constantly for several days.\n\nCould you send a plumber to repair or replace the tap washer?\n\nKind regards,\nJenny Walsh"
+  }
+ },
+ {
+  "intent": "service_request",
+  "email": {
+   "from": "keith.hardy@gmail.com",
+   "subject": "Hot water tank leaking from the side",
+   "body": "Hi,\n\nOur hot water storage tank has started leaking from a joint on the side.\n\nWe need someone to come and fix the leak before it gets worse.\n\nThank you,\nKeith Hardy"
+  }
+ },
+ {
+  "intent": "service_request",
+  "email": {
+   "from": "brenda.lane@gmail.com",
+   "subject": "Kitchen waste pipe has come apart and needs reconnecting",
+   "body": "Hello,\n\nThe waste pipe under the kitchen sink has come loose and water drains straight onto the cabinet floor.\n\nCould you send someone to reconnect and seal it properly?\n\nBest,\nBrenda Lane"
+  }
+ },
+ {
+  "intent": "service_request",
+  "email": {
+   "from": "andrew.kent@gmail.com",
+   "subject": "Boiler making loud banging noises - needs inspection",
+   "body": "Hi,\n\nOur boiler has been making loud banging and clanking noises when it fires up.\n\nCould you send a technician to diagnose and fix the problem?\n\nThanks,\nAndrew Kent"
+  }
+ },
+ {
+  "intent": "service_request",
+  "email": {
+   "from": "carol.norris@gmail.com",
+   "subject": "Outside drain is blocked with debris - need clearing",
+   "body": "Hello,\n\nThe drain in our back garden is completely blocked with leaves and mud.\n\nWater is backing up and flooding the patio. We need it cleared urgently.\n\nThank you,\nCarol Norris"
+  }
+ },
+ {
+  "intent": "complaint",
+  "email": {
+   "from": "barry.scott@gmail.com",
+   "subject": "Complaint - technician arrived over two hours late",
+   "body": "Hello,\n\nYour technician was supposed to arrive between 10am and 12pm but did not arrive until 2:30pm.\n\nI had to take time off work and received no prior warning about the delay. This is completely unacceptable.\n\nI would like a formal response.\n\nBarry Scott"
+  }
+ },
+ {
+  "intent": "complaint",
+  "email": {
+   "from": "sharon.gibbs@gmail.com",
+   "subject": "Leak came back the very next day after repair",
+   "body": "Hi,\n\nYour plumber repaired a leak yesterday, but it has already restarted overnight.\n\nI am very unhappy that the problem was not properly fixed.\n\nPlease send someone back immediately.\n\nSharon Gibbs"
+  }
+ },
+ {
+  "intent": "complaint",
+  "email": {
+   "from": "terry.price@gmail.com",
+   "subject": "Plumber left a huge mess after the visit",
+   "body": "Hello,\n\nAfter the repair, your technician left the bathroom in a terrible state.\n\nThere was debris and dirty water left on the floor and tiles.\n\nI am very disappointed with the lack of care shown.\n\nTerry Price"
+  }
+ },
+ {
+  "intent": "complaint",
+  "email": {
+   "from": "janet.burns@gmail.com",
+   "subject": "Charged more than the agreed quote",
+   "body": "Hi,\n\nThe final invoice was significantly higher than the quote I was given before work started.\n\nNo one told me the price had changed. I am unhappy and would like an explanation.\n\nJanet Burns"
+  }
+ },
+ {
+  "intent": "complaint",
+  "email": {
+   "from": "chris.doyle@gmail.com",
+   "subject": "Plumber said it wasn't their problem and left",
+   "body": "Hello,\n\nYour technician came out but said the issue was not within scope and left without doing anything.\n\nI have been charged a call-out fee for nothing. I am very frustrated and unhappy with this outcome.\n\nChris Doyle"
+  }
+ },
+ {
+  "intent": "complaint",
+  "email": {
+   "from": "anne.hughes@gmail.com",
+   "subject": "Appointment was cancelled without any notice",
+   "body": "Hi,\n\nI took a day off work for today's appointment and received no confirmation or cancellation message.\n\nI wasted an entire day waiting at home. This is a very poor level of service.\n\nAnne Hughes"
+  }
+ },
+ {
+  "intent": "complaint",
+  "email": {
+   "from": "gary.watts@gmail.com",
+   "subject": "Still waiting for a callback promised over a week ago",
+   "body": "Hello,\n\nI was told a manager would call me back within 48 hours to discuss a complaint.\n\nIt has now been over a week and I have heard nothing. This is extremely poor customer service.\n\nGary Watts"
+  }
+ },
+ {
+  "intent": "complaint",
+  "email": {
+   "from": "helen.cross@gmail.com",
+   "subject": "Work was done so badly we had to call another company",
+   "body": "Hi,\n\nThe repair carried out by your team was of such poor quality that we had to hire a different plumber to redo it.\n\nWe are very dissatisfied and would like to raise a formal complaint.\n\nHelen Cross"
+  }
+ },
+ {
+  "intent": "feedback",
+  "email": {
+   "from": "sophie.dean@gmail.com",
+   "subject": "Fantastic service today - really impressed",
+   "body": "Hello,\n\nJust a quick note to say your plumber today was absolutely fantastic.\n\nHe was polite, knowledgeable, and fixed the problem in no time. We are really impressed.\n\nWill definitely use you again!\n\nSophie Dean"
+  }
+ },
+ {
+  "intent": "feedback",
+  "email": {
+   "from": "ed.marsh@gmail.com",
+   "subject": "Very happy with how quickly you came out",
+   "body": "Hi,\n\nI wanted to say how pleased I was with your rapid response to my emergency call yesterday.\n\nYour technician arrived within the hour and sorted everything out efficiently.\n\nVery satisfied,\nEd Marsh"
+  }
+ },
+ {
+  "intent": "feedback",
+  "email": {
+   "from": "alice.cole@gmail.com",
+   "subject": "Outstanding service - will definitely recommend you",
+   "body": "Hello,\n\nI am writing to say how outstanding the service was during our recent bathroom plumbing work.\n\nEverything was done neatly and on time. I have already recommended you to two neighbours.\n\nBest regards,\nAlice Cole"
+  }
+ },
+ {
+  "intent": "feedback",
+  "email": {
+   "from": "oliver.cross@gmail.com",
+   "subject": "Engineer went above and beyond - thank you",
+   "body": "Hi,\n\nI just wanted to pass on how impressed I was with your engineer this morning.\n\nHe noticed an additional small leak we had not reported and fixed it at no extra charge. Truly excellent service.\n\nMany thanks,\nOliver Cross"
+  }
+ },
+ {
+  "intent": "feedback",
+  "email": {
+   "from": "margaret.flynn@gmail.com",
+   "subject": "So happy with how clean and tidy the work was",
+   "body": "Hello,\n\nI was pleasantly surprised by how little mess was left after the installation work.\n\nThe team was very professional and tidied up thoroughly before leaving. Very happy indeed.\n\nMargaret Flynn"
+  }
+ },
+ {
+  "intent": "feedback",
+  "email": {
+   "from": "peter.dale@gmail.com",
+   "subject": "Brilliant work on the boiler service",
+   "body": "Hi,\n\nThe annual boiler service carried out last week was superb.\n\nThe engineer was thorough, explained everything clearly, and was very polite throughout.\n\nWill certainly be booking again next year.\n\nPeter Dale"
+  }
+ },
+ {
+  "intent": "feedback",
+  "email": {
+   "from": "kate.vincent@gmail.com",
+   "subject": "Super professional team - no mess left behind",
+   "body": "Hello,\n\nI just wanted to say how professional your team was during the pipe repair yesterday.\n\nThey were extremely tidy and respectful of our home. We are very happy with the result.\n\nKind regards,\nKate Vincent"
+  }
+ },
+ {
+  "intent": "feedback",
+  "email": {
+   "from": "james.barry@gmail.com",
+   "subject": "Couldn't be happier with the repair service",
+   "body": "Hi,\n\nYour plumber did a wonderful job fixing the leak under our kitchen sink.\n\nHe was quick, friendly, and explained exactly what had gone wrong and how he fixed it. Very happy customer!\n\nJames Barry"
+  }
+ },
+ {
+  "intent": "warranty_claim",
+  "email": {
+   "from": "liam.cross@gmail.com",
+   "subject": "Shower you fitted last month is already leaking",
+   "body": "Hello,\n\nThe shower unit your team installed last month has started dripping from the hose connection.\n\nAs this should still be under warranty, I would like this repaired at no charge.\n\nLiam Cross"
+  }
+ },
+ {
+  "intent": "warranty_claim",
+  "email": {
+   "from": "naomi.hart@gmail.com",
+   "subject": "Tap repair from two weeks ago has already failed",
+   "body": "Hi,\n\nThe kitchen tap was repaired two weeks ago by your technician, but it has started dripping again.\n\nThis should be covered under your work guarantee. Please advise.\n\nNaomi Hart"
+  }
+ },
+ {
+  "intent": "warranty_claim",
+  "email": {
+   "from": "ben.porter@gmail.com",
+   "subject": "New boiler is already losing pressure again",
+   "body": "Hello,\n\nYou installed our new boiler six weeks ago and it has already started losing pressure regularly.\n\nI believe this is a fault and should be covered under the installation warranty.\n\nBen Porter"
+  }
+ },
+ {
+  "intent": "warranty_claim",
+  "email": {
+   "from": "sarah.byrne@gmail.com",
+   "subject": "Repaired pipe joint is dripping again",
+   "body": "Hi,\n\nThe pipe joint your plumber sealed last month under a guarantee has started leaking again.\n\nCould you send someone to re-inspect and repair under the warranty?\n\nSarah Byrne"
+  }
+ },
+ {
+  "intent": "warranty_claim",
+  "email": {
+   "from": "tom.gill@gmail.com",
+   "subject": "Sealant you applied has come away after three weeks",
+   "body": "Hello,\n\nThe silicone sealant applied around our bath three weeks ago has already started peeling away.\n\nI would like this rectified under warranty as it should last far longer.\n\nTom Gill"
+  }
+ },
+ {
+  "intent": "warranty_claim",
+  "email": {
+   "from": "carol.ward@gmail.com",
+   "subject": "Radiator valve replaced last month is stuck again",
+   "body": "Hi,\n\nThe thermostatic radiator valve you replaced last month is already seized and the radiator won't turn off.\n\nPlease send someone to fix this under the work guarantee.\n\nCarol Ward"
+  }
+ },
+ {
+  "intent": "warranty_claim",
+  "email": {
+   "from": "ian.gray@gmail.com",
+   "subject": "New toilet flush you fitted is not working properly",
+   "body": "Hello,\n\nThe toilet flush mechanism you replaced recently is already unreliable and often fails to flush fully.\n\nI believe this should be covered under warranty. Please arrange a return visit.\n\nIan Gray"
+  }
+ },
+ {
+  "intent": "warranty_claim",
+  "email": {
+   "from": "june.hall@gmail.com",
+   "subject": "Sink installed six weeks ago is already wobbling",
+   "body": "Hi,\n\nThe bathroom sink your team installed around six weeks ago has started to wobble when pressure is applied.\n\nI would like this inspected and corrected as it should still be within the guarantee period.\n\nJune Hall"
+  }
+ },
+ {
+  "intent": "replacement_request",
+  "email": {
+   "from": "adam.cole@gmail.com",
+   "subject": "The tap you installed is faulty - need a replacement",
+   "body": "Hello,\n\nThe tap fitted by your team is already showing signs of a manufacturing defect.\n\nRather than repair it again, I would like a full replacement with a different unit.\n\nAdam Cole"
+  }
+ },
+ {
+  "intent": "replacement_request",
+  "email": {
+   "from": "lisa.newman@gmail.com",
+   "subject": "Boiler part you replaced has broken again - want a replacement",
+   "body": "Hi,\n\nThe part replaced in our boiler last month has failed a second time.\n\nI would like to request a replacement of the entire component rather than another repair.\n\nLisa Newman"
+  }
+ },
+ {
+  "intent": "replacement_request",
+  "email": {
+   "from": "rob.gordon@gmail.com",
+   "subject": "Shower head you fitted is cracked - please replace it",
+   "body": "Hello,\n\nThe shower head installed by your engineer has developed a crack and is leaking.\n\nCould you arrange a replacement of the shower head please?\n\nRob Gordon"
+  }
+ },
+ {
+  "intent": "replacement_request",
+  "email": {
+   "from": "claire.hunt@gmail.com",
+   "subject": "Valve keeps failing repeatedly - I want a different brand",
+   "body": "Hi,\n\nThe valve you have repaired twice now keeps breaking down.\n\nI would like it replaced with a different make or model that is more reliable.\n\nClaire Hunt"
+  }
+ },
+ {
+  "intent": "replacement_request",
+  "email": {
+   "from": "derek.james@gmail.com",
+   "subject": "Stop repairing the same part - just replace the whole unit",
+   "body": "Hello,\n\nWe have had the same pump repaired three times in the past year.\n\nAt this point I would like the entire unit replaced rather than patched up again.\n\nDerek James"
+  }
+ },
+ {
+  "intent": "replacement_request",
+  "email": {
+   "from": "mary.walsh@gmail.com",
+   "subject": "The pipe fitting has failed twice - replace the whole section",
+   "body": "Hi,\n\nThe same pipe fitting has now failed twice despite being repaired each time.\n\nI would like a complete replacement of that section of pipework to resolve this once and for all.\n\nMary Walsh"
+  }
+ },
+ {
+  "intent": "replacement_request",
+  "email": {
+   "from": "alex.young@gmail.com",
+   "subject": "Filter you installed is already clogged - needs replacing",
+   "body": "Hello,\n\nThe water filter installed just a few weeks ago has already clogged up completely.\n\nCould you replace it with a higher capacity unit that won't need replacing so soon?\n\nAlex Young"
+  }
+ },
+ {
+  "intent": "replacement_request",
+  "email": {
+   "from": "rachel.dunn@gmail.com",
+   "subject": "Pump you replaced doesn't work either - need a new one",
+   "body": "Hi,\n\nThe replacement pump fitted last week has already stopped working.\n\nI would like a completely different pump model to be installed as a replacement.\n\nRachel Dunn"
+  }
+ },
+ {
+  "intent": "refund_request",
+  "email": {
+   "from": "paul.newman@gmail.com",
+   "subject": "I want my money back - the problem was never resolved",
+   "body": "Hello,\n\nI paid for a pipe repair two weeks ago but the leak has not been fixed.\n\nI would like a full refund as the service I paid for was not delivered.\n\nPaul Newman"
+  }
+ },
+ {
+  "intent": "refund_request",
+  "email": {
+   "from": "helen.grant@gmail.com",
+   "subject": "Your plumber didn't turn up - please refund my deposit",
+   "body": "Hi,\n\nYour technician never arrived for the appointment and I was not contacted.\n\nI paid a deposit upfront and I would like it refunded in full.\n\nHelen Grant"
+  }
+ },
+ {
+  "intent": "refund_request",
+  "email": {
+   "from": "mike.baker@gmail.com",
+   "subject": "You charged me twice on the invoice - please refund the difference",
+   "body": "Hello,\n\nI have reviewed my invoice and noticed the call-out fee was applied twice.\n\nCould you please refund the duplicate charge?\n\nMike Baker"
+  }
+ },
+ {
+  "intent": "refund_request",
+  "email": {
+   "from": "sue.rice@gmail.com",
+   "subject": "Wrong part was ordered - please refund the cost",
+   "body": "Hi,\n\nThe part your team ordered for the repair was incorrect and could not be fitted.\n\nI was charged for the part and would like a refund since it was not used.\n\nSue Rice"
+  }
+ },
+ {
+  "intent": "refund_request",
+  "email": {
+   "from": "david.carr@gmail.com",
+   "subject": "Cancelling the service - want my deposit back",
+   "body": "Hello,\n\nI have decided to cancel the planned work and would like my deposit returned.\n\nNothing has been started yet so I expect a full refund.\n\nDavid Carr"
+  }
+ },
+ {
+  "intent": "refund_request",
+  "email": {
+   "from": "emily.ross@gmail.com",
+   "subject": "Work not completed as agreed - requesting full refund",
+   "body": "Hi,\n\nThe work scope agreed in the quote was only partially completed but I was charged in full.\n\nI would like a refund for the portion of the work that was not done.\n\nEmily Ross"
+  }
+ },
+ {
+  "intent": "refund_request",
+  "email": {
+   "from": "tony.shaw@gmail.com",
+   "subject": "Your team damaged my floor - I want compensation",
+   "body": "Hello,\n\nDuring the repair, your technician cracked several tiles on our kitchen floor.\n\nI paid for the repair in full but have now also been left with damage costs. I would like compensation.\n\nTony Shaw"
+  }
+ },
+ {
+  "intent": "refund_request",
+  "email": {
+   "from": "fiona.black@gmail.com",
+   "subject": "Paid upfront but very unsatisfied - requesting refund",
+   "body": "Hi,\n\nI paid for the job in full before it started, but the result was completely unsatisfactory.\n\nThe problem remains and I would like a refund for the service.\n\nFiona Black"
+  }
+ },
+ {
+  "intent": "upgrade_inquiry",
+  "email": {
+   "from": "colin.ward@gmail.com",
+   "subject": "Can I upgrade from basic to premium maintenance cover?",
+   "body": "Hello,\n\nI currently have your basic annual maintenance plan and would like to know if I can upgrade to a premium package.\n\nWhat does the premium plan include that the basic one does not?\n\nColin Ward"
+  }
+ },
+ {
+  "intent": "upgrade_inquiry",
+  "email": {
+   "from": "wendy.marsh@gmail.com",
+   "subject": "What are the options for upgrading our old heating system?",
+   "body": "Hi,\n\nOur current heating system is quite old and we are interested in upgrading to a more modern and efficient option.\n\nCould you advise on what upgrades are available?\n\nWendy Marsh"
+  }
+ },
+ {
+  "intent": "upgrade_inquiry",
+  "email": {
+   "from": "phil.watts@gmail.com",
+   "subject": "Is there a priority response tier available?",
+   "body": "Hello,\n\nI am interested in a service level that guarantees faster response times for any issues.\n\nDo you offer a priority or VIP service tier I could upgrade to?\n\nPhil Watts"
+  }
+ },
+ {
+  "intent": "upgrade_inquiry",
+  "email": {
+   "from": "linda.foster@gmail.com",
+   "subject": "Can I add annual boiler service to my existing plan?",
+   "body": "Hi,\n\nI have your standard plumbing cover but would like to add an annual boiler service to the package.\n\nIs this possible and what would it cost to upgrade?\n\nLinda Foster"
+  }
+ },
+ {
+  "intent": "upgrade_inquiry",
+  "email": {
+   "from": "harry.brooks@gmail.com",
+   "subject": "Interested in upgrading to a whole-home water softener",
+   "body": "Hello,\n\nWe currently have a unit under the kitchen sink but would like to upgrade to a whole-home water softening system.\n\nCould you explain the options and costs?\n\nHarry Brooks"
+  }
+ },
+ {
+  "intent": "upgrade_inquiry",
+  "email": {
+   "from": "jan.burns@gmail.com",
+   "subject": "Looking to upgrade pipes throughout the house",
+   "body": "Hi,\n\nOur house still has original copper pipes and we are considering upgrading to modern push-fit plastic.\n\nWhat are the options and benefits of doing this?\n\nJan Burns"
+  }
+ },
+ {
+  "intent": "upgrade_inquiry",
+  "email": {
+   "from": "tom.stone@gmail.com",
+   "subject": "What is the difference between your standard and premium plans?",
+   "body": "Hello,\n\nI am considering upgrading my current service agreement but would like to understand the differences.\n\nCould you send me a comparison of the standard and premium service plans?\n\nTom Stone"
+  }
+ },
+ {
+  "intent": "upgrade_inquiry",
+  "email": {
+   "from": "vicky.lane@gmail.com",
+   "subject": "Can I add emergency cover to my service agreement?",
+   "body": "Hi,\n\nI would like to add emergency call-out cover to my existing maintenance agreement.\n\nIs this something I can upgrade to, and what would the additional cost be?\n\nVicky Lane"
+  }
+ },
+ {
+  "intent": "bulk_inquiry",
+  "email": {
+   "from": "mgr@greenlodgeestates.com",
+   "subject": "Plumbing contractor needed for 50-property portfolio",
+   "body": "Hello,\n\nWe manage a portfolio of 50 residential properties and are looking for a reliable plumbing contractor.\n\nCould you provide information on bulk pricing and service agreements?\n\nRegards,\nProperty Management Team"
+  }
+ },
+ {
+  "intent": "bulk_inquiry",
+  "email": {
+   "from": "facilities@steelworksinc.com",
+   "subject": "Corporate plumbing inquiry for factory maintenance",
+   "body": "Hi,\n\nWe run a mid-sized factory and need a plumbing company to handle regular maintenance and emergency call-outs.\n\nCould you discuss a corporate account arrangement?\n\nThank you,\nFacilities Manager"
+  }
+ },
+ {
+  "intent": "bulk_inquiry",
+  "email": {
+   "from": "admin@larchwood-ha.org",
+   "subject": "Seeking bulk quote for housing association with 100 units",
+   "body": "Hello,\n\nWe are a housing association managing 100 units across three sites.\n\nWe are looking for a plumbing company to provide a bulk service contract for ongoing maintenance and emergency response.\n\nBest regards,\nOperations Director"
+  }
+ },
+ {
+  "intent": "bulk_inquiry",
+  "email": {
+   "from": "contact@npmproperties.co.uk",
+   "subject": "Looking for plumbing partner for property management firm",
+   "body": "Hi,\n\nOur property management company is looking for a plumbing partner across our managed portfolio.\n\nCould you provide details on how you work with property managers and what commercial pricing looks like?\n\nThanks,\nNPM Properties"
+  }
+ },
+ {
+  "intent": "bulk_inquiry",
+  "email": {
+   "from": "landlord@ridgeviewrents.com",
+   "subject": "Need a company for all plumbing in 12 rental properties",
+   "body": "Hello,\n\nI own 12 rental properties and need a single plumbing company to handle all maintenance.\n\nDo you offer a landlord service agreement with discounted rates for multiple properties?\n\nBest,\nRidge View Rentals"
+  }
+ },
+ {
+  "intent": "bulk_inquiry",
+  "email": {
+   "from": "ops@sunfield-commercial.com",
+   "subject": "Long-term service agreement for commercial estate",
+   "body": "Hi,\n\nWe manage a commercial estate of office units and retail spaces.\n\nWe are interested in a long-term plumbing service agreement to cover all maintenance and emergency calls.\n\nThank you,\nOperations Team"
+  }
+ },
+ {
+  "intent": "bulk_inquiry",
+  "email": {
+   "from": "caretaker@unistudentliving.ac.uk",
+   "subject": "Student accommodation - need regular plumbing cover",
+   "body": "Hello,\n\nI am caretaker for a student accommodation block with 80 rooms.\n\nWe need a plumbing company on retainer for routine maintenance and emergency repairs throughout the academic year.\n\nBest regards,\nAccommodation Manager"
+  }
+ },
+ {
+  "intent": "bulk_inquiry",
+  "email": {
+   "from": "maint@citysquareproperty.co.uk",
+   "subject": "Maintenance manager seeking bulk plumbing provider",
+   "body": "Hi,\n\nAs maintenance manager for a group of mixed-use buildings, I am looking for a bulk plumbing provider.\n\nCould we arrange a meeting to discuss terms and coverage?\n\nThank you,\nMaintenance Manager"
+  }
+ },
+ {
+  "intent": "other",
+  "email": {
+   "from": "mike.carter@gmail.com",
+   "subject": "Just forwarding this email as requested",
+   "body": "Hi,\n\nPlease find forwarded below the email thread you asked me to send over.\n\nLet me know if you need anything else.\n\nMike Carter"
+  }
+ },
+ {
+  "intent": "other",
+  "email": {
+   "from": "diane.wood@gmail.com",
+   "subject": "Confirming receipt of your quote",
+   "body": "Hello,\n\nThis is just to confirm I have received the quote you sent over.\n\nI will review it and get back to you shortly.\n\nThank you,\nDiane Wood"
+  }
+ },
+ {
+  "intent": "other",
+  "email": {
+   "from": "bob.hill@gmail.com",
+   "subject": "Passing along my colleague's contact details",
+   "body": "Hi,\n\nAs discussed on the phone, here are my colleague's contact details.\n\nPlease feel free to get in touch with them directly.\n\nBob Hill"
+  }
+ },
+ {
+  "intent": "other",
+  "email": {
+   "from": "anna.rice@gmail.com",
+   "subject": "Just acknowledging your update",
+   "body": "Hello,\n\nThank you for the update. I just wanted to confirm that I received your message.\n\nNo action is needed from my end at this time.\n\nAnna Rice"
+  }
+ },
+ {
+  "intent": "other",
+  "email": {
+   "from": "john.cross@gmail.com",
+   "subject": "Forwarding the document you requested",
+   "body": "Hi,\n\nPlease find attached the document you asked for last week.\n\nLet me know if there is anything else you need.\n\nJohn Cross"
+  }
+ },
+ {
+  "intent": "other",
+  "email": {
+   "from": "claire.rowe@gmail.com",
+   "subject": "Just checking my email reaches the right address",
+   "body": "Hello,\n\nI just wanted to send a quick test to confirm this email address is correct.\n\nNo response needed.\n\nClaire Rowe"
+  }
+ },
+ {
+  "intent": "other",
+  "email": {
+   "from": "sam.pike@gmail.com",
+   "subject": "No action needed - just staying in touch",
+   "body": "Hi,\n\nThis is just a brief note to say I have not forgotten about our conversation.\n\nI will be in touch properly once I have made a decision.\n\nSam Pike"
+  }
+ },
+ {
+  "intent": "other",
+  "email": {
+   "from": "lucy.moon@gmail.com",
+   "subject": "Received your letter - thank you",
+   "body": "Hello,\n\nI just wanted to let you know I received the letter you sent.\n\nEverything looks fine and I appreciate you following up.\n\nLucy Moon"
+  }
+ },
+ {
+  "intent": "payment_inquiry",
+  "email": {
+   "from": "alice.mason@gmail.com",
+   "subject": "Question about accepted payment methods",
+   "body": "Hi,\n\nI was wondering what payment methods you accept for plumbing work.\n\nDo you take credit cards, bank transfer, or is it cash only?\n\nThank you,\nAlice Mason"
+  }
+ },
+ {
+  "intent": "payment_inquiry",
+  "email": {
+   "from": "tom.hunt@gmail.com",
+   "subject": "Can I pay in instalments for a large job?",
+   "body": "Hello,\n\nI have a large repiping job to do and the cost is quite significant.\n\nDo you offer any instalment payment options so I can spread the cost?\n\nBest regards,\nTom Hunt"
+  }
+ },
+ {
+  "intent": "payment_inquiry",
+  "email": {
+   "from": "helen.davies@gmail.com",
+   "subject": "Invoice query - not sure what I was charged for",
+   "body": "Hi,\n\nI received an invoice but some of the line items are not very clear to me.\n\nCould someone explain what each charge covers?\n\nThank you,\nHelen Davies"
+  }
+ },
+ {
+  "intent": "payment_inquiry",
+  "email": {
+   "from": "neil.ross@gmail.com",
+   "subject": "Is a deposit required before work begins?",
+   "body": "Hello,\n\nBefore I confirm the booking, I wanted to check whether a deposit is required upfront.\n\nIf so, how much and how do I pay it?\n\nBest,\nNeil Ross"
+  }
+ },
+ {
+  "intent": "payment_inquiry",
+  "email": {
+   "from": "karen.black@gmail.com",
+   "subject": "Do you send digital invoices or paper only?",
+   "body": "Hi,\n\nI prefer to receive invoices electronically for my records.\n\nDo you issue digital invoices by email?\n\nThanks,\nKaren Black"
+  }
+ },
+ {
+  "intent": "payment_inquiry",
+  "email": {
+   "from": "james.leigh@gmail.com",
+   "subject": "How long do I have to pay after the work is done?",
+   "body": "Hello,\n\nI was wondering what your payment terms are after job completion.\n\nHow many days do I have before payment is due?\n\nKind regards,\nJames Leigh"
+  }
+ },
+ {
+  "intent": "payment_inquiry",
+  "email": {
+   "from": "anna.ford@gmail.com",
+   "subject": "Was I charged a call-out fee on top of the repair?",
+   "body": "Hi,\n\nI noticed the total on my invoice was higher than expected.\n\nWas a separate call-out fee charged in addition to the repair cost?\n\nThank you,\nAnna Ford"
+  }
+ },
+ {
+  "intent": "payment_inquiry",
+  "email": {
+   "from": "david.murray@gmail.com",
+   "subject": "Can I pay by bank transfer for the upcoming job?",
+   "body": "Hello,\n\nI would prefer to settle the invoice via bank transfer rather than card.\n\nCould you send me your bank details so I can arrange payment?\n\nRegards,\nDavid Murray"
+  }
+ }
+]

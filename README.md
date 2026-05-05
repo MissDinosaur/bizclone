@@ -107,7 +107,7 @@ BizClone implements four main functional areas to automate business operations:
 
 ### 1. **Intelligent Email Processing & Response**
 - Automatically receives and processes incoming emails from customers
-- Classifies customer intent using mixed-strategy engine (keyword patterns + NLP)
+- Classifies customer intent using mixed-strategy engine (TF-IDF + Logistic Regression model
 - Generates intelligent, context-aware replies using RAG (Retrieval-Augmented Generation)
 - Escalates complex/urgent emails to business owner for review and approval
 - Auto-sends routine responses and sends owner-approved replies via Gmail
@@ -284,7 +284,7 @@ BizClone uses a sophisticated **mixed-strategy intent classifier** to accurately
 **Three-Level Classification Pipeline:**
 
 1. **Keyword Matching (Priority)** - Fast, high-confidence pattern matching
-   - Compiled regex patterns for 15 intent categories
+   - Compiled regex patterns for 16 intent categories
    - Examples: 
      - `appointment`: "book", "schedule", "when available", weekday mentions
      - `price_inquiry`: "price", "cost", "how much"  
