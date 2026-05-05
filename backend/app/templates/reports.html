@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Daily Report – BizClone Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Daily Report — {{ report.date }}</h1>
+</div>
+
+<div class="stat-grid">
+    <div class="card stat-card">
+        <div class="number">{{ report.total_calls }}</div>
+        <div class="label">Calls</div>
+    </div>
+    <div class="card stat-card">
+        <div class="number">{{ report.new_bookings }}</div>
+        <div class="label">New Bookings</div>
+    </div>
+    <div class="card stat-card">
+        <div class="number">{{ report.cancellations }}</div>
+        <div class="label">Cancellations</div>
+    </div>
+    <div class="card stat-card">
+        <div class="number">{{ report.reschedules }}</div>
+        <div class="label">Reschedules</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Appointments by Status</h2>
+    <table>
+        <thead><tr><th>Status</th><th>Count</th></tr></thead>
+        <tbody>
+        {% for status, count in report.status_breakdown.items() %}
+        <tr>
+            <td><span class="badge badge-{{ 'green' if status == 'scheduled' else 'yellow' if status == 'pending' else 'red' if status == 'canceled' else 'blue' }}">{{ status }}</span></td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Top Services</h2>
+    {% if report.top_services %}
+    <table>
+        <thead><tr><th>Service</th><th>Bookings</th></tr></thead>
+        <tbody>
+        {% for svc_name, cnt in report.top_services %}
+        <tr><td>{{ svc_name }}</td><td>{{ cnt }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--text-muted)">No service data for this period.</p>
+    {% endif %}
+</div>
+{% endblock %}

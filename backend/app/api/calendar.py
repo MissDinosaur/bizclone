@@ -22,10 +22,17 @@ from app.schemas.calendar import (
     CalendarDayView,
     CalendarWeekView,
     CalendarMonthView,
-    AvailabilityResponse
+    AvailabilityResponse,
+    CancelRequest,
+    RescheduleRequest,
+    CancelRescheduleResponse,
 )
 from app.services.calendar import CalendarService
-from app.services.scheduling import SchedulingService
+from app.services.scheduling import (
+    SchedulingService,
+    CancellationService,
+    RescheduleService,
+)
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/calendar", tags=["Calendar"])
@@ -33,6 +40,8 @@ router = APIRouter(prefix="/calendar", tags=["Calendar"])
 # Initialize services
 calendar_service = CalendarService()
 scheduler = SchedulingService()
+cancellation_service = CancellationService()
+reschedule_service = RescheduleService()
 
 
 @router.get(
@@ -47,18 +56,18 @@ async def get_day_view(
 ):
     """
     Get calendar view for a single day.
-    
+
     Args:
         target_date: Date to view (YYYY-MM-DD)
         db: Database session
-    
+
     Returns:
         CalendarDayView: Day view with appointments
     """
     logger.info("calendar_day_view_requested", date=target_date.isoformat())
-    
+
     day_view = calendar_service.get_day_view(db, target_date)
-    
+
     return day_view
 
 
@@ -74,18 +83,18 @@ async def get_week_view(
 ):
     """
     Get calendar view for a week.
-    
+
     Args:
         start_date: Week start date (YYYY-MM-DD)
         db: Database session
-    
+
     Returns:
         CalendarWeekView: Week view with daily breakdowns
     """
     logger.info("calendar_week_view_requested", start_date=start_date.isoformat())
-    
+
     week_view = calendar_service.get_week_view(db, start_date)
-    
+
     return week_view
 
 
@@ -102,12 +111,12 @@ async def get_month_view(
 ):
     """
     Get calendar view for a month.
-    
+
     Args:
         year: Year (e.g., 2026)
         month: Month (1-12)
         db: Database session
-    
+
     Returns:
         CalendarMonthView: Month view with daily breakdowns
     """
@@ -116,11 +125,11 @@ async def get_month_view(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Month must be between 1 and 12"
         )
-    
+
     logger.info("calendar_month_view_requested", year=year, month=month)
-    
+
     month_view = calendar_service.get_month_view(db, year, month)
-    
+
     return month_view
 
 
@@ -137,12 +146,12 @@ async def check_availability(
 ):
     """
     Check availability for a specific date.
-    
+
     Args:
         target_date: Date to check (YYYY-MM-DD)
         num_slots: Number of slots to return (1-20)
         db: Database session
-    
+
     Returns:
         AvailabilityResponse: Available time slots
     """
@@ -151,7 +160,7 @@ async def check_availability(
         date=target_date.isoformat(),
         num_slots=num_slots
     )
-    
+
     availability = calendar_service.get_availability(db, target_date, num_slots)
 
     return availability
@@ -397,3 +406,101 @@ async def update_existing_appointment(
 
     return updated
 
+
+
+# ====================================================================
+# Cancel / Reschedule Endpoints
+# ====================================================================
+
+
+@router.post(
+    "/appointments/cancel",
+    response_model=CancelRescheduleResponse,
+    summary="Cancel Appointment",
+    description="Cancel an existing appointment by ID or customer name + date",
+)
+async def cancel_appointment_endpoint(
+    body: CancelRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Cancel an appointment.
+
+    Accepts either ``appointment_id`` (preferred) or
+    ``customer_name`` + ``appointment_date`` for fuzzy lookup.
+    """
+    if not body.appointment_id and not body.customer_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provide appointment_id or customer_name",
+        )
+
+    result = cancellation_service.cancel(
+        db,
+        appointment_id=body.appointment_id,
+        customer_name=body.customer_name,
+        scheduled_date=body.appointment_date,
+        reason=body.reason,
+    )
+
+    if not result.success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=result.message,
+        )
+
+    return CancelRescheduleResponse(
+        success=True,
+        appointment_id=result.appointment_id,
+        message=result.message,
+        action="cancel",
+    )
+
+
+@router.post(
+    "/appointments/reschedule",
+    response_model=CancelRescheduleResponse,
+    summary="Reschedule Appointment",
+    description="Reschedule an existing appointment to a new time",
+)
+async def reschedule_appointment_endpoint(
+    body: RescheduleRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Reschedule an appointment.
+
+    Accepts ``appointment_id`` (preferred) or
+    ``customer_name`` + ``appointment_date`` for lookup, plus
+    ``new_start_time`` (required).
+    """
+    if not body.appointment_id and not body.customer_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provide appointment_id or customer_name",
+        )
+
+    result = reschedule_service.reschedule(
+        db,
+        new_start_time=body.new_start_time,
+        appointment_id=body.appointment_id,
+        customer_name=body.customer_name,
+        scheduled_date=body.appointment_date,
+        new_end_time=body.new_end_time,
+        reason=body.reason,
+    )
+
+    if not result.success:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=result.message,
+        )
+
+    return CancelRescheduleResponse(
+        success=True,
+        appointment_id=result.appointment_id,
+        message=result.message,
+        action="reschedule",
+        new_start_time=result.new_start,
+        new_end_time=result.new_end,
+    )

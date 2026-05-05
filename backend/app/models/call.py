@@ -44,7 +44,7 @@ class Call(Base):
     # Primary Key
     id = Column(String, primary_key=True, default=generate_uuid, index=True)
     
-    # Twilio Information
+    # Call Identification
     call_sid = Column(String, unique=True, nullable=False, index=True)
     
     # Customer Reference
@@ -62,7 +62,7 @@ class Call(Base):
     recording_sid = Column(String, nullable=True)
     recording_duration = Column(Integer, nullable=True)
     
-    # Location Information (from Twilio)
+    # Location Information
     from_city = Column(String, nullable=True)
     from_state = Column(String, nullable=True)
     from_country = Column(String, nullable=True)

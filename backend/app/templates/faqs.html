@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}FAQs – BizClone Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>FAQs</h1>
+    <a href="/admin/faqs/new" class="btn btn-primary">+ Add FAQ</a>
+</div>
+
+<div class="card">
+    <table>
+        <thead><tr><th style="width:40%">Question</th><th>Answer</th><th style="width:120px">Actions</th></tr></thead>
+        <tbody>
+        {% for faq in faqs %}
+        <tr>
+            <td>{{ faq.question }}</td>
+            <td>{{ faq.answer[:120] }}{{ '…' if faq.answer|length > 120 else '' }}</td>
+            <td class="actions">
+                <a href="/admin/faqs/{{ faq.id }}/edit" class="btn btn-primary btn-sm">Edit</a>
+                <form method="POST" action="/admin/faqs/{{ faq.id }}/delete" style="display:inline" onsubmit="return confirm('Delete this FAQ?')">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if not faqs %}
+    <p style="color:var(--text-muted);padding:1rem 0">No FAQs configured.</p>
+    {% endif %}
+</div>
+{% endblock %}

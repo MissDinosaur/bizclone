@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BizClone Admin{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🔧 BizClone Admin</div>
+        <ul class="nav-links">
+            <li><a href="/admin/" class="{% if active == 'dashboard' %}active{% endif %}">Dashboard</a></li>
+            <li><a href="/admin/services" class="{% if active == 'services' %}active{% endif %}">Services</a></li>
+            <li><a href="/admin/faqs" class="{% if active == 'faqs' %}active{% endif %}">FAQs</a></li>
+            <li><a href="/admin/reports" class="{% if active == 'reports' %}active{% endif %}">Reports</a></li>
+        </ul>
+    </nav>
+    <main class="container">
+        {% if flash_message %}
+        <div class="alert alert-{{ flash_type|default('info') }}">{{ flash_message }}</div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">
+        <p>&copy; 2026 BizClone &mdash; AI Plumbing Assistant</p>
+    </footer>
+</body>
+</html>

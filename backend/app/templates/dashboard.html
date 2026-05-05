@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – BizClone Admin{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Dashboard</h1></div>
+
+<div class="stat-grid">
+    <div class="card stat-card">
+        <div class="number">{{ stats.total_services }}</div>
+        <div class="label">Services</div>
+    </div>
+    <div class="card stat-card">
+        <div class="number">{{ stats.total_faqs }}</div>
+        <div class="label">FAQs</div>
+    </div>
+    <div class="card stat-card">
+        <div class="number">{{ stats.total_calls }}</div>
+        <div class="label">Total Calls</div>
+    </div>
+    <div class="card stat-card">
+        <div class="number">{{ stats.total_appointments }}</div>
+        <div class="label">Appointments</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Recent Appointments</h2>
+    {% if recent_appointments %}
+    <table>
+        <thead><tr><th>ID</th><th>Service</th><th>Status</th><th>Scheduled</th></tr></thead>
+        <tbody>
+        {% for appt in recent_appointments %}
+        <tr>
+            <td>{{ appt.id[:8] }}…</td>
+            <td>{{ appt.service_type or '—' }}</td>
+            <td><span class="badge badge-{{ 'green' if appt.status.value == 'scheduled' else 'yellow' if appt.status.value == 'pending' else 'red' if appt.status.value == 'canceled' else 'blue' }}">{{ appt.status.value }}</span></td>
+            <td>{{ appt.scheduled_time_start.strftime('%Y-%m-%d %H:%M') if appt.scheduled_time_start else '—' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--text-muted)">No appointments yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

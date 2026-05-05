@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if service else 'New' }} Service – BizClone Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>{{ 'Edit' if service else 'Add' }} Service</h1>
+</div>
+
+<div class="card">
+    <form method="POST" action="/admin/services/{{ 'update/' ~ service.id if service else 'create' }}">
+        <div class="form-group">
+            <label for="service_key">Service Key</label>
+            <input type="text" id="service_key" name="service_key" value="{{ service.service_key if service else '' }}" placeholder="e.g. drain_cleaning" required {{ 'readonly' if service else '' }}>
+        </div>
+        <div class="form-group">
+            <label for="name">Display Name</label>
+            <input type="text" id="name" name="name" value="{{ service.name if service else '' }}" placeholder="e.g. Drain Cleaning" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" required>{{ service.description if service else '' }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="price">Price</label>
+            <input type="text" id="price" name="price" value="{{ service.price if service else '' }}" placeholder="e.g. $85–$150" required>
+        </div>
+        <button type="submit" class="btn btn-primary">{{ 'Update' if service else 'Create' }} Service</button>
+        <a href="/admin/services" class="btn" style="margin-left:0.5rem">Cancel</a>
+    </form>
+</div>
+{% endblock %}

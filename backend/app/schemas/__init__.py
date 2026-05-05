@@ -2,7 +2,6 @@
 Pydantic schemas for API requests and responses.
 """
 from app.schemas.health import HealthCheck, ServiceStatus
-from app.schemas.twilio import TwilioInboundCall, TwilioCallStatus, TwiMLResponse
 from app.schemas.calendar import (
     AppointmentBase,
     AppointmentCreate,
@@ -13,14 +12,14 @@ from app.schemas.calendar import (
     CalendarMonthView,
     AvailableSlot,
     AvailabilityResponse,
+    CancelRequest,
+    RescheduleRequest,
+    CancelRescheduleResponse,
 )
 
 __all__ = [
     "HealthCheck",
     "ServiceStatus",
-    "TwilioInboundCall",
-    "TwilioCallStatus",
-    "TwiMLResponse",
     "AppointmentBase",
     "AppointmentCreate",
     "AppointmentUpdate",
@@ -30,4 +29,7 @@ __all__ = [
     "CalendarMonthView",
     "AvailableSlot",
     "AvailabilityResponse",
+    "CancelRequest",
+    "RescheduleRequest",
+    "CancelRescheduleResponse",
 ]

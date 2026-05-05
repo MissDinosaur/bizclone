@@ -1,6 +1,6 @@
 """
 n8n webhook endpoints for handling simulated voice calls.
-This is used for local testing and development without Twilio.
+This is used for local testing and development.
 """
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status
 from typing import Optional

@@ -92,7 +92,7 @@ def log_call_event(
     Args:
         logger: Logger instance
         event_type: Type of event (e.g., "call_started", "transcription_complete")
-        call_sid: Twilio call SID
+        call_sid: Call session ID
         **kwargs: Additional fields to log
     """
     logger.info(

@@ -6,13 +6,18 @@ Main entry point for the voice-only AI assistant backend.
 from app.core import pydantic_patch  # noqa: F401
 
 from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config.settings import settings
 from app.core.logging import get_logger
 from app.core.middleware import setup_middleware
-from app.api import health, twilio_webhooks, n8n_webhooks, calendar, system
+from app.api import health, n8n_webhooks, calendar, system
+from app.api import admin as admin_ui
+from app.api import reports as reports_api
 from app.core.business_data_loader import load_business_data
 from app.db.session import SessionLocal
 
@@ -73,12 +78,18 @@ app = FastAPI(
 # Setup middleware
 setup_middleware(app)
 
+# Mount static files
+_static_dir = Path(__file__).parent / "static"
+if _static_dir.is_dir():
+    app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
+
 # Include routers
 app.include_router(health.router)
-app.include_router(twilio_webhooks.router)
 app.include_router(n8n_webhooks.router)
 app.include_router(calendar.router)
 app.include_router(system.router)
+app.include_router(admin_ui.router)
+app.include_router(reports_api.router)
 
 
 @app.get("/", include_in_schema=False)

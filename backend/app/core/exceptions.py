@@ -33,9 +33,9 @@ class DatabaseError(BizCloneException):
         super().__init__(message, status_code=500, details=details)
 
 
-class TwilioWebhookError(BizCloneException):
-    """Raised when there's an error processing Twilio webhook."""
-    
+class RecordingDownloadError(BizCloneException):
+    """Raised when there's an error downloading a recording."""
+
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
         super().__init__(message, status_code=400, details=details)
 

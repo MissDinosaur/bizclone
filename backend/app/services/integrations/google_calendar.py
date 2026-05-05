@@ -31,21 +31,35 @@ def _get_credentials():
     if _creds is not None:
         return _creds
 
+    import os
+
+    # Step 1: get path from settings or env
     path = getattr(settings, "google_credentials_file", None) or ""
     if not path:
-        import os
         path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
+
     if not path:
+        # fallback to project-root safe path
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        path = os.path.join(BASE_DIR, "credentials", "google_calendar.json")
+
+    # Step 2: check file exists (VERY IMPORTANT DEBUG STEP)
+    if not os.path.exists(path):
+        logger.warning(
+            "google_calendar_credentials_missing",
+            path=path,
+        )
         return None
 
     try:
         from google.oauth2 import service_account
+
         _creds = service_account.Credentials.from_service_account_file(
             path,
-            # Full calendar scope is needed to list *and* create events.
             scopes=["https://www.googleapis.com/auth/calendar"],
         )
         return _creds
+
     except Exception as e:
         logger.warning(
             "google_calendar_credentials_failed",
@@ -325,6 +339,110 @@ def create_calendar_event(
             error=str(e),
         )
         return None
+
+
+def delete_calendar_event(
+    event_id: str,
+    calendar_id: Optional[str] = None,
+) -> bool:
+    """
+    Delete a Google Calendar event by its event ID.
+
+    Returns ``True`` if deleted successfully, ``False`` otherwise.
+    """
+    if calendar_id is None:
+        calendar_id = _get_target_calendar_id()
+
+    service = _build_service()
+    if not service:
+        logger.debug(
+            "google_calendar_delete_skipped",
+            reason="no_credentials_or_service",
+        )
+        return False
+
+    try:
+        service.events().delete(
+            calendarId=calendar_id, eventId=event_id
+        ).execute()
+        logger.info(
+            "google_calendar_event_deleted",
+            event_id=event_id,
+            calendar_id=calendar_id,
+        )
+        return True
+    except Exception as e:
+        logger.warning(
+            "google_calendar_event_delete_failed",
+            event_id=event_id,
+            calendar_id=calendar_id,
+            error=str(e),
+        )
+        return False
+
+
+def update_calendar_event(
+    event_id: str,
+    summary: Optional[str] = None,
+    start_time: Optional[datetime] = None,
+    duration_minutes: int = 60,
+    description: Optional[str] = None,
+    calendar_id: Optional[str] = None,
+) -> bool:
+    """
+    Update an existing Google Calendar event.
+
+    Only the fields provided (non-``None``) are changed.
+    Returns ``True`` on success, ``False`` on failure.
+    """
+    if calendar_id is None:
+        calendar_id = _get_target_calendar_id()
+
+    service = _build_service()
+    if not service:
+        logger.debug(
+            "google_calendar_update_skipped",
+            reason="no_credentials_or_service",
+        )
+        return False
+
+    try:
+        # Fetch existing event
+        existing = (
+            service.events()
+            .get(calendarId=calendar_id, eventId=event_id)
+            .execute()
+        )
+
+        if summary is not None:
+            existing["summary"] = summary
+        if description is not None:
+            existing["description"] = description
+        if start_time is not None:
+            end_time = start_time + timedelta(minutes=duration_minutes)
+            existing["start"] = {"dateTime": _to_rfc3339(start_time)}
+            existing["end"] = {"dateTime": _to_rfc3339(end_time)}
+
+        service.events().update(
+            calendarId=calendar_id,
+            eventId=event_id,
+            body=existing,
+        ).execute()
+
+        logger.info(
+            "google_calendar_event_updated",
+            event_id=event_id,
+            calendar_id=calendar_id,
+        )
+        return True
+    except Exception as e:
+        logger.warning(
+            "google_calendar_event_update_failed",
+            event_id=event_id,
+            calendar_id=calendar_id,
+            error=str(e),
+        )
+        return False
 
 
 # ---------------------------------------------------------------------------

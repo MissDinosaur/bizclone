@@ -41,7 +41,7 @@ logger = get_logger(__name__)
 
 class TranscriptionTask(Task):
     """Base task for transcription with retry logic."""
-    
+
     autoretry_for = (TranscriptionError, Exception)
     retry_kwargs = {"max_retries": 3, "countdown": 5}
     retry_backoff = True
@@ -62,12 +62,12 @@ def transcribe_audio_task(
 ) -> dict:
     """
     Transcribe an audio file and store the result in the database.
-    
+
     Args:
         call_id: UUID of the call
         audio_file_path: Path to the audio file
         language: Optional language code
-    
+
     Returns:
         dict: Transcription result metadata
     """
@@ -78,9 +78,9 @@ def transcribe_audio_task(
         audio_file_path=audio_file_path,
         retry_count=self.request.retries
     )
-    
+
     db = SessionLocal()
-    
+
     try:
         # Get call from database
         call = get_call_by_id(db, call_id=call_id)
@@ -88,7 +88,7 @@ def transcribe_audio_task(
             logger.error("call_not_found", call_id=call_id)
             db.rollback()
             raise ValueError(f"Call not found: {call_id}")
-        
+
         # Create transcription event
         create_call_event(
             db,
@@ -101,16 +101,16 @@ def transcribe_audio_task(
                 "retry_count": self.request.retries
             }
         )
-        
+
         # Initialize transcription service
         transcription_service = WhisperTranscriptionService()
-        
+
         # Transcribe audio
         result = transcription_service.transcribe_file(
             audio_file_path=audio_file_path,
             language=language
         )
-        
+
         # Store transcript in database
         transcript = create_transcript(
             db,
@@ -123,14 +123,14 @@ def transcribe_audio_task(
             audio_duration_seconds=result.duration,
             audio_file_path=audio_file_path
         )
-        
+
         # Update call with transcript summary
         update_call_by_sid(
             db,
             call_sid=call.call_sid,
             summary=result.text[:500] if len(result.text) > 500 else result.text
         )
-        
+
         # Create completion event
         create_call_event(
             db,
@@ -146,7 +146,7 @@ def transcribe_audio_task(
                 "processing_time_seconds": result.processing_time
             }
         )
-        
+
         logger.info(
             "transcription_task_completed",
             task_id=self.request.id,
@@ -459,7 +459,119 @@ def extract_entities_task(
         # Extract entities
         result = extractor.extract(transcript_text)
 
-        # Create appointment record with extracted data
+        # ──────────────────────────────────────────────────────────
+        # STRICT INTENT ROUTING — decide action BEFORE creating
+        # any appointment record.  Cancel/reschedule must NEVER
+        # create a new appointment.
+        # ──────────────────────────────────────────────────────────
+        from app.services.scheduling.intent_router import route_intent
+
+        intent = call.intent  # may be None if classification failed
+        entities_dict = {
+            "requested_date": result.requested_date,
+            "requested_time": getattr(result, "requested_time", None),
+            "date_time_text": result.date_time_text,
+            "service_type": result.service_type,
+            "contact_name": result.contact_name,
+            "contact_phone": result.contact_phone,
+        }
+        routing = route_intent(
+            intent=intent or "",
+            entities=entities_dict,
+            transcript=transcript_text,
+        )
+
+        logger.info(
+            "intent_routing_decision",
+            call_id=call_id,
+            intent=intent,
+            action=routing.action,
+            reason=routing.reason,
+        )
+
+        # ── CANCEL: route directly, do NOT create appointment ────
+        if routing.action == "cancel":
+            try:
+                cancel_appointment_task.delay(
+                    call_id=call_id,
+                    customer_name=result.contact_name,
+                    reason=result.notes or "Customer requested cancellation",
+                )
+                logger.info(
+                    "cancel_task_routed",
+                    call_id=call_id,
+                )
+            except Exception as q_exc:
+                logger.warning(
+                    "cancel_task_queue_failed",
+                    call_id=call_id,
+                    error=str(q_exc),
+                )
+            _log_extraction_event(
+                db, call_id, self.request.id, result, routing
+            )
+            return {
+                "call_id": call_id,
+                "action": "cancel",
+                "service_type": result.service_type,
+            }
+
+        # ── RESCHEDULE: route directly, do NOT create appointment ─
+        if routing.action == "reschedule":
+            new_start = result.requested_date
+            if new_start is None:
+                logger.warning(
+                    "reschedule_missing_new_time",
+                    call_id=call_id,
+                )
+            try:
+                reschedule_appointment_task.delay(
+                    call_id=call_id,
+                    new_start_time=(
+                        new_start.isoformat() if new_start else
+                        ""
+                    ),
+                    customer_name=result.contact_name,
+                    reason=result.notes or "Customer requested reschedule",
+                )
+                logger.info(
+                    "reschedule_task_routed",
+                    call_id=call_id,
+                )
+            except Exception as q_exc:
+                logger.warning(
+                    "reschedule_task_queue_failed",
+                    call_id=call_id,
+                    error=str(q_exc),
+                )
+            _log_extraction_event(
+                db, call_id, self.request.id, result, routing
+            )
+            return {
+                "call_id": call_id,
+                "action": "reschedule",
+                "service_type": result.service_type,
+            }
+
+        # ── INFO-ONLY intents (pricing, availability, etc.) ──────
+        if routing.action == "info_only":
+            _log_extraction_event(
+                db, call_id, self.request.id, result, routing
+            )
+            logger.info(
+                "info_only_intent_no_booking",
+                call_id=call_id,
+                intent=intent,
+            )
+            return {
+                "call_id": call_id,
+                "action": "info_only",
+                "intent": intent,
+                "service_type": result.service_type,
+            }
+
+        # ── BOOKING (action == "book" or "book_with_warning") ────
+        # Only NOW do we create an appointment record.
         appointment = create_appointment(
             db,
             call_id=call_id,
@@ -478,7 +590,7 @@ def extract_entities_task(
             contact_phone=result.contact_phone,
             contact_email=result.contact_email,
             contact_name=result.contact_name,
-            notes=result.notes
+            notes=result.notes,
         )
 
         # Create or update conversation state
@@ -498,10 +610,9 @@ def extract_entities_task(
                             "has_date": result.requested_date is not None,
                             "has_location": result.address is not None,
                         }
-                    }
+                    },
                 )
             else:
-                # Update existing conversation with appointment
                 manager = ConversationManager(db)
                 manager.update_context(
                     conversation,
@@ -512,18 +623,17 @@ def extract_entities_task(
                             "urgency": result.urgency,
                             "has_date": result.requested_date is not None,
                             "has_location": result.address is not None,
-                        }
-                    }
+                        },
+                    },
                 )
         except Exception as conv_exc:
             logger.warning(
                 "conversation_state_update_failed",
                 call_id=call_id,
-                error=str(conv_exc)
+                error=str(conv_exc),
             )
-            # Don't fail extraction if conversation update fails
 
-        # Create event for extraction completed
+        # Log extraction event
         try:
             create_call_event(
                 db,
@@ -533,11 +643,12 @@ def extract_entities_task(
                     "task_id": self.request.id,
                     "appointment_id": appointment.id,
                     "service_type": result.service_type,
-                    "urgency": result.urgency
-                }
+                    "urgency": result.urgency,
+                    "routing_action": routing.action,
+                },
             )
         except Exception:
-            pass  # Don't fail if event creation fails
+            pass
 
         logger.info(
             "entity_extraction_task_completed",
@@ -545,33 +656,31 @@ def extract_entities_task(
             task_id=self.request.id,
             appointment_id=appointment.id,
             service_type=result.service_type,
-            urgency=result.urgency
+            urgency=result.urgency,
+            routing_action=routing.action,
         )
 
-        # Queue scheduling task to find and assign a time slot
+        # Queue scheduling task — ONLY for booking intents
         try:
-            # Get intent from call record
-            intent = call.intent or "booking"
             schedule_appointment_task.delay(
                 call_id,
                 str(appointment.id),
-                intent
+                intent or "booking",
             )
             logger.info(
                 "scheduling_task_queued",
                 call_id=call_id,
                 appointment_id=appointment.id,
                 intent=intent,
-                task_id=self.request.id
+                task_id=self.request.id,
             )
         except Exception as queue_exc:
             logger.warning(
                 "scheduling_task_queue_failed",
                 call_id=call_id,
                 appointment_id=appointment.id,
-                error=str(queue_exc)
+                error=str(queue_exc),
             )
-            # Don't fail entity extraction if queuing fails
 
         # Create task audit record
         try:
@@ -586,6 +695,7 @@ def extract_entities_task(
                     "appointment_id": str(appointment.id),
                     "service_type": result.service_type,
                     "urgency": result.urgency,
+                    "routing_action": routing.action,
                     "status": "success",
                 },
                 summary=f"Entities extracted for call {call_id}",
@@ -596,10 +706,11 @@ def extract_entities_task(
         return {
             "call_id": call_id,
             "appointment_id": appointment.id,
+            "action": routing.action,
             "service_type": result.service_type,
             "urgency": result.urgency,
             "has_date": result.requested_date is not None,
-            "has_location": result.address is not None
+            "has_location": result.address is not None,
         }
 
     except Exception as exc:
@@ -636,6 +747,46 @@ def extract_entities_task(
 
     finally:
         db.close()
+
+
+# ------------------------------------------------------------------
+# Helper: log extraction event for non-booking intents
+# ------------------------------------------------------------------
+
+def _log_extraction_event(db, call_id, task_id, result, routing):
+    """Log an extraction event for cancel/reschedule/info_only intents."""
+    try:
+        create_call_event(
+            db,
+            call_id=call_id,
+            event_type="entity_extraction_completed",
+            event_data={
+                "task_id": task_id,
+                "service_type": result.service_type,
+                "urgency": result.urgency,
+                "routing_action": routing.action,
+                "routing_reason": routing.reason,
+            },
+        )
+    except Exception:
+        pass
+    try:
+        create_record(
+            db,
+            record_type="task",
+            entity_id=call_id,
+            entity_type="call",
+            payload={
+                "task_name": "extract_entities",
+                "task_id": task_id,
+                "routing_action": routing.action,
+                "service_type": result.service_type,
+                "status": "success",
+            },
+            summary=f"Entities extracted (action={routing.action}) for call {call_id}",
+        )
+    except Exception:
+        pass
 
 
 @celery_app.task(name="detect_priority", bind=True)
@@ -1007,6 +1158,12 @@ def schedule_appointment_task(
                     description=description,
                 )
                 if event_id:
+                    # Persist event ID on appointment
+                    update_appointment(
+                        db,
+                        appointment_id=appointment_id,
+                        google_event_id=event_id,
+                    )
                     logger.info(
                         "google_calendar_event_success",
                         event_id=event_id,
@@ -1128,3 +1285,167 @@ def schedule_appointment_task(
     finally:
         db.close()
 
+
+
+# ====================================================================
+# Cancel / Reschedule Celery Tasks
+# ====================================================================
+
+
+@celery_app.task(bind=True, name="cancel_appointment")
+def cancel_appointment_task(
+    self,
+    call_id: str,
+    appointment_id: Optional[str] = None,
+    customer_name: Optional[str] = None,
+    scheduled_date: Optional[str] = None,
+    reason: Optional[str] = None,
+):
+    """
+    Celery task: cancel an appointment.
+
+    Can be triggered from the pipeline when intent == ``cancel``.
+    """
+    from app.services.scheduling.cancel import CancellationService
+    from datetime import datetime as _dt
+
+    logger.info(
+        "cancel_appointment_task_started",
+        call_id=call_id,
+        appointment_id=appointment_id,
+        customer_name=customer_name,
+        task_id=self.request.id,
+    )
+
+    db = SessionLocal()
+    try:
+        svc = CancellationService()
+        parsed_date = None
+        if scheduled_date:
+            try:
+                parsed_date = _dt.fromisoformat(scheduled_date)
+            except ValueError:
+                pass
+
+        result = svc.cancel(
+            db,
+            appointment_id=appointment_id,
+            customer_name=customer_name,
+            scheduled_date=parsed_date,
+            reason=reason,
+            call_id=call_id,
+        )
+
+        logger.info(
+            "cancel_appointment_task_completed",
+            success=result.success,
+            appointment_id=result.appointment_id,
+            message=result.message,
+        )
+        return {
+            "success": result.success,
+            "appointment_id": result.appointment_id,
+            "message": result.message,
+        }
+    except Exception as exc:
+        logger.error(
+            "cancel_appointment_task_error",
+            call_id=call_id,
+            error=str(exc),
+            exc_info=True,
+        )
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        return {"error": str(exc), "call_id": call_id}
+    finally:
+        db.close()
+
+
+@celery_app.task(bind=True, name="reschedule_appointment")
+def reschedule_appointment_task(
+    self,
+    call_id: str,
+    new_start_time: str,
+    appointment_id: Optional[str] = None,
+    customer_name: Optional[str] = None,
+    scheduled_date: Optional[str] = None,
+    new_end_time: Optional[str] = None,
+    reason: Optional[str] = None,
+):
+    """
+    Celery task: reschedule an appointment.
+
+    Can be triggered from the pipeline when intent == ``reschedule``.
+    """
+    from app.services.scheduling.reschedule import RescheduleService
+    from datetime import datetime as _dt
+
+    logger.info(
+        "reschedule_appointment_task_started",
+        call_id=call_id,
+        appointment_id=appointment_id,
+        new_start_time=new_start_time,
+        task_id=self.request.id,
+    )
+
+    db = SessionLocal()
+    try:
+        svc = RescheduleService()
+        parsed_start = _dt.fromisoformat(new_start_time)
+        parsed_end = (
+            _dt.fromisoformat(new_end_time)
+            if new_end_time else None
+        )
+        parsed_date = None
+        if scheduled_date:
+            try:
+                parsed_date = _dt.fromisoformat(scheduled_date)
+            except ValueError:
+                pass
+
+        result = svc.reschedule(
+            db,
+            new_start_time=parsed_start,
+            appointment_id=appointment_id,
+            customer_name=customer_name,
+            scheduled_date=parsed_date,
+            new_end_time=parsed_end,
+            reason=reason,
+            call_id=call_id,
+        )
+
+        logger.info(
+            "reschedule_appointment_task_completed",
+            success=result.success,
+            appointment_id=result.appointment_id,
+            message=result.message,
+        )
+        return {
+            "success": result.success,
+            "appointment_id": result.appointment_id,
+            "new_start": (
+                result.new_start.isoformat()
+                if result.new_start else None
+            ),
+            "new_end": (
+                result.new_end.isoformat()
+                if result.new_end else None
+            ),
+            "message": result.message,
+        }
+    except Exception as exc:
+        logger.error(
+            "reschedule_appointment_task_error",
+            call_id=call_id,
+            error=str(exc),
+            exc_info=True,
+        )
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        return {"error": str(exc), "call_id": call_id}
+    finally:
+        db.close()

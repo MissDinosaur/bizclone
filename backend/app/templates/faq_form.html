@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if faq else 'New' }} FAQ – BizClone Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>{{ 'Edit' if faq else 'Add' }} FAQ</h1>
+</div>
+
+<div class="card">
+    <form method="POST" action="/admin/faqs/{{ 'update/' ~ faq.id if faq else 'create' }}">
+        <div class="form-group">
+            <label for="question">Question</label>
+            <input type="text" id="question" name="question" value="{{ faq.question if faq else '' }}" placeholder="e.g. What are your business hours?" required>
+        </div>
+        <div class="form-group">
+            <label for="answer">Answer</label>
+            <textarea id="answer" name="answer" required>{{ faq.answer if faq else '' }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">{{ 'Update' if faq else 'Create' }} FAQ</button>
+        <a href="/admin/faqs" class="btn" style="margin-left:0.5rem">Cancel</a>
+    </form>
+</div>
+{% endblock %}

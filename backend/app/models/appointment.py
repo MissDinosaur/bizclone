@@ -114,6 +114,9 @@ class Appointment(Base):
     contact_email = Column(String, nullable=True)
     contact_name = Column(String, nullable=True)
     
+    # Google Calendar
+    google_event_id = Column(String, nullable=True, index=True)
+
     # Additional Notes
     notes = Column(Text, nullable=True)
     

@@ -79,7 +79,7 @@ def get_or_create_customer(db: Session, phone_number: str, **kwargs) -> Customer
 # ============================================================================
 
 def get_call_by_sid(db: Session, call_sid: str) -> Optional[Call]:
-    """Get call by Twilio Call SID."""
+    """Get call by Call SID."""
     return db.query(Call).filter(Call.call_sid == call_sid).first()
 
 
@@ -443,6 +443,60 @@ def update_appointment(
     return appointment
 
 
+def find_appointment_for_lookup(
+    db: Session,
+    appointment_id: Optional[str] = None,
+    customer_name: Optional[str] = None,
+    scheduled_date: Optional[datetime] = None,
+    statuses: Optional[List[str]] = None,
+) -> Optional[Appointment]:
+    """
+    Locate an appointment using the best available identifier.
+
+    Priority:
+      1. ``appointment_id`` (exact match)
+      2. ``customer_name`` + ``scheduled_date`` (fuzzy name, closest match)
+
+    Only appointments whose status is in *statuses* are considered.
+    Defaults to ``["scheduled", "confirmed", "pending"]``.
+    """
+    if statuses is None:
+        statuses = ["scheduled", "confirmed", "pending"]
+
+    # 1) Direct ID lookup
+    if appointment_id:
+        appt = get_appointment_by_id(db, appointment_id)
+        if appt and (appt.status.value if hasattr(appt.status, "value") else appt.status) in statuses:
+            return appt
+        return None
+
+    # 2) Name + optional date
+    query = db.query(Appointment).filter(
+        Appointment.status.in_(statuses)
+    )
+    if customer_name:
+        query = query.filter(
+            Appointment.contact_name.ilike(f"%{customer_name}%")
+        )
+    if scheduled_date:
+        from datetime import timedelta
+        day_start = scheduled_date.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        day_end = day_start + timedelta(days=1)
+        query = query.filter(
+            Appointment.scheduled_time_start >= day_start,
+            Appointment.scheduled_time_start < day_end,
+        )
+
+    # Return the closest upcoming appointment
+    appt = (
+        query.order_by(Appointment.scheduled_time_start.asc())
+        .first()
+    )
+    return appt
+
+
 # ============================================================================
 # Conversation State CRUD Operations
 # ============================================================================
@@ -698,6 +752,38 @@ def create_or_update_faq(
     db.commit()
     db.refresh(faq)
     return faq
+
+
+def get_service_by_id(db: Session, service_id: int) -> Optional[Service]:
+    """Get service by primary key."""
+    return db.query(Service).filter(Service.id == service_id).first()
+
+
+def delete_service(db: Session, service_id: int) -> bool:
+    """Delete a service by ID. Returns True if deleted."""
+    service = get_service_by_id(db, service_id)
+    if not service:
+        return False
+    db.delete(service)
+    db.commit()
+    logger.info("service_deleted", service_id=service_id)
+    return True
+
+
+def get_faq_by_id(db: Session, faq_id: int) -> Optional[FAQ]:
+    """Get FAQ by primary key."""
+    return db.query(FAQ).filter(FAQ.id == faq_id).first()
+
+
+def delete_faq(db: Session, faq_id: int) -> bool:
+    """Delete a FAQ by ID. Returns True if deleted."""
+    faq = get_faq_by_id(db, faq_id)
+    if not faq:
+        return False
+    db.delete(faq)
+    db.commit()
+    logger.info("faq_deleted", faq_id=faq_id)
+    return True
 
 
 # ============================================================================

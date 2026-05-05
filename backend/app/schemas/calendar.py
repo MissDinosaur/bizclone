@@ -142,7 +142,7 @@ class AvailabilityResponse(BaseModel):
     available_slots: List[AvailableSlot] = Field(..., description="Available time slots")
     total_slots: int = Field(..., description="Total slots in the day")
     available_count: int = Field(..., description="Number of available slots")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -152,4 +152,68 @@ class AvailabilityResponse(BaseModel):
                 "available_count": 5
             }
         }
+
+
+# -----------------------------------------------------------------------
+# Cancel / Reschedule Schemas
+# -----------------------------------------------------------------------
+
+class CancelRequest(BaseModel):
+    """Request body for cancelling an appointment."""
+
+    appointment_id: Optional[str] = Field(
+        None, description="Appointment ID (preferred lookup key)"
+    )
+    customer_name: Optional[str] = Field(
+        None, description="Customer name for fuzzy lookup"
+    )
+    appointment_date: Optional[datetime] = Field(
+        None, description="Scheduled date for fuzzy lookup"
+    )
+    reason: Optional[str] = Field(
+        None, description="Cancellation reason"
+    )
+
+
+class RescheduleRequest(BaseModel):
+    """Request body for rescheduling an appointment."""
+
+    appointment_id: Optional[str] = Field(
+        None, description="Appointment ID (preferred lookup key)"
+    )
+    customer_name: Optional[str] = Field(
+        None, description="Customer name for fuzzy lookup"
+    )
+    appointment_date: Optional[datetime] = Field(
+        None, description="Original scheduled date for lookup"
+    )
+    new_start_time: datetime = Field(
+        ..., description="Desired new start time"
+    )
+    new_end_time: Optional[datetime] = Field(
+        None,
+        description="Desired new end time (defaults to start + duration)",
+    )
+    reason: Optional[str] = Field(
+        None, description="Reschedule reason"
+    )
+
+
+class CancelRescheduleResponse(BaseModel):
+    """Shared response for cancel / reschedule endpoints."""
+
+    success: bool = Field(..., description="Whether the action succeeded")
+    appointment_id: Optional[str] = Field(
+        None, description="Appointment ID"
+    )
+    message: str = Field(..., description="Human-readable result message")
+    action: str = Field(
+        ..., description="Action performed: cancel | reschedule"
+    )
+    new_start_time: Optional[datetime] = Field(
+        None, description="New start time (reschedule only)"
+    )
+    new_end_time: Optional[datetime] = Field(
+        None, description="New end time (reschedule only)"
+    )
 
