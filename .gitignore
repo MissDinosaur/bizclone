@@ -73,8 +73,11 @@ celerybeat.pid
 *.mp3
 
 
+# Credentials
+backend/credentials/
+credentials/
+*.json
+!package.json
+
 # Added by ggshield
 .cache_ggshield
-
-
-backend/credentials/google_calendar.json

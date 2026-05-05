@@ -31,9 +31,6 @@ ffmpeg-python==0.2.0
 torch>=2.0.0
 torchaudio>=2.0.0
 
-# Twilio
-twilio==8.11.1
-
 # Google Calendar
 google-api-python-client>=2.100.0
 google-auth>=2.23.0
