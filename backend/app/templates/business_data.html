@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Business Data – BizClone Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>🏢 Business Data</h1>
+    <span class="badge badge-blue" style="font-size:0.85rem;padding:0.3rem 0.8rem;">Read-Only View</span>
+</div>
+
+<!-- Business Info -->
+<div class="card" style="border-left:4px solid var(--primary);">
+    <h2>Business Information</h2>
+    <table>
+        <tbody>
+            <tr><td style="font-weight:600;width:180px;">Business Name</td><td>{{ data.business_name }}</td></tr>
+            <tr><td style="font-weight:600;">Location</td><td>{{ data.location }}</td></tr>
+            <tr><td style="font-weight:600;">Business Type</td><td>{{ data.business_type }}</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Services -->
+<div class="card">
+    <h2>🔧 Services ({{ data.services|length }})</h2>
+    <table>
+        <thead><tr><th>Service</th><th>Description</th><th>Price</th></tr></thead>
+        <tbody>
+        {% for key, svc in data.services.items() %}
+        <tr>
+            <td style="font-weight:600;">{{ key.replace('_', ' ')|title }}</td>
+            <td>{{ svc.description }}</td>
+            <td><span class="badge badge-green">{{ svc.price }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Policies -->
+<div class="card">
+    <h2>📋 Policies ({{ data.policies|length }})</h2>
+    <table>
+        <thead><tr><th>Policy</th><th>Details</th></tr></thead>
+        <tbody>
+        {% for key, content in data.policies.items() %}
+        <tr>
+            <td style="font-weight:600;white-space:nowrap;">{{ key.replace('_', ' ')|title }}</td>
+            <td>{{ content }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- FAQs -->
+<div class="card">
+    <h2>❓ FAQs ({{ data.faqs|length }})</h2>
+    <table>
+        <thead><tr><th>#</th><th>Question</th><th>Answer</th></tr></thead>
+        <tbody>
+        {% for faq in data.faqs %}
+        <tr>
+            <td style="color:var(--text-muted);">{{ loop.index }}</td>
+            <td style="font-weight:600;">{{ faq.q }}</td>
+            <td>{{ faq.a }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

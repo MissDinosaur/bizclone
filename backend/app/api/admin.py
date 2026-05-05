@@ -1,6 +1,9 @@
 """
 Admin UI routes — Jinja2 server-side rendered pages for knowledge base management.
 """
+import json
+from pathlib import Path
+
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -155,4 +158,20 @@ def reports_page(request: Request, db: Session = Depends(get_db)):
     report = generate_daily_summary(db)
     return templates.TemplateResponse("reports.html", {
         "request": request, "active": "reports", "report": report,
+    })
+
+
+# ─── Business Data (read-only view) ──────────────────────────────────────────
+
+@router.get("/business-data", response_class=HTMLResponse)
+def business_data_page(request: Request):
+    json_path = Path(__file__).resolve().parent.parent / "core" / "business_data.json"
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {"business_name": "N/A", "location": "N/A", "business_type": "N/A",
+                "services": {}, "policies": {}, "faqs": []}
+    return templates.TemplateResponse("business_data.html", {
+        "request": request, "active": "business_data", "data": data,
     })
