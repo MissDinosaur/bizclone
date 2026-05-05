@@ -42,6 +42,12 @@ bizclone/
 │   ├── orm_models.py                   # SQLAlchemy models (6 tables)
 │   ├── initialization.py               # DB initialization
 │   └── init-db.sql                     # SQL schema
+|
+├── model/
+│   ├── intent_classifier.py              # Intent detection (mixed strategy)
+│   ├── intent_classifier_training.ipynb  # Botebook of intent classifier training
+│   ├── sample_customer_emails.json       # Training dataset
+│   └── intent_classifier_model.pkl       # Saved model  
 |     
 ├── channels/     
 │   ├── email/
@@ -51,7 +57,6 @@ bizclone/
 │   │   ├── email_history_store.py
 │   │   ├── email_watcher.py            # Gmail polling
 │   │   ├── gmail_client.py             # Gmail API wrapper
-│   │   ├── intent_classifier.py        # Intent detection (mixed strategy)
 │   │   ├── parser.py                   # Email parsing
 │   │   ├── review_store.py             # Escalation queue
 │   │   └── urgency_detector.py         # Urgency detector (by emergency keywords) 
@@ -107,7 +112,7 @@ BizClone implements four main functional areas to automate business operations:
 
 ### 1. **Intelligent Email Processing & Response**
 - Automatically receives and processes incoming emails from customers
-- Classifies customer intent using mixed-strategy engine (TF-IDF + Logistic Regression model
+- Classifies customer intent using mixed-strategy engine (TF-IDF + Logistic Regression model)
 - Generates intelligent, context-aware replies using RAG (Retrieval-Augmented Generation)
 - Escalates complex/urgent emails to business owner for review and approval
 - Auto-sends routine responses and sends owner-approved replies via Gmail
@@ -208,6 +213,8 @@ Customer Email (Cancellation Request)
         CANCELLATION COMPLETE ✓
 ```
 
+![Email Processing Workflow](email_processing_workflow.png)
+
 ### Key Features
 
 | Feature | Description |
@@ -281,26 +288,10 @@ BizClone provides JSON APIs for managing knowledge bases, email reviews, and cal
 
 BizClone uses a sophisticated **mixed-strategy intent classifier** to accurately categorize customer intents:
 
-**Three-Level Classification Pipeline:**
+**TF-IDF + Logistic Regression Classification ((hybrid word + character n-grams))** - Strong feature representation (TF-IDF + hybrid n-grams); Works very well on high-dimensional sparse text data
+   - Uses Word n-grams: capture semantic meaning and common phrases
+   - Uses Character n-grams: capture subword patterns, spelling variations, prefixes/suffixes, and robustness to noise.
 
-1. **Keyword Matching (Priority)** - Fast, high-confidence pattern matching
-   - Compiled regex patterns for 16 intent categories
-   - Examples: 
-     - `appointment`: "book", "schedule", "when available", weekday mentions
-     - `price_inquiry`: "price", "cost", "how much"  
-     - `complaint`: "terrible", "bad", "problem"
-   - Confidence: 0.6 - 0.95 (based on match count)
-
-2. **Zero-Shot NLP Classification** - Handles edge cases and nuanced language
-   - Uses SentenceTransformers with descriptive intent sentences
-   - Fallback when keyword matching uncertain
-   - Confidence: 0.0 - 1.0
-
-3. **Confidence-Based Fallback Logic** - Intelligent result selection
-   - Use keyword match if confidence > 0.7
-   - Use NLP result as fallback otherwise
-   - Prevents unreliable classifications
-   - Expected accuracy: 90-95%
 
 **15 Intent Categories:**
 `appointment`, `cancellation`, `price_inquiry`, `complaint`, `refund_request`, `follow_up`, `service_inquiry`, `testimonial`, `availability`, `rescheduling`, `general_inquiry`, `support`, `emergency`, `feedback`, `recommendation`
@@ -345,6 +336,16 @@ Set updated records is_active=Ture
 Set old version records is_active=False
 ```
 
+**Knowledge Base Incert Workflow**
+```text
+Business Owner create new KB in KB Manage UI
+    ↓
+Updating table knowledge_base
+    ↓
+Set updated records is_active=Ture
+```
+
+
 ### Database Architecture
 
 **PostgreSQL - 6 Core Tables:**
@@ -361,7 +362,7 @@ See [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) for full schema details
 ### Technologies Used
 - Programming Language: Python 3.10+
 - Backend Framework: FastAPI, Uvicorn
-- AI & NLP: SentenceTransformers, Retrieval-Augmented Generation (RAG)
+- AI & NLP: TF-IDF + Logistic Regression, Retrieval-Augmented Generation (RAG)
 - Vector Database: ChromaDB
 - Data Validation & Schemas: Pydantic
 - Testing: Pytest, FastAPI TestClient
@@ -396,7 +397,7 @@ The guide includes:
 | Feature | Implementation |
 |---------|-----------------|
 | **Multi-Channel Communication** | Email, Teams, WhatsApp, Calls (extensible channels) |
-| **Intelligent Intent Detection** | Mixed strategy (keyword + NLP) for 15 intent categories |
+| **Intelligent Intent Detection** | Mixed strategy (TF-IDF + Logistic Regression) for 16 intent categories |
 | **Email Escalation Logic** | Automatic vs. manual review based on urgency detection |
 | **Knowledge Base Management** | Versioned KB with UI for adding/editing entries |
 | **Appointment Scheduling** | LLM-based slot selection with owner modification |
@@ -427,10 +428,17 @@ Optional (Gmail, Teams integration):
 - `GMAIL_APP_PASSWORD` - Gmail app-specific password
 - Credentials file: `config/google/credentials.json` (OAuth setup)
 
+### 2. Supplement the data initialization file
+Follow the data format of database\customer_initialization.json and database\initial_email_kb.json to modify or supplement them as your business requires.
 
-### 2. Trigger Program
+customer_initialization.json is related to the birthday reminder function.
+
+initial_email_kb.json is the initial knowledge bata. It containes the kb about plumbing business by default. Please change it according to your business.
+
+### 3. Trigger Program
 **Option 1: Docker**
 ```bash
+# It will cost about half hour for the first time to build the images.
 cd bizclone
 docker-compose up -d --build
 # or sh start-docker.sh

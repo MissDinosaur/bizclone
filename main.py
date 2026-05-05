@@ -98,8 +98,8 @@ def startup_event():
     try:
         from scheduling.birthday_scheduler import BirthdayEmailScheduler
         # Send birthday emails at specific time
-        schedule_hour=21
-        schedule_minute=10
+        schedule_hour=8
+        schedule_minute=00
         birthday_scheduler = BirthdayEmailScheduler(
             schedule_hour=schedule_hour,  
             schedule_minute=schedule_minute

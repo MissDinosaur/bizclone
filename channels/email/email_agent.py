@@ -1,7 +1,7 @@
 import logging
 import json
 from channels.email.parser import parse_email
-from channels.email.intent_classifier import IntentClassifier
+from model.intent_classifier import IntentClassifier
 from channels.email.review_store import add_email_to_review
 from channels.email.urgency_detector import UrgencyDetector
 from scheduling.appointment_workflow import EmailAppointmentWorkflow

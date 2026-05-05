@@ -17,7 +17,10 @@ import config.config as cfg
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-ALLOWED_SENDERS = os.getenv("ALLOWED_SENDERS", "").split(",")
+
+# Building the whitelist
+allowed_raw = os.getenv("ALLOWED_SENDERS", "").strip()
+ALLOWED_SENDERS = [s.strip().lower() for s in allowed_raw.split(",") if s.strip()]
 
 class GmailClient:
     """
@@ -149,11 +152,13 @@ class GmailClient:
         emails = []
         for msg in messages:
             email_data = self._get_message(msg["id"])
-            
-            # Filter the Sender
-            if email_data.get("from") and any(sender.lower() in email_data["from"].lower() for sender in ALLOWED_SENDERS):
-                emails.append(email_data)
-
+            sender_email = email_data.get("from", "").lower()
+            if sender_email:
+                if not ALLOWED_SENDERS:
+                    emails.append(email_data)
+                # If existing whitelist ALLOWED_SENDERS then filter the Sender email address
+                elif any(allowed in sender_email for allowed in ALLOWED_SENDERS):
+                    emails.append(email_data)
                 # Mark as read after fetching
                 self.mark_as_read(msg["id"])
 

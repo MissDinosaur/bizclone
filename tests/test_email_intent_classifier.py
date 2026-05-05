@@ -2,7 +2,7 @@
 Tests for Email Intent Classifier functionality
 """
 import pytest
-from channels.email.intent_classifier import IntentClassifier
+from model.intent_classifier import IntentClassifier
 
 
 class TestIntentClassifier:

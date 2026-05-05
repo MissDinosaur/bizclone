@@ -19,7 +19,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from channels.email.email_agent import EmailAgent
-from channels.email.intent_classifier import IntentClassifier
+from model.intent_classifier import IntentClassifier
 from channels.email.booking_email_sender import BookingEmailSender
 
 logger = logging.getLogger(__name__)
