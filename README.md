@@ -123,7 +123,7 @@ BizClone implements four main functional areas to automate business operations:
 - Generates appointment confirmation emails with iCalendar (.ics) attachments
 - Owner can review and modify proposed slots before confirmation
 - Integrates with Google Calendar (multi-account support)
-- Creates bookings with automatic birthday reminders
+- Creates bookings with automatic birthday greetings
 
 ### 3. **Knowledge Base Management**
 - Centralizes business information: services, pricing, policies, FAQs
@@ -189,7 +189,6 @@ Step 7-8: Decision Logic Based on Urgency
 
 **Email Processing Workflow:**
 ![Email Processing Workflow](images/email_processing_workflow.png)
-
 
 ### Key Features
 
@@ -258,19 +257,18 @@ BizClone provides JSON APIs for managing knowledge bases, email reviews, and cal
 - Response: `{"id": "...", "customer_id": "...", "start_time": "...", "status": "..."}`
 
 
-## Channel Input
+## Email Channel Input
 
 ### Intent Classification System
 
 BizClone uses a sophisticated **mixed-strategy intent classifier** to accurately categorize customer intents:
 
-**TF-IDF + Logistic Regression Classification ((hybrid word + character n-grams))** - Strong feature representation (TF-IDF + hybrid n-grams); Works very well on high-dimensional sparse text data
+**TF-IDF + Logistic Regression Classification (hybrid word + character n-grams)** - Strong feature representation; Works very well on high-dimensional sparse text data; Achieved over 85% accuracy.
    - Uses Word n-grams: capture semantic meaning and common phrases
    - Uses Character n-grams: capture subword patterns, spelling variations, prefixes/suffixes, and robustness to noise.
 
-
-**15 Intent Categories:**
-`appointment`, `cancellation`, `price_inquiry`, `complaint`, `refund_request`, `follow_up`, `service_inquiry`, `testimonial`, `availability`, `rescheduling`, `general_inquiry`, `support`, `emergency`, `feedback`, `recommendation`
+**16 Intent Categories:**
+`appointment`, `cancellation`, `price_inquiry`, `complaint`, `refund_request`, `follow_up`, `service_inquiry`, `testimonial`, `availability`, `rescheduling`, `general_inquiry`, `support`, `emergency`, `feedback`, `recommendation`, `other`
 
 ### Knowledge Base
 
@@ -391,7 +389,7 @@ The guide includes:
 ### 1. Configure Environment Varaibles
 Before running BizClone, configure these environment variables:
 
-Copy .env.example and rename as .env file in project root and then edit .env accordingly.
+Copy .env.example and rename it as .env file in project root and then edit .env accordingly.
 
 **Example:**
 `DATABASE_URL` - PostgreSQL connection string
@@ -399,25 +397,24 @@ Copy .env.example and rename as .env file in project root and then edit .env acc
 DATABASE_URL="postgresql://bizclone_user:password@localhost:5432/bizclone_db"
 ```
 
-Optional (Gmail, Teams integration):
+Gmail Authentication:
 - `GMAIL_USER` - Gmail account for sending emails
 - `GMAIL_APP_PASSWORD` - Gmail app-specific password
 - Credentials file: `config/google/credentials.json` (OAuth setup)
 
-### 2. Supplement the data initialization file
-Follow the data format of database\customer_initialization.json and database\initial_email_kb.json to modify or supplement them as your business requires.
+### 2. Edit or supplement the data initialization file
+Follow the data format of database\customer_initialization.json and database\initial_email_kb.json to modify or supplement them as per your business domain.
 
-customer_initialization.json is related to the birthday reminder function.
+customer_initialization.json is related to the birthday greetings function.
 
-initial_email_kb.json is the initial knowledge bata. It containes the kb about plumbing business by default. Please change it according to your business.
+initial_email_kb.json is the initial knowledge data. It containes the kb about plumbing business by default. Please change it according to your business.
 
 ### 3. Trigger Program
 **Option 1: Docker**
+Note: It will cost about half hour for the first time to build the images.
 ```bash
-# It will cost about half hour for the first time to build the images.
 cd bizclone
 docker-compose up -d --build
-# or sh start-docker.sh
 ```
 Or
 ```bash
@@ -453,17 +450,17 @@ After starting the application, access the owner control panels:
 | **Email Review** | http://localhost:8000/review | Review & approve escalated emails |
 | **Calendar** | http://localhost:8000/calendar | View appointments and manage scheduling |
 
-Home Website:
+**Home website**
 ![home UI](images/home_ui.png)
 
 
-KB Management:
+**KB Management website**
 ![KB Management UI](images/KB_Management.png)
 
-
+**Email Review website**
 ![Email Review UI](images/email_review.png)
 
-Calendar website:
+**Calendar website**
 ![Calendar website](images/calendar_ui.png)
 
 
@@ -667,6 +664,7 @@ python -m pytest tests/ -v
 - Calendar integration with Google Calendar  
 - Multi-channel architecture foundation
 - Database schema optimized (removed unused tables)
+- Customer birthday greetings
 
 **In Progress:**
 - Teams channel implementation
