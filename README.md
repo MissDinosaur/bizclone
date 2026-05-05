@@ -1,7 +1,6 @@
 # BizClone - AI-Powered Assistant
-Please follow the project architecture in this branch to integrate your channel parts.
+**Note: This README.md file is of the Email Channel part.**
 
-Please refer to docs\CHANNEL_INTEGRATION.md for a better understanding.
 ## Project Overview
 
 Small enterprises—plumbers, mechanics, consultants, tutors, salon owners, and other service providers—face a critical challenge: managing customer communications and scheduling while delivering hands-on services. With limited staff and budget, these business owners often struggle to respond promptly to inquiries, manage appointments, and maintain consistent customer service quality.
@@ -164,14 +163,14 @@ Step 4: Urgency Detection (CRITICAL/HIGH/NORMAL)
 Step 5: Initialize Response Variables
     ↓
 Step 6: Generate Reply (with slot selection for appointments)
-    ├─ If appointment: Select best time slot via LLM
+    ├─ If appointment-related: Select best time slot via LLM
     └─ Generate reply with context
     ↓
 Step 7-8: Decision Logic Based on Urgency
     ├─ If NOT escalated → AUTO-SEND
     │  ├─ Send reply immediately
-    │  ├─ If appointment: send booking email with .ics
-    │  └─ Save Draft Reply to Email_History
+    │  ├─ If appointment-related: send booking email with .ics
+    │  └─ Save Draft Reply to Email_History  ✓
     │
     └─ If escalated → NEEDS OWNER REVIEW
        ├─ Add to Review Queue
@@ -184,36 +183,13 @@ Step 7-8: Decision Logic Based on Urgency
           ├─ Send final email
           ├─ Save approved reply to history
           ├─ If appointment: create booking with (possibly modified) slot
-          └─ Send booking confirmation with .ics
+          └─ Send booking confirmation with .ics  ✓
 ```
 
-```
-Customer Email (Cancellation Request)
-                    ↓
-        Intent Classification
-        "cancel" → cancellation
-                    ↓
-        Urgency Detection
-        NORMAL (auto-send)
-                    ↓
-        LLM Reply Generation
-        (via RAG pipeline)
-                    ↓
-        _handle_cancellation_request()
-        ├─ Validate BookingManager
-        ├─ Cancel appointment
-        ├─ Generate .ics cancellation
-        └─ Send confirmation
-                    ↓
-        Email Confirmation Sent
-        ├─ With .ics attachment
-        ├─ Maintains threading
-        └─ Calendar app updates
-                    ↓
-        CANCELLATION COMPLETE ✓
-```
 
-![Email Processing Workflow](email_processing_workflow.png)
+**Email Processing Workflow:**
+![Email Processing Workflow](images/email_processing_workflow.png)
+
 
 ### Key Features
 
@@ -477,6 +453,21 @@ After starting the application, access the owner control panels:
 | **Email Review** | http://localhost:8000/review | Review & approve escalated emails |
 | **Calendar** | http://localhost:8000/calendar | View appointments and manage scheduling |
 
+Home Website:
+![home UI](images/home_ui.png)
+
+
+KB Management:
+![KB Management UI](images/KB_Management.png)
+
+
+![Email Review UI](images/email_review.png)
+
+Calendar website:
+![Calendar website](images/calendar_ui.png)
+
+
+
 **Frontend Architecture:**
 - Client-side rendering with vanilla JavaScript + fetch API
 - APIs return JSON, JavaScript dynamically populates HTML templates
@@ -649,17 +640,12 @@ For more details, see [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) and [DOCKER_
 
 ---
 
-## Development
-
 ### Testing
 
 Run test suite:
 ```bash
 # Test email agent
-python -m pytest tests/test_email_agent.py -v
-
-# Test Gmail integration
-python -m pytest tests/test_gmail.py -v
+python -m pytest tests/test_urgency_detector.py -v
 
 # Test intent classification
 python -m pytest tests/test_email_intent_classifier.py -v
@@ -683,13 +669,13 @@ python -m pytest tests/ -v
 - Database schema optimized (removed unused tables)
 
 **In Progress:**
-- Fine-tuning intent classifier accuracy
 - Teams channel implementation
 
-**Planned:**
-- WhatsApp channel integration
-- Voice call channel support
+**Future Work:**
+- Design a multi-tenant architecture: allow multiple business owners each with isolated data, KB, and channel configuration.
+- Create a real-time dashboard with WebSocket updates instead of page refresh for review queue notifications.
 - Advanced RAG optimization
 - Performance monitoring dashboard
 - User authentication system
-- Rate limiting and security hardening
+- Add an analytics module: email volume by intent, response time distribution, booking conversion rate, urgency escalation rate.
+- Implement the customer portal: allow customers to self-serve booking management (view, cancel, reschedule) via a web link.
