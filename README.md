@@ -210,7 +210,6 @@ Step 7-8: Decision Logic Based on Urgency
 | [DOCKER_GUIDE.md](docs/DOCKER_GUIDE.md) | Docker deployment with PostgreSQL |
 | [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Complete database design & SQL reference |
 | [CHANNEL_INTEGRATION.md](docs/CHANNEL_INTEGRATION.md) | Email, Teams, WhatsApp channel setup |
-| [SCHEDULING_SYSTEM.md](docs/SCHEDULING_SYSTEM.md) | Appointment booking system |
 
 ---
 
