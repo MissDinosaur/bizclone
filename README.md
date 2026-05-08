@@ -44,7 +44,7 @@ bizclone/
 |
 ├── model/
 │   ├── intent_classifier.py              # Intent detection (mixed strategy)
-│   ├── intent_classifier_training.ipynb  # Botebook of intent classifier training
+│   ├── intent_classifier_training.ipynb  # Notebook of intent classifier training
 │   ├── sample_customer_emails.json       # Training dataset
 │   └── intent_classifier_model.pkl       # Saved model  
 |     
@@ -261,11 +261,13 @@ BizClone provides JSON APIs for managing knowledge bases, email reviews, and cal
 
 ### Intent Classification System
 
-BizClone uses a sophisticated **mixed-strategy intent classifier** to accurately categorize customer intents:
+After model selection, fine-running and training, a sophisticated **mixed-strategy intent classifier** is selected in this project to accurately categorize customer intents:
 
 **TF-IDF + Logistic Regression Classification (hybrid word + character n-grams)** - Strong feature representation; Works very well on high-dimensional sparse text data; Achieved over 85% accuracy.
    - Uses Word n-grams: capture semantic meaning and common phrases
    - Uses Character n-grams: capture subword patterns, spelling variations, prefixes/suffixes, and robustness to noise.
+
+For the model training details, please refer to [intent_classifier_training.ipynb](model/intent_classifier_training.ipynb).
 
 **16 Intent Categories:**
 `appointment`, `cancellation`, `price_inquiry`, `complaint`, `refund_request`, `follow_up`, `service_inquiry`, `testimonial`, `availability`, `rescheduling`, `general_inquiry`, `support`, `emergency`, `feedback`, `recommendation`, `other`
