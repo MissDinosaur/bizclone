@@ -203,17 +203,20 @@ def test_reschedule_specific_date_takes_priority_over_context_dates():
     prefs = assistant._extract_date_preferences_from_email(email)
     assert prefs["specific_date"] is not None
 
-    slots = [
-        "2026-04-23 09:00",
-        "2026-04-24 09:00",
-        "2026-04-24 10:00",
-    ]
+    target_date = datetime.fromisoformat(prefs["specific_date"])
+    target_slot = target_date.replace(hour=9, minute=0).strftime("%Y-%m-%d %H:%M")
+
+    context_date = target_date.replace(day=24)
+    context_slot_1 = context_date.replace(hour=9, minute=0).strftime("%Y-%m-%d %H:%M")
+    context_slot_2 = context_date.replace(hour=10, minute=0).strftime("%Y-%m-%d %H:%M")
+
+    slots = [target_slot, context_slot_1, context_slot_2]
 
     filtered = assistant._filter_slots_by_preferences(slots, prefs)
 
-    assert "2026-04-23 09:00" in filtered
-    assert "2026-04-24 09:00" not in filtered
-    assert "2026-04-24 10:00" not in filtered
+    assert target_slot in filtered
+    assert context_slot_1 not in filtered
+    assert context_slot_2 not in filtered
 
 
 def test_next_thursday_ignores_quoted_thread_old_date():
